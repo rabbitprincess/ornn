@@ -32,12 +32,12 @@ func (t *DB) Connect(driverName, dsn, dbName string) (err error) {
 	return nil
 }
 
-func (t *DB) SetOpenConns(_openConns, _idleConns int) {
-	if _openConns > 0 {
-		t.Db.SetMaxOpenConns(_openConns)
+func (t *DB) SetOpenConns(openConns, idleConns int) {
+	if openConns > 0 {
+		t.Db.SetMaxOpenConns(openConns)
 	}
-	if _idleConns > 0 {
-		t.Db.SetMaxIdleConns(_idleConns)
+	if idleConns > 0 {
+		t.Db.SetMaxIdleConns(idleConns)
 	}
 }
 

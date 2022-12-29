@@ -23,7 +23,7 @@ func (t *GenData) Init(db *db.DB) {
 	t.groups = make([]*GenDataGroup, 0, 10)
 }
 
-func (t *GenData) prepare_db_schema(config *config.Config) (err error) {
+func (t *GenData) SetData(config *config.Config) (err error) {
 	t.db.Exec("Insert from test_table")
 
 	// group
@@ -59,7 +59,7 @@ func (t *GenData) prepare_db_schema(config *config.Config) (err error) {
 					return fmt.Errorf("tpl format is wrong - %s", tpl)
 				}
 
-				genQuery.tpl.set_key_value(argName, argData)
+				genQuery.tpl.setKV(argName, argData)
 			}
 
 			// args ( % name % )를 배열로 추출
@@ -67,7 +67,7 @@ func (t *GenData) prepare_db_schema(config *config.Config) (err error) {
 			if err != nil {
 				return err
 			}
-			genQuery.arg.set_key(args)
+			genQuery.arg.setKs(args)
 
 			// %arg% -> ? # # +  /
 			sqlAfterArg := sql.Util__replace_str__between_delimiter(query.Sql, sql.DEF_s_sql__prepare_statement__delimiter, sql.DEF_s_sql__prepare_statement__after)
@@ -111,7 +111,7 @@ func (t *GenData) prepare_db_schema(config *config.Config) (err error) {
 				genQuery.query = sqlAfterArgTpl
 
 				// group list 에 func 추가
-				genGroup.add_query(genQuery)
+				genGroup.AddQuery(genQuery)
 			}
 		}
 	}
@@ -151,7 +151,7 @@ func (t *GenData) Select(conf *config.Config, table *config.Table, query *config
 				colType := col.DatabaseTypeName()
 				fldType = pt_rds.vendor.ConvType(colType)
 			}
-			genQuery.ret.set_key_value(fldName, fldType)
+			genQuery.ret.setKV(fldName, fldType)
 		}
 	}
 	// single select 처리
@@ -200,7 +200,7 @@ func (t *GenData) Insert(conf *config.Config, schema *config.Schema, table *conf
 				return fmt.Errorf("not exist field in schema | field name : %s", field.FldName)
 			}
 
-			genQuery.arg.set_key_value(field.FldName, schemaFld.TypeGen)
+			genQuery.arg.setKV(field.FldName, schemaFld.TypeGen)
 		}
 	}
 	// multi insert 처리
@@ -266,7 +266,7 @@ func (t *GenData) Update(conf *config.Config, schema *config.Schema, table *conf
 				genType = string(schemaFld.TypeGen)
 			}
 
-			genQuery.arg.set_key_value(field.FldName, genType)
+			genQuery.arg.setKV(field.FldName, genType)
 		}
 	}
 	// update 시 null 값 ignore 처리
@@ -298,15 +298,15 @@ type GenDataGroup struct {
 	Queries []*GenDataQuery
 }
 
-func (t *GenDataGroup) Set(_s_group_name string) {
+func (t *GenDataGroup) Set(Name string) {
 	if t.Queries == nil {
 		t.Queries = make([]*GenDataQuery, 0, 10)
 	}
-	t.Name = _s_group_name
+	t.Name = Name
 }
 
-func (t *GenDataGroup) add_query(_pt *GenDataQuery) {
-	t.Queries = append(t.Queries, _pt)
+func (t *GenDataGroup) AddQuery(query *GenDataQuery) {
+	t.Queries = append(t.Queries, query)
 }
 
 //------------------------------------------------------------------------------------------------------------//
@@ -346,27 +346,26 @@ type genDataStruct struct {
 	arrpt_pair []*Pair
 }
 
-func (t *genDataStruct) set_key(Keys []string) {
+func (t *genDataStruct) setKs(Keys []string) {
 	for _, s_field_name := range Keys {
-		t.set_key_value(s_field_name, "")
+		t.setKV(s_field_name, "")
 	}
 }
 
-func (t *genDataStruct) set_key_value(key string, valueNew string) {
+func (t *genDataStruct) setKV(key string, valueNew string) {
 	if t.arrpt_pair == nil {
 		t.arrpt_pair = make([]*Pair, 0, 10)
 	}
 
-	for _, pt_field_type := range t.arrpt_pair {
-		if pt_field_type.Key == key {
-			pt_field_type.Value = valueNew
+	for _, fld := range t.arrpt_pair {
+		if fld.Key == key {
+			fld.Value = valueNew
 			return
 		}
 	}
 
-	pt_field_type := &Pair{}
-	pt_field_type.Key = key
-	pt_field_type.Value = valueNew
-
-	t.arrpt_pair = append(t.arrpt_pair, pt_field_type)
+	t.arrpt_pair = append(t.arrpt_pair, &Pair{
+		Key:   key,
+		Value: valueNew,
+	})
 }

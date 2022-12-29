@@ -38,8 +38,8 @@ func (t *DbVendor) SchemaGet() (*config.Schema, error) {
 	return schema, nil
 }
 
-func (t *DbVendor) schemaGet(_s_sql__create_table string) (*config.Table, error) {
-	stmt, err := sqlparser.Parse(_s_sql__create_table)
+func (t *DbVendor) schemaGet(sqlCreateTable string) (*config.Table, error) {
+	stmt, err := sqlparser.Parse(sqlCreateTable)
 	if err != nil {
 		panic(err)
 	}
@@ -49,19 +49,19 @@ func (t *DbVendor) schemaGet(_s_sql__create_table string) (*config.Table, error)
 	table := &config.Table{}
 	table.Init(tblName)
 
-	for _, pt_index__parser := range parser.Constraints {
+	for _, idx := range parser.Constraints {
 		index := &config.Index{}
-		arrs_keys := make([]string, 0, len(pt_index__parser.Keys))
-		for _, pt_key := range pt_index__parser.Keys {
+		arrs_keys := make([]string, 0, len(idx.Keys))
+		for _, pt_key := range idx.Keys {
 			arrs_keys = append(arrs_keys, pt_key.String())
 		}
-		index.Set(pt_index__parser.Name, pt_index__parser.Type.String(), arrs_keys)
+		index.Set(idx.Name, idx.Type.String(), arrs_keys)
 		table.AddIndex(index)
 	}
 
-	for _, pt_field__parser := range parser.Columns {
+	for _, fld := range parser.Columns {
 		field := &config.Field{}
-		field.Set(pt_field__parser.Name, pt_field__parser.Type, t.vendor.ConvType(pt_field__parser.Type))
+		field.Set(fld.Name, fld.Type, t.vendor.ConvType(fld.Type))
 		table.AddField(field)
 	}
 	return table, nil

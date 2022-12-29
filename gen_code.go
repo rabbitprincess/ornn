@@ -79,7 +79,7 @@ func (t *GenCode) init(config *config.Config, mapConfig map[string]string) {
 	return
 }
 
-func (t *GenCode) gen_source_code(config *config.Config, mapConfig map[string]string, genData *GenData) (genCode string, err error) {
+func (t *GenCode) gen(config *config.Config, mapConfig map[string]string, genData *GenData) (genCode string, err error) {
 	// config 설정
 	t.init(config, mapConfig)
 
