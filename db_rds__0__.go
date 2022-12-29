@@ -2,7 +2,8 @@ package go_orm_gen
 
 import (
 	"log"
-	"module/db"
+
+	"github.com/gokch/go-orm-gen/db"
 
 	"github.com/blastrain/vitess-sqlparser/sqlparser"
 )
@@ -22,7 +23,7 @@ const (
 )
 
 type T_DB_RDS struct {
-	pc_db             *db.C_DB_conn
+	pc_db             *db.DB
 	td_n1_db_rds_type TD_N1_db_rds_type
 	i_dbms            I_DB_RDS__vendor
 }
@@ -30,7 +31,7 @@ type T_DB_RDS struct {
 //------------------------------------------------------------------------------------------------//
 // Schema
 
-func (t *T_DB_RDS) Init(_pc_db *db.C_DB_conn, _td_n1_db_rds_type TD_N1_db_rds_type) {
+func (t *T_DB_RDS) Init(_pc_db *db.DB, _td_n1_db_rds_type TD_N1_db_rds_type) {
 	t.pc_db = _pc_db
 
 	t.td_n1_db_rds_type = _td_n1_db_rds_type

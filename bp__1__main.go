@@ -2,17 +2,18 @@ package go_orm_gen
 
 import (
 	"fmt"
-	"module/db"
+
+	"github.com/gokch/go-orm-gen/db"
 )
 
 type T_BP struct {
-	pc_db             *db.C_DB_conn
+	pc_db             *db.DB
 	td_n1_db_rds_type TD_N1_db_rds_type
 
 	pt_json *T_BP__config
 }
 
-func (t *T_BP) Init(_pc_db *db.C_DB_conn, _td_n1_db_rds_type TD_N1_db_rds_type) {
+func (t *T_BP) Init(_pc_db *db.DB, _td_n1_db_rds_type TD_N1_db_rds_type) {
 	// config
 	t.pc_db = _pc_db
 	t.td_n1_db_rds_type = _td_n1_db_rds_type
@@ -79,13 +80,7 @@ func (t *T_BP) Code__save(_s_filepath string,
 
 	t_bp_gen := &Gen{}
 	t.pt_json.T_db.T_caller.is_exist_error__caller_sql = false // 초기화
-	_, err = t_bp_gen.Get_source_code(
-		t.pc_db,
-		t.td_n1_db_rds_type,
-		t.pt_json,
-		_td_lang_name,
-		_maps_config,
-		_s_filepath)
+	_, err = t_bp_gen.Gen(t.pc_db, t.td_n1_db_rds_type, t.pt_json, _td_lang_name, _maps_config, _s_filepath)
 	if err != nil {
 		return err
 	}

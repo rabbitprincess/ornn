@@ -2,7 +2,8 @@ package go_orm_gen
 
 import (
 	"io/ioutil"
-	"module/db"
+
+	"github.com/gokch/go-orm-gen/db"
 )
 
 type Gen struct {
@@ -10,14 +11,7 @@ type Gen struct {
 	code *GenCode
 }
 
-func (t *Gen) Gen(
-	_pc_db *db.C_DB_conn,
-	_td_n1_db_rds_type TD_N1_db_rds_type,
-	_pt_bp_config *T_BP__config,
-	_td_lang_name LangType,
-	_maps_gen_config map[string]string,
-	_s_filepath string,
-) (code string, err error) {
+func (t *Gen) Gen(_pc_db *db.DB, _td_n1_db_rds_type TD_N1_db_rds_type, _pt_bp_config *T_BP__config, _td_lang_name LangType, _maps_gen_config map[string]string, _s_filepath string) (code string, err error) {
 	// json -> 코드 생성을 위한 gen 데이터 준비
 	t.data = &GenData{}
 	t.data.Init(_pc_db, _td_n1_db_rds_type)

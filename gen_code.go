@@ -116,9 +116,9 @@ func (t *GenCode) gen_source_code(bpConfig *T_BP__config, mapConfig map[string]s
 		rootFuncInitArg.Type = t.s_cfg__db__instance__type
 
 		// group 단위 구조체
-		for _, pt_gen_group := range genData.arrpt_group {
+		for _, pt_gen_group := range genData.groups {
 			// group 구조체 생성
-			pt_group := t.genGroup(pt_gen_group.s_group_name)
+			pt_group := t.genGroup(pt_gen_group.Name)
 			t.codeGen.AddItem(pt_group)
 
 			// root 구조체 안에 필드 변수 선언 -> group 구조체 사용을 위해
@@ -126,7 +126,7 @@ func (t *GenCode) gen_source_code(bpConfig *T_BP__config, mapConfig map[string]s
 				// root 구조체 안에 group 구조체 포인터 선언
 				rootVars := &codegen.VarItem{}
 				rootVars.Type = pt_group.Name
-				rootVars.Name = fmt.Sprintf("%s%s", DEF_s_gen_config__go__db__class__prefix, strings.ToLower(pt_gen_group.s_group_name))
+				rootVars.Name = fmt.Sprintf("%s%s", DEF_s_gen_config__go__db__class__prefix, strings.ToLower(pt_gen_group.Name))
 				rootStruct.Field.Add(rootVars)
 
 				// root init body 작성
@@ -135,7 +135,7 @@ func (t *GenCode) gen_source_code(bpConfig *T_BP__config, mapConfig map[string]s
 			}
 
 			// group 구조체 안에 query 함수 생성
-			for _, pt_gen_query := range pt_gen_group.arrpt_query {
+			for _, pt_gen_query := range pt_gen_group.Querys {
 				t.genQuery(pt_group, pt_gen_query)
 			}
 		} // end of for pt_group
@@ -182,25 +182,25 @@ func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
 	return genGroup
 }
 
-func (t *GenCode) genQuery(structGroup *codegen.Struct, query *T_BP__gen__data__query) {
+func (t *GenCode) genQuery(structGroup *codegen.Struct, query *GenDataQuery) {
 	funcQuery := &codegen.Func{}
 	funcQuery.Init()
 
 	funcQuery.StructName = DEF_s_gen_config__go__db__func__struct_var_name
 	funcQuery.StructType = fmt.Sprintf("*%s", structGroup.Name)
-	funcQuery.FuncName = Util__conv_first_upper_case(query.s_query_name)
+	funcQuery.FuncName = Util__conv_first_upper_case(query.queryName)
 
-	switch query.TD_n1_query_type {
-	case TD_N1_query_type__select:
+	switch query.queryType {
+	case QueryTypeSelect:
 		t.genQuerySelect(funcQuery, query)
-	case TD_N1_query_type__insert:
+	case QueryTypeInsert:
 		t.genQueryInsert(funcQuery, query)
-	case TD_N1_query_type__update:
+	case QueryTypeUpdate:
 		t.genQueryUpdate(funcQuery, query)
-	case TD_N1_query_type__delete:
+	case QueryTypeDelete:
 		t.genQueryDelete(funcQuery, query)
 	default:
-		log.Fatal("invalid query type | query type : %v", query.TD_n1_query_type)
+		log.Fatal("invalid query type | query type : %v", query.queryType)
 	}
 
 	t.codeGen.AddItem(funcQuery)
@@ -208,7 +208,7 @@ func (t *GenCode) genQuery(structGroup *codegen.Struct, query *T_BP__gen__data__
 
 func (t *GenCode) genQuerySelect(
 	funcQuery *codegen.Func,
-	query *T_BP__gen__data__query,
+	query *GenDataQuery,
 ) {
 	// 1. 함수 입력 인자
 	tpl := t.gen_query__add__func__arg__tpl(funcQuery, query)
@@ -225,11 +225,11 @@ func (t *GenCode) genQuerySelect(
 	{
 		// 2-1. 쿼리-리턴 변수 선언
 		{
-			ret.Name = fmt.Sprintf("%s%s__%s", DEF_s_gen_config__go__db__struct__prefix, Util__conv_first_upper_case(query.s_group_name), strings.ToLower(funcQuery.FuncName))
-			for _, pt_field_type := range query.t_ret.arrpt_pair {
+			ret.Name = fmt.Sprintf("%s%s__%s", DEF_s_gen_config__go__db__struct__prefix, Util__conv_first_upper_case(query.groupName), strings.ToLower(funcQuery.FuncName))
+			for _, pt_field_type := range query.ret.arrpt_pair {
 				item := &codegen.VarItem{}
-				item.Name = Util__conv_first_upper_case(pt_field_type.s_key)
-				item.Type = t.pt_bp_config.T_gen.Conv_field_type__bp_to_lang(pt_field_type.s_value, LangTypeGo)
+				item.Name = Util__conv_first_upper_case(pt_field_type.Key)
+				item.Type = t.pt_bp_config.T_gen.Conv_field_type__bp_to_lang(pt_field_type.Value, LangTypeGo)
 				ret.Field.Add(item)
 			}
 		}
@@ -237,7 +237,7 @@ func (t *GenCode) genQuerySelect(
 		// 2-2. 리턴 변수 처리
 		{
 			// 리턴 변수 선언 - 구조체
-			if query.is_select__single == true {
+			if query.isSelectSingle == true {
 				retItem.Name = fmt.Sprintf("pt_%s", strings.ToLower(funcQuery.FuncName))
 				retItem.Type = fmt.Sprintf("*%s", ret.Name)
 				s_body_code__ret_set = fmt.Sprintf("%s = pt_struct\n\tbreak", retItem.Name)
@@ -282,7 +282,7 @@ for {
 return %s, nil
 `,
 			t.gen_query__add__func__body__set_args(arg),
-			query.s_query,
+			query.query,
 			t.gen_query__add__func__body__arg(tpl),
 			DEF_s_gen_config__go__db__func__struct_var_name,
 			DEF_s_gen_config__go__db__instance_name,
@@ -295,7 +295,7 @@ return %s, nil
 	return
 }
 
-func (t *GenCode) genQueryInsert(funcQuery *codegen.Func, query *T_BP__gen__data__query) {
+func (t *GenCode) genQueryInsert(funcQuery *codegen.Func, query *GenDataQuery) {
 	// 1. 함수 입력 인자
 	tpl := t.gen_query__add__func__arg__tpl(funcQuery, query)
 	arg := t.gen_query__add__func__arg(funcQuery, query)
@@ -308,12 +308,12 @@ func (t *GenCode) genQueryInsert(funcQuery *codegen.Func, query *T_BP__gen__data
 	{
 		// body 전처리
 		var multiInsert, genArgs string
-		if query.is_insert__multi == true { // multi insert
-			s_query_values := Util__export__insert_query_values(query.s_query)
-			if query.s_query[len(query.s_query)-1:] == ";" {
-				query.s_query = query.s_query[:len(query.s_query)-1]
+		if query.isInsertMulti == true { // multi insert
+			s_query_values := Util__export__insert_query_values(query.query)
+			if query.query[len(query.query)-1:] == ";" {
+				query.query = query.query[:len(query.query)-1]
 			}
-			query.s_query += "%s"
+			query.query += "%s"
 			genArgs = t.gen_query__add__func__body__insert_multi__proc(arg)
 			multiInsert = t.gen_query__add__func__body__insert_multi__query(s_query_values)
 		} else { // insert
@@ -334,7 +334,7 @@ pc_exec := %s.%s.Exec(
 return pc_exec.LastInsertId()
 `,
 			genArgs,
-			query.s_query,
+			query.query,
 			t.gen_query__add__func__body__arg(tpl),
 			multiInsert,
 			DEF_s_gen_config__go__db__func__struct_var_name,
@@ -344,7 +344,7 @@ return pc_exec.LastInsertId()
 	return
 }
 
-func (t *GenCode) genQueryUpdate(funcQuery *codegen.Func, query *T_BP__gen__data__query) {
+func (t *GenCode) genQueryUpdate(funcQuery *codegen.Func, query *GenDataQuery) {
 	// 1. 함수 입력 인자
 	tpl := t.gen_query__add__func__arg__tpl(funcQuery, query)
 	arg := t.gen_query__add__func__arg(funcQuery, query)
@@ -357,7 +357,7 @@ func (t *GenCode) genQueryUpdate(funcQuery *codegen.Func, query *T_BP__gen__data
 	{
 		// 전처리
 		var s_body__set_args string
-		if query.is_update__null_ignore == true {
+		if query.isUpdateNullIgnore == true {
 			s_body__set_args = t.gen_query__add__func__body__set_args__remove_sets(arg)
 		} else {
 			s_body__set_args = t.gen_query__add__func__body__set_args(arg)
@@ -374,7 +374,7 @@ pc_exec := %s.%s.Exec(
 
 return pc_exec.RowsAffected()
 `,
-			query.s_query,
+			query.query,
 			t.gen_query__add__func__body__arg(tpl),
 			s_body__set_args,
 			DEF_s_gen_config__go__db__func__struct_var_name,
@@ -384,7 +384,7 @@ return pc_exec.RowsAffected()
 	return
 }
 
-func (t *GenCode) genQueryDelete(funcQuery *codegen.Func, query *T_BP__gen__data__query) {
+func (t *GenCode) genQueryDelete(funcQuery *codegen.Func, query *GenDataQuery) {
 	// 1. 함수 입력 인자
 	arrs_tpl := t.gen_query__add__func__arg__tpl(funcQuery, query)
 	arrs_arg := t.gen_query__add__func__arg(funcQuery, query)
@@ -409,7 +409,7 @@ pc_exec := %s.%s.Exec(
 return pc_exec.RowsAffected()
 `,
 			t.gen_query__add__func__body__set_args(arrs_arg),
-			query.s_query,
+			query.query,
 			t.gen_query__add__func__body__arg(arrs_tpl),
 			DEF_s_gen_config__go__db__func__struct_var_name,
 			DEF_s_gen_config__go__db__instance_name,
@@ -420,12 +420,12 @@ return pc_exec.RowsAffected()
 
 //------------------------------------------------------------------------------------------------------//
 
-func (t *GenCode) gen_query__add__func__arg__tpl(funcQuery *codegen.Func, query *T_BP__gen__data__query) (arrs_tpl []string) {
-	arrs_tpl = make([]string, 0, len(query.t_tpl.arrpt_pair))
-	for _, pt_tpl := range query.t_tpl.arrpt_pair {
+func (t *GenCode) gen_query__add__func__arg__tpl(funcQuery *codegen.Func, query *GenDataQuery) (arrs_tpl []string) {
+	arrs_tpl = make([]string, 0, len(query.tpl.arrpt_pair))
+	for _, pt_tpl := range query.tpl.arrpt_pair {
 		arg := &codegen.VarItem{}
 		funcQuery.Arg.Add(arg)
-		arg.Name = fmt.Sprintf("%s%s%s", DEF_s_gen_config__go__db__func__arg__prefix, DEF_s_gen_config__go__db__func__arg__prefix__tpl, pt_tpl.s_key)
+		arg.Name = fmt.Sprintf("%s%s%s", DEF_s_gen_config__go__db__func__arg__prefix, DEF_s_gen_config__go__db__func__arg__prefix__tpl, pt_tpl.Key)
 		arg.Type = "string"
 
 		arrs_tpl = append(arrs_tpl, arg.Name)
@@ -433,20 +433,20 @@ func (t *GenCode) gen_query__add__func__arg__tpl(funcQuery *codegen.Func, query 
 	return
 }
 
-func (t *GenCode) gen_query__add__func__arg(funcQuery *codegen.Func, query *T_BP__gen__data__query) (arrs_arg []string) {
-	arrs_arg = make([]string, 0, len(query.t_tpl.arrpt_pair))
+func (t *GenCode) gen_query__add__func__arg(funcQuery *codegen.Func, query *GenDataQuery) (arrs_arg []string) {
+	arrs_arg = make([]string, 0, len(query.tpl.arrpt_pair))
 
-	for _, pt_field_type := range query.t_arg.arrpt_pair {
+	for _, pt_field_type := range query.arg.arrpt_pair {
 		arg := &codegen.VarItem{}
 		var varType string
 		// 1. type 판정
 		{
-			if pt_field_type.s_value == "" { // 형을 특정할 수 없을 때
+			if pt_field_type.Value == "" { // 형을 특정할 수 없을 때
 				varType = DEF_s_gen_config__go__db__func__in_arg__type
 			} else { // 형을 특정할 수 있을 때
-				varType = "*" + t.pt_bp_config.T_gen.Conv_field_type__bp_to_lang(pt_field_type.s_value, LangTypeGo)
+				varType = "*" + t.pt_bp_config.T_gen.Conv_field_type__bp_to_lang(pt_field_type.Value, LangTypeGo)
 			}
-			if query.is_insert__multi == true {
+			if query.isInsertMulti == true {
 				varType = "[]" + varType
 			}
 		}
@@ -456,7 +456,7 @@ func (t *GenCode) gen_query__add__func__arg(funcQuery *codegen.Func, query *T_BP
 			arg.Name = fmt.Sprintf("%s%s%s",
 				DEF_s_gen_config__go__db__func__arg__prefix,
 				DEF_s_gen_config__go__db__func__arg__prefix__arg,
-				pt_field_type.s_key)
+				pt_field_type.Key)
 			arg.Type = varType
 			funcQuery.Arg.Add(arg)
 		}
