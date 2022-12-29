@@ -43,7 +43,7 @@ func (t *ORM) ConfigSave(path string) error {
 	return nil
 }
 
-func (t *ORM) SchemaLoad(talePrefix string) error {
+func (t *ORM) SchemaLoad(tablePrefix string) error {
 	vendor := &DbVendor{}
 	vendor.Init(db_mysql.NewVendor(t.db))
 
@@ -53,7 +53,7 @@ func (t *ORM) SchemaLoad(talePrefix string) error {
 	}
 	// 1. arrs_table_name__prefix 가 존재할 시 해당 prefix 를 가지고 있는 테이블 스키마만 생성
 	// 2. custom type 은 업데이트 되지 않음
-	err = t.config.Schema.UpdateTable(schema, talePrefix)
+	err = t.config.Schema.UpdateTable(schema, tablePrefix)
 	if err != nil {
 		return err
 	}

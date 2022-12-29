@@ -13,32 +13,31 @@ const (
 	DEF_S_default_filepath__go__db = "bp_db.go"
 )
 
-func main(dbAddr, dbPort, dbId, dbPw, dbName string, tableName string, configPath, filePath, packageName string, className string) {
-
+func main() {
 	db := &db.DB{}
-	db.Connect("mysql", db_mysql.NewDsn(dbId, dbPw, dbAddr, dbPort, dbName), dbName)
+	db.Connect("mysql", db_mysql.NewDsn("user", "pw", "127.0.0.1", "4001", "test_db"), "test_db")
 
 	var orm *ORM = &ORM{}
 	orm.Init(db)
 
 	// config
-	err := orm.ConfigLoad(configPath)
+	err := orm.ConfigLoad("bp.json")
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = orm.SchemaLoad(tableName)
+	err = orm.SchemaLoad("")
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = orm.ConfigSave(configPath)
+	err = orm.ConfigSave("bp.json")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// code - generate
-	err = orm.GenCode(filePath, map[string]string{
-		DEF_s_gen_config__go__db__package_name: packageName,
-		DEF_s_gen_config__go__db__class__name:  className,
+	err = orm.GenCode("bp.json", map[string]string{
+		DEF_s_gen_config__go__db__package_name: "gen",
+		DEF_s_gen_config__go__db__class__name:  "gen",
 	})
 	if err != nil {
 		log.Fatal(err)
