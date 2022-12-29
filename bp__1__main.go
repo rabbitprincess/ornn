@@ -1,4 +1,4 @@
-package bp
+package go_orm_gen
 
 import (
 	"fmt"
@@ -62,7 +62,7 @@ func (t *T_BP) DBMS__load__schema(_s_table_name___prefix string) error {
 }
 
 func (t *T_BP) Code__save(_s_filepath string,
-	_td_lang_name TD_S_lang_name,
+	_td_lang_name LangType,
 	_maps_config map[string]string,
 ) (
 	err error,
@@ -77,7 +77,7 @@ func (t *T_BP) Code__save(_s_filepath string,
 		}
 	}
 
-	t_bp_gen := &T_BP__gen{}
+	t_bp_gen := &Gen{}
 	t.pt_json.T_db.T_caller.is_exist_error__caller_sql = false // 초기화
 	_, err = t_bp_gen.Get_source_code(
 		t.pc_db,

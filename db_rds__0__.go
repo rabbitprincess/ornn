@@ -1,8 +1,8 @@
-package bp
+package go_orm_gen
 
 import (
+	"log"
 	"module/db"
-	"module/debug/logf"
 
 	"github.com/blastrain/vitess-sqlparser/sqlparser"
 )
@@ -40,7 +40,7 @@ func (t *T_DB_RDS) Init(_pc_db *db.C_DB_conn, _td_n1_db_rds_type TD_N1_db_rds_ty
 	case TD_N1_db_rds_type__mysql:
 		t.i_dbms = &T_DB_RDS__vendor__mysql{}
 	default:
-		logf.GC.Fatal("BP", "DBMS Not support yet. | type iota - %d", _td_n1_db_rds_type)
+		log.Fatal("DBMS Not support yet. | type iota - %d", _td_n1_db_rds_type)
 	}
 }
 

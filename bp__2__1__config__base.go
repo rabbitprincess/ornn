@@ -1,4 +1,4 @@
-package bp
+package go_orm_gen
 
 type T_BP__config__base_info struct {
 	TD_n4_version TD_N4_bp_version

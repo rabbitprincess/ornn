@@ -1,10 +1,6 @@
-package bp
+package go_orm_gen
 
-import (
-	"module/db"
-	"module/db/db_mysql"
-)
-
+/*
 func Generate__mysql__golang(
 	_s_db__addr,
 	_s_db__port,
@@ -111,3 +107,4 @@ func Generate__source_code____golang(
 	}
 	return nil
 }
+*/

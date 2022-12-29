@@ -1,13 +1,13 @@
-package bp
+package go_orm_gen
 
-func (t *T_BP__gen__data) add_group(_pt *T_BP__gen__data__group) {
+func (t *GenData) add_group(_pt *T_BP__gen__data__group) {
 	if t.arrpt_group == nil {
 		t.arrpt_group = make([]*T_BP__gen__data__group, 0, 10)
 	}
 	t.arrpt_group = append(t.arrpt_group, _pt)
 }
 
-//------------------------------------------------------------------------------------------------------------//
+// ------------------------------------------------------------------------------------------------------------//
 type T_BP__gen__data__group struct {
 	s_group_name string
 	arrpt_query  []*T_BP__gen__data__query
@@ -50,7 +50,7 @@ type T_BP__gen__data__query struct {
 	is_update__null_ignore bool
 }
 
-//------------------------------------------------------------------------------------------------------------//
+// ------------------------------------------------------------------------------------------------------------//
 type T_Pair_data struct {
 	s_key   string
 	s_value string

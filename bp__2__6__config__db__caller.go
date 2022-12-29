@@ -1,4 +1,4 @@
-package bp
+package go_orm_gen
 
 import "fmt"
 

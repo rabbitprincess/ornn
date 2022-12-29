@@ -1,4 +1,4 @@
-package bp
+package go_orm_gen
 
 type T_BP__config__db struct {
 	T_schema T_BP__config__db__schema `json:"schema"`
