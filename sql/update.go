@@ -118,6 +118,7 @@ func (t *Update) GetTableNames() []string {
 	}
 	return tblName
 }
+
 func (t *Update) AddFld(field *Field) {
 	if t.Field == nil {
 		t.Field = make([]*Field, 0, 10)
