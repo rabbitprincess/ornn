@@ -5,14 +5,12 @@ import (
 	"testing"
 )
 
-type inputData struct {
-	PackageName string
-	StructName  string
-	Fields      []string
-}
-
 func TestCodeGen(_t *testing.T) {
-	data := inputData{
+	input := struct {
+		PackageName string
+		StructName  string
+		Fields      []string
+	}{
 		PackageName: "pkg",
 		StructName:  "MyStruct",
 		Fields: []string{
@@ -24,15 +22,15 @@ func TestCodeGen(_t *testing.T) {
 	w := &Writer{}
 	w.Init()
 
-	w.W("package %s\n\n", data.PackageName)
-	w.W("func (o %[1]s) ShallowCopy() %[1]s {\n", data.StructName)
+	w.W("package %s\n\n", input.PackageName)
+	w.W("func (o %[1]s) ShallowCopy() %[1]s {\n", input.StructName)
 
 	{
 		w.IndentIn()
-		w.W("return %s {\n", data.StructName)
+		w.W("return %s {\n", input.StructName)
 		{
 			w.IndentIn()
-			for _, field := range data.Fields {
+			for _, field := range input.Fields {
 				w.W("%[1]s: o.%[1]s,\n", field)
 			}
 			w.IndentOut()

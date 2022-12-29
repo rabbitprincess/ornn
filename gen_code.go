@@ -8,6 +8,7 @@ import (
 
 	"github.com/gokch/go-orm-gen/codegen"
 	"github.com/gokch/go-orm-gen/config"
+	"github.com/gokch/go-orm-gen/sql"
 )
 
 const (
@@ -148,7 +149,7 @@ func (t *GenCode) gen_source_code(config *config.Config, mapConfig map[string]st
 
 func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
 	genGroup = &codegen.Struct{}
-	genGroup.Name = fmt.Sprintf("%s%s", DEF_s_gen_config__go__db__class__prefix, Util__conv_first_upper_case(group))
+	genGroup.Name = fmt.Sprintf("%s%s", DEF_s_gen_config__go__db__class__prefix, sql.Util__conv_first_upper_case(group))
 
 	// group 구조체 안에
 	{
@@ -187,7 +188,7 @@ func (t *GenCode) genQuery(structGroup *codegen.Struct, query *GenDataQuery) {
 
 	funcQuery.StructName = DEF_s_gen_config__go__db__func__struct_var_name
 	funcQuery.StructType = fmt.Sprintf("*%s", structGroup.Name)
-	funcQuery.FuncName = Util__conv_first_upper_case(query.queryName)
+	funcQuery.FuncName = sql.Util__conv_first_upper_case(query.queryName)
 
 	switch query.queryType {
 	case QueryTypeSelect:
@@ -224,10 +225,10 @@ func (t *GenCode) genQuerySelect(
 	{
 		// 2-1. 쿼리-리턴 변수 선언
 		{
-			ret.Name = fmt.Sprintf("%s%s__%s", DEF_s_gen_config__go__db__struct__prefix, Util__conv_first_upper_case(query.tableName), strings.ToLower(funcQuery.FuncName))
+			ret.Name = fmt.Sprintf("%s%s__%s", DEF_s_gen_config__go__db__struct__prefix, sql.Util__conv_first_upper_case(query.tableName), strings.ToLower(funcQuery.FuncName))
 			for _, pt_field_type := range query.ret.arrpt_pair {
 				item := &codegen.VarItem{}
-				item.Name = Util__conv_first_upper_case(pt_field_type.Key)
+				item.Name = sql.Util__conv_first_upper_case(pt_field_type.Key)
 				item.Type = t.config.GenCode.ConvFieldType(pt_field_type.Value)
 				ret.Field.Add(item)
 			}
@@ -308,7 +309,7 @@ func (t *GenCode) genQueryInsert(funcQuery *codegen.Func, query *GenDataQuery) {
 		// body 전처리
 		var multiInsert, genArgs string
 		if query.InsertMulti == true { // multi insert
-			s_query_values := Util__export__insert_query_values(query.query)
+			s_query_values := sql.Util__export__insert_query_values(query.query)
 			if query.query[len(query.query)-1:] == ";" {
 				query.query = query.query[:len(query.query)-1]
 			}
