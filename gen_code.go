@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gokch/go-orm-gen/codegen"
+	"github.com/gokch/go-orm-gen/config"
 )
 
 const (
@@ -45,11 +46,11 @@ type GenCode struct {
 	s_cfg__db__class__name      string
 	s_cfg__db__instance__type   string
 
-	pt_bp_config *T_BP__config
+	config *config.Config
 }
 
-func (t *GenCode) init(bpConfig *T_BP__config, mapConfig map[string]string) {
-	t.pt_bp_config = bpConfig
+func (t *GenCode) init(config *config.Config, mapConfig map[string]string) {
+	t.config = config
 	t.codeGen.Global = &codegen.Global{}
 
 	// config
@@ -77,9 +78,9 @@ func (t *GenCode) init(bpConfig *T_BP__config, mapConfig map[string]string) {
 	return
 }
 
-func (t *GenCode) gen_source_code(bpConfig *T_BP__config, mapConfig map[string]string, genData *GenData) (genCode string, err error) {
+func (t *GenCode) gen_source_code(config *config.Config, mapConfig map[string]string, genData *GenData) (genCode string, err error) {
 	// config 설정
-	t.init(bpConfig, mapConfig)
+	t.init(config, mapConfig)
 
 	// gen_go 에 소스 생성을 위한 데이터 넣기
 	{
@@ -88,13 +89,11 @@ func (t *GenCode) gen_source_code(bpConfig *T_BP__config, mapConfig map[string]s
 		t.codeGen.PackageName = t.s_cfg__db__package__name
 
 		// import 경로 추가
-		for _, pt_lang := range t.pt_bp_config.T_gen.Arrpt_lang_type {
-			for _, pt_import := range pt_lang.Imports {
-				t.codeGen.AddImport(&codegen.ImportItem{
-					Path:  pt_import.S_path,
-					Alias: pt_import.S_name,
-				})
-			}
+		for _, imp := range config.GenCode.Imports {
+			t.codeGen.AddImport(&codegen.ImportItem{
+				Path:  imp.Path,
+				Alias: imp.Alias,
+			})
 		}
 
 		// 루트 구조체 작성
@@ -135,7 +134,7 @@ func (t *GenCode) gen_source_code(bpConfig *T_BP__config, mapConfig map[string]s
 			}
 
 			// group 구조체 안에 query 함수 생성
-			for _, pt_gen_query := range pt_gen_group.Querys {
+			for _, pt_gen_query := range pt_gen_group.Queries {
 				t.genQuery(pt_group, pt_gen_query)
 			}
 		} // end of for pt_group
@@ -200,7 +199,7 @@ func (t *GenCode) genQuery(structGroup *codegen.Struct, query *GenDataQuery) {
 	case QueryTypeDelete:
 		t.genQueryDelete(funcQuery, query)
 	default:
-		log.Fatal("invalid query type | query type : %v", query.queryType)
+		log.Fatalf("invalid query type | query type : %v", query.queryType)
 	}
 
 	t.codeGen.AddItem(funcQuery)
@@ -225,11 +224,11 @@ func (t *GenCode) genQuerySelect(
 	{
 		// 2-1. 쿼리-리턴 변수 선언
 		{
-			ret.Name = fmt.Sprintf("%s%s__%s", DEF_s_gen_config__go__db__struct__prefix, Util__conv_first_upper_case(query.groupName), strings.ToLower(funcQuery.FuncName))
+			ret.Name = fmt.Sprintf("%s%s__%s", DEF_s_gen_config__go__db__struct__prefix, Util__conv_first_upper_case(query.tableName), strings.ToLower(funcQuery.FuncName))
 			for _, pt_field_type := range query.ret.arrpt_pair {
 				item := &codegen.VarItem{}
 				item.Name = Util__conv_first_upper_case(pt_field_type.Key)
-				item.Type = t.pt_bp_config.T_gen.Conv_field_type__bp_to_lang(pt_field_type.Value, LangTypeGo)
+				item.Type = t.config.GenCode.ConvFieldType(pt_field_type.Value)
 				ret.Field.Add(item)
 			}
 		}
@@ -308,7 +307,7 @@ func (t *GenCode) genQueryInsert(funcQuery *codegen.Func, query *GenDataQuery) {
 	{
 		// body 전처리
 		var multiInsert, genArgs string
-		if query.isInsertMulti == true { // multi insert
+		if query.InsertMulti == true { // multi insert
 			s_query_values := Util__export__insert_query_values(query.query)
 			if query.query[len(query.query)-1:] == ";" {
 				query.query = query.query[:len(query.query)-1]
@@ -357,7 +356,7 @@ func (t *GenCode) genQueryUpdate(funcQuery *codegen.Func, query *GenDataQuery) {
 	{
 		// 전처리
 		var s_body__set_args string
-		if query.isUpdateNullIgnore == true {
+		if query.UpdateNullIgnore == true {
 			s_body__set_args = t.gen_query__add__func__body__set_args__remove_sets(arg)
 		} else {
 			s_body__set_args = t.gen_query__add__func__body__set_args(arg)
@@ -444,9 +443,9 @@ func (t *GenCode) gen_query__add__func__arg(funcQuery *codegen.Func, query *GenD
 			if pt_field_type.Value == "" { // 형을 특정할 수 없을 때
 				varType = DEF_s_gen_config__go__db__func__in_arg__type
 			} else { // 형을 특정할 수 있을 때
-				varType = "*" + t.pt_bp_config.T_gen.Conv_field_type__bp_to_lang(pt_field_type.Value, LangTypeGo)
+				varType = "*" + t.config.GenCode.ConvFieldType(pt_field_type.Value)
 			}
-			if query.isInsertMulti == true {
+			if query.InsertMulti == true {
 				varType = "[]" + varType
 			}
 		}

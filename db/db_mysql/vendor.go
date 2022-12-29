@@ -6,15 +6,20 @@ import (
 	"github.com/gokch/go-orm-gen/db"
 )
 
-// ---------------------------------------------------------------------------------//
-// mysql
-type T_DB_RDS__vendor__mysql struct {
+func NewVendor(db *db.DB) *Vendor {
+	return &Vendor{
+		db: db,
+	}
 }
 
-func (t *T_DB_RDS__vendor__mysql) conv_field_type__to_bp(_s_field_type__db string) (_s_field_type__bp string) {
+type Vendor struct {
+	db *db.DB
+}
+
+func (t *Vendor) ConvType(dbType string) (genType string) {
 	var is_unsigned bool
 
-	arrs_option := strings.Split(string(_s_field_type__db), " ")
+	arrs_option := strings.Split(string(dbType), " ")
 	for _, s_option := range arrs_option {
 		s_option = strings.ToLower(s_option)
 		if s_option == "unsigned" {
@@ -34,11 +39,10 @@ func (t *T_DB_RDS__vendor__mysql) conv_field_type__to_bp(_s_field_type__db strin
 		s_field_type_with_len = s_field_type_with_len[0:n_pos_start_len]
 	}
 
-	_s_field_type__bp = t.conv_field_type__sub(s_field_type_with_len, is_unsigned)
-	return _s_field_type__bp
+	return t.convType(s_field_type_with_len, is_unsigned)
 }
 
-func (t *T_DB_RDS__vendor__mysql) conv_field_type__sub(_s_field_type_db string, _is_unsigned bool) string {
+func (t *Vendor) convType(_s_field_type_db string, _is_unsigned bool) string {
 	switch strings.ToLower(_s_field_type_db) {
 	case "char", "varchar", "tinytext", "text", "mediumtext", "longtext", "json":
 		return "s"
@@ -73,50 +77,50 @@ func (t *T_DB_RDS__vendor__mysql) conv_field_type__sub(_s_field_type_db string, 
 	}
 }
 
-// 임시 - 작업 필요
-// func (t *T_DB_RDS__vendor__mysql) sql(_pc_db *db.C_DB_conn) (arrs_sql__create_table []string, err error) {
-// }
-
-//--------------------------------------------------------------------------------------------------------------------------------------//
-
-func (t *T_DB_RDS__vendor__mysql) get_sql__create_table(_pc_db *db.DB) (arrs_sql__create_table []string, err error) {
+func (t *Vendor) CreateTable() (sql []string, err error) {
 	// db 안 모든 테이블 이름을 가져옴
-	arrs_table_name, err := t.get_table_name__all(_pc_db)
+	tblNames, err := t.allTable()
 	if err != nil {
 		return nil, err
 	}
 
-	arrs_sql__create_table = make([]string, 0, len(arrs_table_name))
-	for _, s_table_name := range arrs_table_name {
-		s_sql := "show create table `" + s_table_name + "`"
+	sql = make([]string, 0, len(tblNames))
+	for _, tblName := range tblNames {
+		s_sql := "show create table `" + tblName + "`"
 
-		var s_table_name string
-		var s_sql__create_table string
+		var tbl string
+		var sqlCreateTable string
 
-		is_end, err := _pc_db.Query(s_sql).Row_next(&s_table_name, &s_sql__create_table)
+		rows, err := t.db.Query(s_sql) // .Row_next(&s_table_name, &sqlCreateTable)
 		if err != nil {
 			return nil, err
 		}
-		if is_end == true {
-			return nil, nil
+
+		err = rows.Scan(&tbl, &sqlCreateTable)
+		if err != nil {
+			return nil, err
 		}
 
-		arrs_sql__create_table = append(arrs_sql__create_table, s_sql__create_table)
+		sql = append(sql, sqlCreateTable)
 	}
-	return arrs_sql__create_table, nil
+	return sql, nil
 }
 
-func (t *T_DB_RDS__vendor__mysql) get_table_name__all(_pc_db *db.DB) (arrs_table_name []string, err error) {
-	s_sql := "select `table_name` from `information_schema`.`tables` where `table_schema` = '" + _pc_db.DB__name_get() + "'"
+func (t *Vendor) allTable() (tables []string, err error) {
+	s_sql := "select `table_name` from `information_schema`.`tables` where `table_schema` = '" + t.db.DbName + "'"
 
-	_, arrpt_row_map, err := _pc_db.Query(s_sql).Row_all__map()
+	rows, err := t.db.Query(s_sql)
 	if err != nil {
 		return nil, err
 	}
-	arrs_table_name = make([]string, 0, len(arrpt_row_map))
-	for _, pt_row_map := range arrpt_row_map {
-		s_table_name := pt_row_map["table_name"].(*db.T_Col__bt).String()
-		arrs_table_name = append(arrs_table_name, s_table_name)
+	tables = make([]string, 0, 10)
+	for rows.Next() {
+		var tblName string = "table_name"
+		err = rows.Scan(&tblName)
+		if err != nil {
+			return nil, err
+		}
+		tables = append(tables, tblName)
 	}
-	return arrs_table_name, nil
+	return tables, nil
 }

@@ -5,6 +5,15 @@ import (
 	"strings"
 )
 
+const (
+	DEF_s_sql__prepare_statement__delimiter = "%"
+	DEF_s_sql__prepare_statement__after     = "?"
+
+	DEF_s_sql__tpl__delimiter = "#"
+	DEF_s_sql__tpl__after     = "%s"
+	DEF_s_sql__tpl__split     = "/"
+)
+
 func Clear__in_quot(_s_sql string) (s_ret string) {
 	const (
 		DEF_s_quot_single string = "'"

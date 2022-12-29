@@ -25,11 +25,11 @@ func (t *Job) Exec(query string, args ...interface{}) (res sql.Result, err error
 	return res, err
 }
 
-func (t *Job) Query(query string, _args ...interface{}) (rows *sql.Rows, err error) {
+func (t *Job) Query(query string, args ...interface{}) (rows *sql.Rows, err error) {
 	if t.isTx == false {
-		rows, err = t.db.Query(query, _args...)
+		rows, err = t.db.Query(query, args...)
 	} else {
-		rows, err = t.tx.Query(query, _args...)
+		rows, err = t.tx.Query(query, args...)
 	}
 	return rows, err
 }

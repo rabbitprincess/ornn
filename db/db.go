@@ -6,24 +6,26 @@ import (
 )
 
 type DB struct {
-	driverName string
-	dsn        string
-	dbName     string
+	Job
 
-	db *sql.DB
+	DriverName string
+	Dsn        string
+	DbName     string
+
+	Db *sql.DB
 }
 
-func (t *DB) Connect(_driverName, _dsn, _dbName string) (err error) {
-	t.driverName = _driverName
-	t.dsn = _dsn
-	t.dbName = _dbName
+func (t *DB) Connect(driverName, dsn, dbName string) (err error) {
+	t.DriverName = driverName
+	t.Dsn = dsn
+	t.DbName = dbName
 
-	t.db, err = sql.Open(t.driverName, t.dsn)
+	t.Db, err = sql.Open(t.DriverName, t.Dsn)
 	if err != nil {
 		return err
 	}
 
-	err = t.db.Ping()
+	err = t.Db.Ping()
 	if err != nil {
 		return err
 	}
@@ -32,17 +34,11 @@ func (t *DB) Connect(_driverName, _dsn, _dbName string) (err error) {
 
 func (t *DB) SetOpenConns(_openConns, _idleConns int) {
 	if _openConns > 0 {
-		t.db.SetMaxOpenConns(_openConns)
+		t.Db.SetMaxOpenConns(_openConns)
 	}
 	if _idleConns > 0 {
-		t.db.SetMaxIdleConns(_idleConns)
+		t.Db.SetMaxIdleConns(_idleConns)
 	}
-}
-
-func (t *DB) Query() (job *Job, err error) {
-	job = &Job{}
-	job.Init(false, t.db, nil)
-	return job, nil
 }
 
 func (t *DB) TxBegin(_isoLevel sql.IsolationLevel, _readonly bool) (tx *sql.Tx, err error) {
@@ -51,7 +47,7 @@ func (t *DB) TxBegin(_isoLevel sql.IsolationLevel, _readonly bool) (tx *sql.Tx, 
 		ReadOnly:  _readonly,
 	}
 
-	return t.db.BeginTx(context.Background(), pt_opt)
+	return t.Db.BeginTx(context.Background(), pt_opt)
 }
 
 func (t *DB) TxBegin__callback(_isoLevel sql.IsolationLevel, _readonly bool, _fnCallback func(*sql.Tx) error) (err error) {
@@ -60,7 +56,7 @@ func (t *DB) TxBegin__callback(_isoLevel sql.IsolationLevel, _readonly bool, _fn
 		ReadOnly:  _readonly,
 	}
 
-	tx, err := t.db.BeginTx(context.Background(), pt_opt)
+	tx, err := t.Db.BeginTx(context.Background(), pt_opt)
 	if err != nil {
 		return err
 	}
