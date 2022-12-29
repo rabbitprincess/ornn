@@ -8,18 +8,19 @@ import (
 )
 
 func Test__clear_str__in_quota(_t *testing.T) {
-	if Clear__in_quot("'will delete'") !=
+	if Util_ClearInQuot("'will delete'") !=
 		fmt.Sprintf("%s", strings.Repeat(" ", len("'will delete'"))) {
 		_t.Error("not same")
 	}
 
-	if Clear__in_quot(`"will delete"`) !=
+	if Util_ClearInQuot(`"will delete"`) !=
 		fmt.Sprintf("%s", strings.Repeat(" ", len(`"will delete"`))) {
 		_t.Error("not same")
 	}
 
-	fmt.Printf("==%s==\n", Clear__in_quot("`will delete`"))
-	if Clear__in_quot("`will delete`") !=
+	fmt.Printf("==%s==\n", Util_ClearInQuot("w`will delete`d"))
+
+	if Util_ClearInQuot("`will delete`") !=
 		fmt.Sprintf("%s", strings.Repeat(" ", len("`will delete`"))) {
 		_t.Error("not same")
 	}
@@ -93,7 +94,7 @@ func Test__split__by_delimiter(_t *testing.T) {
 	}
 
 	for _, pt_testcase := range arrpt_testcase {
-		s_ret_before, s_ret_after := Util__split_by_delimiter(pt_testcase.s_testcase, "where")
+		s_ret_before, s_ret_after := Util_SplitByDelimiter(pt_testcase.s_testcase, "where")
 		if s_ret_before != pt_testcase.s_ret_before {
 			_t.Errorf("Clear_after_where is not same\n\tinput : %s\n\tresult : %s", s_ret_before, pt_testcase.s_ret_before)
 		}
@@ -168,7 +169,7 @@ func Test__export_between_delimiter(_t *testing.T) {
 	}
 
 	for _, pt_testcase := range arrpt_testcase {
-		arrs_ret, err := Util__export_str_between_delimiter(pt_testcase.s_testcase, "%")
+		arrs_ret, err := Util_ExportBetweenDelimiter(pt_testcase.s_testcase, "%")
 		if err != nil {
 			_t.Errorf("err - %v", err)
 		} else if reflect.DeepEqual(arrs_ret, pt_testcase.arrs_ret) == false {
@@ -240,7 +241,7 @@ func Test__change_delimiter_to_input_mark(_t *testing.T) {
 	}
 
 	for _, pt_testcase := range arrpt_testcase {
-		s_ret := Util__replace_str__between_delimiter(pt_testcase.s_testcase, "%", " ")
+		s_ret := Util_ReplaceBetweenDelimiter(pt_testcase.s_testcase, "%", " ")
 		if s_ret != pt_testcase.s_ret {
 			_t.Errorf("change_delimiter is not same\n\tinput : %s\n\treturn : %s\n\tresult : %s", pt_testcase.s_testcase, s_ret, pt_testcase.s_ret)
 		}
@@ -274,7 +275,7 @@ func Test__clear_delimiter(_t *testing.T) {
 	}
 
 	for _, pt_testcase := range arrpt_testcase {
-		s_ret := Util__Clear_delimiter(pt_testcase.s_testcase, "%")
+		s_ret := Util_ClearDelimiter(pt_testcase.s_testcase, "%")
 		if s_ret != pt_testcase.s_ret {
 			_t.Errorf("change_delimiter is not same\n\tinput : %s\n\treturn : %s\n\tresult : %s", pt_testcase.s_testcase, s_ret, pt_testcase.s_ret)
 		}
@@ -345,7 +346,7 @@ func Test__replace_str__in_delimiter_value(_t *testing.T) {
 	}
 
 	for _, pt_testcase := range arrpt_testcase {
-		s_ret := Util__Replace_str__in_delimiter_value(pt_testcase.s_input, pt_testcase.s_delimiter, pt_testcase.s_spliter)
+		s_ret := Util_ReplaceInDelimiter(pt_testcase.s_input, pt_testcase.s_delimiter, pt_testcase.s_spliter)
 		if s_ret != pt_testcase.s_ret {
 			_t.Errorf("change_delimiter is not same\n\tinput : %s\n\treturn : %s\n\tresult : %s", pt_testcase.s_input, s_ret, pt_testcase.s_ret)
 		}
@@ -391,7 +392,7 @@ func Test__export__insert_query_values(_t *testing.T) {
 	}
 
 	for _, pt_testcase := range arrpt_testcase {
-		s_ret := Util__export__insert_query_values(pt_testcase.s_input)
+		s_ret := Util_ExportInsertQueryValues(pt_testcase.s_input)
 		if s_ret != pt_testcase.s_ret {
 			_t.Errorf("export__insert_query_values is not same\n\tinput : %s\n\treturn : %s\n\tresult : %s", pt_testcase.s_input, s_ret, pt_testcase.s_ret)
 		}

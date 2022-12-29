@@ -40,7 +40,7 @@ func (t *GenData) SetData(config *config.Config) (err error) {
 
 			// set args
 			// tpl args ( # name # )를 배열로 추출
-			tpls, err := sql.Util__export_str_between_delimiter(query.Sql, sql.DEF_s_sql__tpl__delimiter)
+			tpls, err := sql.Util_ExportBetweenDelimiter(query.Sql, sql.DEF_s_sql__tpl__delimiter)
 			if err != nil {
 				return err
 			}
@@ -63,18 +63,18 @@ func (t *GenData) SetData(config *config.Config) (err error) {
 			}
 
 			// args ( % name % )를 배열로 추출
-			args, err := sql.Util__export_str_between_delimiter(query.Sql, sql.DEF_s_sql__prepare_statement__delimiter)
+			args, err := sql.Util_ExportBetweenDelimiter(query.Sql, sql.DEF_s_sql__prepare_statement__delimiter)
 			if err != nil {
 				return err
 			}
 			genQuery.arg.setKs(args)
 
 			// %arg% -> ? # # +  /
-			sqlAfterArg := sql.Util__replace_str__between_delimiter(query.Sql, sql.DEF_s_sql__prepare_statement__delimiter, sql.DEF_s_sql__prepare_statement__after)
+			sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(query.Sql, sql.DEF_s_sql__prepare_statement__delimiter, sql.DEF_s_sql__prepare_statement__after)
 
 			// 쿼리 분석 후 struct 화
 			// #tpl# -> tpl
-			sqlAfterArgClearTpl := sql.Util__Replace_str__in_delimiter_value(sqlAfterArg, sql.DEF_s_sql__tpl__delimiter, sql.DEF_s_sql__tpl__split)
+			sqlAfterArgClearTpl := sql.Util_ReplaceInDelimiter(sqlAfterArg, sql.DEF_s_sql__tpl__delimiter, sql.DEF_s_sql__tpl__split)
 
 			isql, err := sql.New(sqlAfterArgClearTpl)
 			if err != nil {
@@ -107,7 +107,7 @@ func (t *GenData) SetData(config *config.Config) (err error) {
 				genQuery.queryName = query.Name
 
 				// sql 문 복사 ( #이름# -> %s 로 변경 )
-				sqlAfterArgTpl := sql.Util__replace_str__between_delimiter(sqlAfterArg, sql.DEF_s_sql__tpl__delimiter, sql.DEF_s_sql__tpl__after)
+				sqlAfterArgTpl := sql.Util_ReplaceBetweenDelimiter(sqlAfterArg, sql.DEF_s_sql__tpl__delimiter, sql.DEF_s_sql__tpl__after)
 				genQuery.query = sqlAfterArgTpl
 
 				// group list 에 func 추가
@@ -127,9 +127,9 @@ func (t *GenData) Select(conf *config.Config, table *config.Table, query *config
 
 	// 필드 정보를 얻어온다.
 	{
-		s_sql, _ := sql.Util__split_by_delimiter(query.Sql, "where")
-		s_sql__after_arg := sql.Util__replace_str__between_delimiter(s_sql, sql.DEF_s_sql__prepare_statement__delimiter, sql.DEF_s_sql__prepare_statement__after)
-		s_sql__after_arg_clear_tpl := sql.Util__Replace_str__in_delimiter_value(s_sql__after_arg, sql.DEF_s_sql__tpl__delimiter, sql.DEF_s_sql__tpl__split)
+		s_sql, _ := sql.Util_SplitByDelimiter(query.Sql, "where")
+		s_sql__after_arg := sql.Util_ReplaceBetweenDelimiter(s_sql, sql.DEF_s_sql__prepare_statement__delimiter, sql.DEF_s_sql__prepare_statement__after)
+		s_sql__after_arg_clear_tpl := sql.Util_ReplaceInDelimiter(s_sql__after_arg, sql.DEF_s_sql__tpl__delimiter, sql.DEF_s_sql__tpl__split)
 
 		rows, err := t.db.Query(s_sql__after_arg_clear_tpl)
 		if err != nil {
@@ -190,7 +190,7 @@ func (t *GenData) Insert(conf *config.Config, schema *config.Schema, table *conf
 		// 필드 이름을 모두 채운 상태에서 처리 시작
 		for _, field := range sqlInsert.Fields {
 			// 입력값이 ? (arg) 형식이 아니면 func arg 를 만들 필요가 없음으로 continue
-			if sql.Util__is_parser_val__arg(field.Val) == false {
+			if sql.Util_IsParserValArg(field.Val) == false {
 				continue
 			}
 
@@ -216,7 +216,7 @@ func (t *GenData) Update(conf *config.Config, schema *config.Schema, table *conf
 	{
 		for _, field := range sqlUpdate.Field {
 			// 입력값이 ? (arg) 형식이 아니면 func arg 를 만들 필요가 없음으로 continue
-			if sql.Util__is_parser_val__arg(field.Val) == false {
+			if sql.Util_IsParserValArg(field.Val) == false {
 				continue
 			}
 
@@ -283,8 +283,6 @@ func (t *GenData) Delete(conf *config.Config, table *config.Table, query *config
 	return nil
 }
 
-//---------------------------------------------------------------------------------------------------//
-
 func (t *GenData) Add(group *GenDataGroup) {
 	if t.groups == nil {
 		t.groups = make([]*GenDataGroup, 0, 10)
@@ -292,7 +290,6 @@ func (t *GenData) Add(group *GenDataGroup) {
 	t.groups = append(t.groups, group)
 }
 
-// ------------------------------------------------------------------------------------------------------------//
 type GenDataGroup struct {
 	Name    string
 	Queries []*GenDataQuery
@@ -308,8 +305,6 @@ func (t *GenDataGroup) Set(Name string) {
 func (t *GenDataGroup) AddQuery(query *GenDataQuery) {
 	t.Queries = append(t.Queries, query)
 }
-
-//------------------------------------------------------------------------------------------------------------//
 
 type QueryType int8
 
@@ -334,8 +329,6 @@ type GenDataQuery struct {
 	InsertMulti      bool
 	UpdateNullIgnore bool
 }
-
-// ------------------------------------------------------------------------------------------------------------//
 
 type Pair struct {
 	Key   string

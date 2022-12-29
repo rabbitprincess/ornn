@@ -128,8 +128,6 @@ func (t *Select) getTableName(tableNameSql string) (tableName string, err error)
 	return "", fmt.Errorf("not exist table name in select expr - table name : %s", tableNameSql)
 }
 
-//--------------------------------------------------------------------------------------------------------//
-
 func (t *Select) addFld(as *FieldAs) {
 	if t.FieldAs == nil {
 		t.FieldAs = make([]*FieldAs, 0, 10)

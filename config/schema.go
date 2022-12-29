@@ -5,36 +5,12 @@ import (
 	"strings"
 )
 
+//------------------------------------------------------------------------------------------------//
+// schema
+
 type Schema struct {
 	Tables []*Table `json:"tables"`
 }
-
-type Table struct {
-	Name   string   `json:"table_name"`
-	Indexs []*Index `json:"indexs"`
-	Fields []*Field `json:"fields"`
-
-	Queries []*Query `json:"queries,omitempty"`
-}
-
-type Field struct {
-	Name    string `json:"name"`
-	TypeDB  string `json:"type_db"`
-	TypeGen string `json:"type_bp"`
-
-	Comment string `json:"comment,omitempty"`
-}
-
-type Index struct {
-	Name string   `json:"name"`
-	Type string   `json:"type"`
-	Keys []string `json:"keys"`
-
-	Comment string `json:"comment,omitempty"`
-}
-
-//------------------------------------------------------------------------------------------------//
-// call
 
 func (t *Schema) Init() {
 	t.Tables = make([]*Table, 0, 10)
@@ -113,7 +89,15 @@ func (t *Schema) GetTableFieldMatched(fldName string, tablesName []string) (matc
 }
 
 //------------------------------------------------------------------------------------------------//
-// group
+// table
+
+type Table struct {
+	Name   string   `json:"table_name"`
+	Indexs []*Index `json:"indexs"`
+	Fields []*Field `json:"fields"`
+
+	Queries []*Query `json:"queries,omitempty"`
+}
 
 func (t *Table) Init(tableName string) {
 	t.Name = tableName
@@ -172,21 +156,37 @@ func (t *Table) UpdateIndex(table *Table) error {
 }
 
 //------------------------------------------------------------------------------------------------//
-// field
+// index
 
-func (t *Field) Set(name string, typeDB string, typeGen string) {
-	t.Name = name
-	t.TypeDB = typeDB
-	t.TypeGen = typeGen
+type Index struct {
+	Name string   `json:"name"`
+	Type string   `json:"type"`
+	Keys []string `json:"keys"`
+
+	Comment string `json:"comment,omitempty"`
 }
-
-//------------------------------------------------------------------------------------------------//
-// idx
 
 func (t *Index) Set(name string, idxType string, keys []string) {
 	t.Name = name
 	t.Type = idxType
 	t.Keys = keys
+}
+
+//------------------------------------------------------------------------------------------------//
+// field
+
+type Field struct {
+	Name    string `json:"name"`
+	TypeDB  string `json:"type_db"`
+	TypeGen string `json:"type_gen"`
+
+	Comment string `json:"comment,omitempty"`
+}
+
+func (t *Field) Set(name string, typeDB string, typeGen string) {
+	t.Name = name
+	t.TypeDB = typeDB
+	t.TypeGen = typeGen
 }
 
 //------------------------------------------------------------------------------------------------//

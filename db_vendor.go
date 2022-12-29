@@ -10,9 +10,6 @@ type DbVendor struct {
 	vendor db.Vendor
 }
 
-//------------------------------------------------------------------------------------------------//
-// Schema
-
 func (t *DbVendor) Init(vendor db.Vendor) {
 	t.vendor = vendor
 }

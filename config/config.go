@@ -6,8 +6,8 @@ import (
 )
 
 type Config struct {
-	Schema  Schema  `json:"db"`
-	GenCode GenCode `json:"gen"`
+	Schema Schema `json:"db"`
+	Code   Code   `json:"gen"`
 }
 
 func (t *Config) Load(config string) error {

@@ -27,7 +27,7 @@ func (t *Delete) parse(psr *parser.Delete) error {
 			// -> 반드시 sub query 를 재귀호출로 해체하여 제일 외부 에 있는 () 에 대해 서만 table list 에 남긴다. = *  타입 지정 문제
 			log.Fatal("need more programming")
 		}
-		t.AddTbl(tableAs)
+		t.AddTable(tableAs)
 	}
 
 	/*
@@ -52,7 +52,7 @@ func (t *Delete) parse(psr *parser.Delete) error {
 	return nil
 }
 
-func (t *Delete) AddTbl(as *TableAs) {
+func (t *Delete) AddTable(as *TableAs) {
 	if t.TableAs == nil {
 		t.TableAs = make([]*TableAs, 0, 10)
 	}
