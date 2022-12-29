@@ -7,12 +7,6 @@ import (
 	"github.com/gokch/go-orm-gen/db/db_mysql"
 )
 
-// 기본 파일명
-const (
-	DEF_S_default_filepath__json   = "bp.json"
-	DEF_S_default_filepath__go__db = "bp_db.go"
-)
-
 func main() {
 	db := &db.DB{}
 	db.Connect("mysql", db_mysql.NewDsn("user", "pw", "127.0.0.1", "4001", "test_db"), "test_db")
