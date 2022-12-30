@@ -1,4 +1,4 @@
-package go_orm_gen
+package orm
 
 import (
 	"fmt"
@@ -18,14 +18,14 @@ const (
 	DEF_s_gen_config__go__db__class__name    string = "class_name"
 	DEF_s_gen_config__go__db__instance__type string = "db_instance_type"
 
-	DEF_s_gen_config__default__go__db__package_name  string = "bp_result"
-	DEF_s_gen_config__default__go__db__class_name    string = "C_DB"
-	DEF_s_gen_config__default__go__db__instance_type string = "*C_DB_job"
-	DEF_s_gen_config__go__db__instance_name          string = "pc_db_job"
-	DEF_s_gen_config__go__db__class__prefix          string = "C_"
-	DEF_s_gen_config__go__db__struct__prefix         string = "T_"
+	DEF_s_gen_config__default__go__db__package_name  string = "gen"
+	DEF_s_gen_config__default__go__db__class_name    string = "Schema"
+	DEF_s_gen_config__default__go__db__instance_type string = "*Job"
+	DEF_s_gen_config__go__db__instance_name          string = "job"
+	DEF_s_gen_config__go__db__class__prefix          string = ""
+	DEF_s_gen_config__go__db__struct__prefix         string = ""
 	DEF_s_gen_config__go__db__func__struct_var_name  string = "t"
-	DEF_s_gen_config__go__db__func__arg__prefix      string = "_"
+	DEF_s_gen_config__go__db__func__arg__prefix      string = ""
 	DEF_s_gen_config__go__db__func__arg__prefix__tpl string = "tpl__"
 	DEF_s_gen_config__go__db__func__arg__prefix__arg string = "arg__"
 
@@ -52,6 +52,7 @@ type GenCode struct {
 
 func (t *GenCode) init(config *config.Config, mapConfig map[string]string) {
 	t.config = config
+	t.codeGen = &codegen.CodeGen{}
 	t.codeGen.Global = &codegen.Global{}
 
 	// config
@@ -99,14 +100,14 @@ func (t *GenCode) gen(config *config.Config, mapConfig map[string]string, genDat
 
 		// 루트 구조체 작성
 		rootStruct := &codegen.Struct{}
-		t.codeGen.AddItem(rootStruct)
 		rootStruct.Init()
+		t.codeGen.AddItem(rootStruct)
 		rootStruct.Name = t.s_cfg__db__class__name
 
 		// 루트 함수 작성
 		rootFunc := &codegen.Func{}
-		t.codeGen.AddItem(rootFunc)
 		rootFunc.Init()
+		t.codeGen.AddItem(rootFunc)
 		rootFunc.StructName = DEF_s_gen_config__go__db__func__struct_var_name
 		rootFunc.StructType = fmt.Sprintf("*%s", rootStruct.Name)
 		rootFunc.FuncName = DEF_s_gen_config__go__db__struct__func_name__init
@@ -116,17 +117,18 @@ func (t *GenCode) gen(config *config.Config, mapConfig map[string]string, genDat
 		rootFuncInitArg.Type = t.s_cfg__db__instance__type
 
 		// group 단위 구조체
-		for _, pt_gen_group := range genData.groups {
+		for _, gen_group := range genData.groups {
 			// group 구조체 생성
-			pt_group := t.genGroup(pt_gen_group.Name)
-			t.codeGen.AddItem(pt_group)
+			group := t.genGroup(gen_group.Name)
+			group.Init()
+			t.codeGen.AddItem(group)
 
 			// root 구조체 안에 필드 변수 선언 -> group 구조체 사용을 위해
 			{
 				// root 구조체 안에 group 구조체 포인터 선언
 				rootVars := &codegen.VarItem{}
-				rootVars.Type = pt_group.Name
-				rootVars.Name = fmt.Sprintf("%s%s", DEF_s_gen_config__go__db__class__prefix, strings.ToLower(pt_gen_group.Name))
+				rootVars.Type = group.Name
+				rootVars.Name = fmt.Sprintf("%s%s", DEF_s_gen_config__go__db__class__prefix, strings.ToLower(gen_group.Name))
 				rootStruct.Field.Add(rootVars)
 
 				// root init body 작성
@@ -135,8 +137,8 @@ func (t *GenCode) gen(config *config.Config, mapConfig map[string]string, genDat
 			}
 
 			// group 구조체 안에 query 함수 생성
-			for _, pt_gen_query := range pt_gen_group.Queries {
-				t.genQuery(pt_group, pt_gen_query)
+			for _, pt_gen_query := range gen_group.Queries {
+				t.genQuery(group, pt_gen_query)
 			}
 		} // end of for pt_group
 	}
@@ -163,6 +165,7 @@ func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
 
 		// root 구조체에서 초기화를 요청할 Init 함수 제작
 		groupFuncInit := &codegen.Func{}
+		groupFuncInit.Init()
 		t.codeGen.AddItem(groupFuncInit)
 		{
 			groupFuncInit.FuncName = DEF_s_gen_config__go__db__struct__func_name__init

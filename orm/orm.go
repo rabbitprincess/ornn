@@ -1,4 +1,4 @@
-package go_orm_gen
+package orm
 
 import (
 	"fmt"
@@ -9,18 +9,21 @@ import (
 )
 
 type ORM struct {
-	db     *db.DB
+	db     *db.Conn
 	config *config.Config
 }
 
-func (t *ORM) Init(db *db.DB) {
+func (t *ORM) Init(db *db.Conn) {
 	t.db = db
+	t.config = &config.Config{}
 }
 
 func (t *ORM) ConfigLoad(path string) error {
 	var err error
+	if t.config == nil {
+		return fmt.Errorf("json is emtpy")
+	}
 
-	t.config = &config.Config{}
 	err = t.config.Load(path)
 	if err != nil {
 		return err

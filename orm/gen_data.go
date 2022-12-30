@@ -1,4 +1,4 @@
-package go_orm_gen
+package orm
 
 import (
 	"fmt"
@@ -11,20 +11,24 @@ import (
 )
 
 type GenData struct {
-	db     *db.DB
+	db     *db.Conn
 	vendor db.Vendor
 
 	groups []*GenDataGroup
 }
 
-func (t *GenData) Init(db *db.DB) {
+func (t *GenData) Init(db *db.Conn) {
 	t.db = db
 	t.vendor = db_mysql.NewVendor(db)
 	t.groups = make([]*GenDataGroup, 0, 10)
 }
 
 func (t *GenData) SetData(config *config.Config) (err error) {
-	t.db.Exec("Insert from test_table")
+	job, err := t.db.Begin()
+	if err != nil {
+		return err
+	}
+	job.Exec("Insert from test_table")
 
 	// group
 	schema := &config.Schema
@@ -131,7 +135,11 @@ func (t *GenData) Select(conf *config.Config, table *config.Table, query *config
 		s_sql__after_arg := sql.Util_ReplaceBetweenDelimiter(s_sql, sql.DEF_s_sql__prepare_statement__delimiter, sql.DEF_s_sql__prepare_statement__after)
 		s_sql__after_arg_clear_tpl := sql.Util_ReplaceInDelimiter(s_sql__after_arg, sql.DEF_s_sql__tpl__delimiter, sql.DEF_s_sql__tpl__split)
 
-		rows, err := t.db.Query(s_sql__after_arg_clear_tpl)
+		job, err := t.db.Begin()
+		if err != nil {
+			return err
+		}
+		rows, err := job.Query(s_sql__after_arg_clear_tpl)
 		if err != nil {
 			return err
 		}

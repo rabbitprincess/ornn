@@ -1,0 +1,59 @@
+{
+	"db": {
+		"tables": [
+			{
+				"table_name": "authors",
+				"indexs": [
+					{
+						"name": "",
+						"type": "PRIMARY KEY",
+						"keys": [
+							"id"
+						]
+					}
+				],
+				"fields": [
+					{
+						"name": "id",
+						"type_db": "bigint(20)",
+						"type_gen": "n8"
+					},
+					{
+						"name": "name",
+						"type_db": "text",
+						"type_gen": "s"
+					},
+					{
+						"name": "bio",
+						"type_db": "text",
+						"type_gen": "s"
+					}
+				],
+				"queries": [
+					{
+						"name": "Select",
+						"sql": "SELECT * FROM authors"
+					}
+				]
+			}
+		]
+	},
+	"gen": {
+		"import": [
+			{
+				"alias": ".",
+				"path": "github.com/gokch/go-orm-gen/db"
+			},
+			{
+				"alias": "",
+				"path": "fmt"
+			},
+			{
+				"alias": "",
+				"path": "string"
+			}
+
+		],
+		"field_type": null
+	}
+}

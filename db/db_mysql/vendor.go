@@ -6,14 +6,14 @@ import (
 	"github.com/gokch/go-orm-gen/db"
 )
 
-func NewVendor(db *db.DB) *Vendor {
+func NewVendor(db *db.Conn) *Vendor {
 	return &Vendor{
 		db: db,
 	}
 }
 
 type Vendor struct {
-	db *db.DB
+	db *db.Conn
 }
 
 func (t *Vendor) ConvType(dbType string) (genType string) {
@@ -91,14 +91,20 @@ func (t *Vendor) CreateTable() (sql []string, err error) {
 		var tbl string
 		var sqlCreateTable string
 
-		rows, err := t.db.Query(s_sql) // .Row_next(&s_table_name, &sqlCreateTable)
+		job, err := t.db.Begin()
 		if err != nil {
 			return nil, err
 		}
 
-		err = rows.Scan(&tbl, &sqlCreateTable)
+		rows, err := job.Query(s_sql)
 		if err != nil {
 			return nil, err
+		}
+		if rows.Next() == true {
+			err = rows.Scan(&tbl, &sqlCreateTable)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		sql = append(sql, sqlCreateTable)
@@ -109,7 +115,11 @@ func (t *Vendor) CreateTable() (sql []string, err error) {
 func (t *Vendor) allTable() (tables []string, err error) {
 	s_sql := "select `table_name` from `information_schema`.`tables` where `table_schema` = '" + t.db.DbName + "'"
 
-	rows, err := t.db.Query(s_sql)
+	job, err := t.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := job.Query(s_sql)
 	if err != nil {
 		return nil, err
 	}

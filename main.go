@@ -1,38 +1,42 @@
-package go_orm_gen
+package main
 
 import (
 	"log"
 
 	"github.com/gokch/go-orm-gen/db"
 	"github.com/gokch/go-orm-gen/db/db_mysql"
+	"github.com/gokch/go-orm-gen/orm"
 )
 
 func main() {
-	db := &db.DB{}
-	db.Connect("mysql", db_mysql.NewDsn("user", "pw", "127.0.0.1", "4001", "test_db"), "test_db")
+	var err error
 
-	var orm *ORM = &ORM{}
-	orm.Init(db)
-
-	// config
-	err := orm.ConfigLoad("bp.json")
+	db := &db.Conn{}
+	db, err = db_mysql.New("127.0.0.1", "3306", "root", "951753ck", "myTestDatabase")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	var orm *orm.ORM = &orm.ORM{}
+	orm.Init(db)
+
+	// config
+	err = orm.ConfigLoad("./output/gen.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	err = orm.SchemaLoad("")
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = orm.ConfigSave("bp.json")
+	err = orm.ConfigSave("./output/gen.json")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// code - generate
-	err = orm.GenCode("bp.json", map[string]string{
-		DEF_s_gen_config__go__db__package_name: "gen",
-		DEF_s_gen_config__go__db__class__name:  "gen",
-	})
+	err = orm.GenCode("./output/gen.go", map[string]string{})
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -5,9 +5,7 @@ import (
 	"database/sql"
 )
 
-type DB struct {
-	Job
-
+type Conn struct {
 	DriverName string
 	Dsn        string
 	DbName     string
@@ -15,7 +13,7 @@ type DB struct {
 	Db *sql.DB
 }
 
-func (t *DB) Connect(driverName, dsn, dbName string) (err error) {
+func (t *Conn) Connect(driverName, dsn, dbName string) (err error) {
 	t.DriverName = driverName
 	t.Dsn = dsn
 	t.DbName = dbName
@@ -32,7 +30,7 @@ func (t *DB) Connect(driverName, dsn, dbName string) (err error) {
 	return nil
 }
 
-func (t *DB) SetOpenConns(openConns, idleConns int) {
+func (t *Conn) SetOpenConns(openConns, idleConns int) {
 	if openConns > 0 {
 		t.Db.SetMaxOpenConns(openConns)
 	}
@@ -41,19 +39,29 @@ func (t *DB) SetOpenConns(openConns, idleConns int) {
 	}
 }
 
-func (t *DB) TxBegin(_isoLevel sql.IsolationLevel, _readonly bool) (tx *sql.Tx, err error) {
+func (t *Conn) Begin() (*Job, error) {
+	tx, err := t.Db.Begin()
+	if err != nil {
+		return nil, err
+	}
+	job := &Job{}
+	job.Init(false, t.Db, tx)
+	return job, nil
+}
+
+func (t *Conn) TxBegin(isoLevel sql.IsolationLevel, readonly bool) (tx *sql.Tx, err error) {
 	pt_opt := &sql.TxOptions{
-		Isolation: _isoLevel,
-		ReadOnly:  _readonly,
+		Isolation: isoLevel,
+		ReadOnly:  readonly,
 	}
 
 	return t.Db.BeginTx(context.Background(), pt_opt)
 }
 
-func (t *DB) TxBegin__callback(_isoLevel sql.IsolationLevel, _readonly bool, _fnCallback func(*sql.Tx) error) (err error) {
+func (t *Conn) TxBeginCb(isoLevel sql.IsolationLevel, readonly bool, fnCallback func(*sql.Tx) error) (err error) {
 	pt_opt := &sql.TxOptions{
-		Isolation: _isoLevel,
-		ReadOnly:  _readonly,
+		Isolation: isoLevel,
+		ReadOnly:  readonly,
 	}
 
 	tx, err := t.Db.BeginTx(context.Background(), pt_opt)
@@ -61,7 +69,7 @@ func (t *DB) TxBegin__callback(_isoLevel sql.IsolationLevel, _readonly bool, _fn
 		return err
 	}
 
-	err = _fnCallback(tx)
+	err = fnCallback(tx)
 	if err != nil {
 		tx.Rollback()
 		return err

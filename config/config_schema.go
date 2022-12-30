@@ -12,15 +12,18 @@ type Schema struct {
 	Tables []*Table `json:"tables"`
 }
 
-func (t *Schema) Init() {
-	t.Tables = make([]*Table, 0, 10)
-}
-
 func (t *Schema) AddTable(table *Table) {
+	if t.Tables == nil {
+		t.Tables = make([]*Table, 0, 10)
+	}
 	t.Tables = append(t.Tables, table)
 }
 
 func (t *Schema) GetTable(tableName string) *Table {
+	if t.Tables == nil {
+		t.Tables = make([]*Table, 0, 10)
+	}
+
 	for _, pt := range t.Tables {
 		if tableName == pt.Name {
 			return pt
@@ -30,6 +33,10 @@ func (t *Schema) GetTable(tableName string) *Table {
 }
 
 func (t *Schema) UpdateTable(schema *Schema, tablePrefix string) error {
+	if t.Tables == nil {
+		t.Tables = make([]*Table, 0, 10)
+	}
+
 	tablesNew := make([]*Table, 0, len(schema.Tables))
 
 	for _, table1 := range schema.Tables {
@@ -42,6 +49,12 @@ func (t *Schema) UpdateTable(schema *Schema, tablePrefix string) error {
 				// 중복 필드 업데이트
 				table2.UpdateField(table1)
 				tablesNew = append(tablesNew, table2)
+
+				// 임시 - 수정 필요!!
+				for _, query := range table1.Queries {
+					table2.AddQuery(query)
+				}
+
 				exist = true
 				break
 			}
@@ -103,6 +116,11 @@ func (t *Table) Init(tableName string) {
 	t.Name = tableName
 	t.Fields = make([]*Field, 0, 10)
 	t.Indexs = make([]*Index, 0, 10)
+	t.Queries = make([]*Query, 0, 10)
+	t.AddQuery(&Query{
+		Name: "Select",
+		Sql:  "SELECT * FROM " + tableName,
+	})
 }
 
 func (t *Table) AddField(field *Field) {
@@ -153,6 +171,10 @@ func (t *Table) AddIndex(index *Index) {
 func (t *Table) UpdateIndex(table *Table) error {
 	t.Indexs = table.Indexs
 	return nil
+}
+
+func (t *Table) AddQuery(query *Query) {
+	t.Queries = append(t.Queries, query)
 }
 
 //------------------------------------------------------------------------------------------------//

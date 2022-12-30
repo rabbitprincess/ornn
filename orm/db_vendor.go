@@ -1,4 +1,4 @@
-package go_orm_gen
+package orm
 
 import (
 	"github.com/blastrain/vitess-sqlparser/sqlparser"
@@ -22,7 +22,6 @@ func (t *DbVendor) SchemaGet() (*config.Schema, error) {
 	}
 
 	schema := &config.Schema{}
-	schema.Init()
 
 	// 뽑아낸 쿼리를 이용해서 table 을 제작
 	for _, sqlCreateTable := range sqlCreateTables {
