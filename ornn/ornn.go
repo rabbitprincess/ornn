@@ -2,6 +2,7 @@ package ornn
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/db"
@@ -60,11 +61,17 @@ func (t *ORNN) GenCode(path string) (err error) {
 		return fmt.Errorf("config is emtpy")
 	}
 
+	// gen code
 	gen := &Gen{}
-	_, err = gen.Gen(t.db, t.config, path)
+	code, err := gen.Gen(t.db, t.config, path)
 	if err != nil {
 		return err
 	}
 
+	// write code to file
+	err = os.WriteFile(path, []byte(code), 0700)
+	if err != nil {
+		return err
+	}
 	return nil
 }

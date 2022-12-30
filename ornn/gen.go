@@ -2,7 +2,6 @@ package ornn
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/db"
@@ -38,20 +37,10 @@ func (t *Gen) Gen(conn *db.Conn, conf *config.Config, path string) (code string,
 			}
 		}
 	}
-	/*
-		if err != nil {
-			return "", err
-		}
-	*/
+
 	// gen code
 	t.code = &GenCode{}
-	code, err = t.code.gen(conf, t.data)
-	if err != nil {
-		return "", err
-	}
-
-	// write file
-	err = os.WriteFile(path, []byte(code), 0700)
+	code, err = t.code.code(conf, t.data)
 	if err != nil {
 		return "", err
 	}

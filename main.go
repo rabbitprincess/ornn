@@ -17,7 +17,7 @@ func main() {
 	config := &config.Config{}
 	config.Global.InitDefault()
 
-	var ornn *ornn.ORNN = &ornn.ORNN{}
+	ornn := &ornn.ORNN{}
 	ornn.Init(db, config)
 
 	// config

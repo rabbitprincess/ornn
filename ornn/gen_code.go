@@ -21,7 +21,7 @@ type GenCode struct {
 	codeGen *codegen.CodeGen
 }
 
-func (t *GenCode) gen(config *config.Config, genData *GenData) (genCode string, err error) {
+func (t *GenCode) code(config *config.Config, genData *GenData) (genCode string, err error) {
 	// config 설정
 	t.config = config
 	t.codeGen = &codegen.CodeGen{}
