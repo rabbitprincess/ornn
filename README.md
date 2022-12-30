@@ -1,6 +1,6 @@
 # ornn
 
-Object Relational No Need Mapping
+Object Relation No Need
 
 ![alt text](https://github.com/gokch/ornn/blob/main/ornn.jpg?raw=true)
 
