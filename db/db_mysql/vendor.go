@@ -17,61 +17,60 @@ type Vendor struct {
 }
 
 func (t *Vendor) ConvType(dbType string) (genType string) {
-	var is_unsigned bool
+	var unsigned bool
 
-	arrs_option := strings.Split(string(dbType), " ")
-	for _, s_option := range arrs_option {
-		s_option = strings.ToLower(s_option)
-		if s_option == "unsigned" {
-			is_unsigned = true
-
+	opts := strings.Split(string(dbType), " ")
+	for _, opt := range opts {
+		opt = strings.ToLower(opt)
+		if opt == "unsigned" {
+			unsigned = true
 		}
 	}
 
-	if len(arrs_option) == 0 {
+	if len(opts) == 0 {
 		return ""
 	}
 
-	s_field_type_with_len := arrs_option[0]
+	s_field_type_with_len := opts[0]
 
 	n_pos_start_len := strings.Index(s_field_type_with_len, "(")
 	if n_pos_start_len != -1 {
 		s_field_type_with_len = s_field_type_with_len[0:n_pos_start_len]
 	}
 
-	return t.convType(s_field_type_with_len, is_unsigned)
+	return t.convType(s_field_type_with_len, unsigned)
 }
 
-func (t *Vendor) convType(_s_field_type_db string, _is_unsigned bool) string {
-	switch strings.ToLower(_s_field_type_db) {
+func (t *Vendor) convType(dbType string, unsigned bool) string {
+	switch strings.ToLower(dbType) {
 	case "char", "varchar", "tinytext", "text", "mediumtext", "longtext", "json":
-		return "s"
+		return "string"
 	case "binary", "varbinary", "tinyblob", "blob", "mediumblob", "longblob":
-		return "bt"
+		return "[]byte"
 	case "tinyint":
-		if _is_unsigned == true {
-			return "u1"
+		if unsigned == true {
+			return "uint8"
 		}
-		return "n1"
+		return "int8"
 	case "smallint":
-		if _is_unsigned == true {
-			return "u2"
+		if unsigned == true {
+			return "uint16"
 		}
-		return "n2"
+		return "int16"
 	case "int":
-		if _is_unsigned == true {
-			return "u4"
+		if unsigned == true {
+			return "uint32"
 		}
-		return "n4"
+		return "int32"
 	case "bigint":
-		if _is_unsigned == true {
-			return "u8"
+		if unsigned == true {
+			return "uint64"
 		}
-		return "n8"
+		return "int64"
 	case "float":
-		return "f"
+		return "float32"
 	case "double", "real":
-		return "d"
+		return "float64"
 	default:
 		return "error"
 	}

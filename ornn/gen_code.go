@@ -21,15 +21,10 @@ type GenCode struct {
 	codeGen *codegen.CodeGen
 }
 
-func (t *GenCode) init(config *config.Config) {
-	t.config = config
-	t.codeGen = &codegen.CodeGen{}
-	return
-}
-
 func (t *GenCode) gen(config *config.Config, genData *GenData) (genCode string, err error) {
 	// config 설정
-	t.init(config)
+	t.config = config
+	t.codeGen = &codegen.CodeGen{}
 
 	// gen_go 에 소스 생성을 위한 데이터 넣기
 	{
@@ -58,7 +53,7 @@ func (t *GenCode) gen(config *config.Config, genData *GenData) (genCode string, 
 
 		// arg
 		rootFuncInitArg := &codegen.Var{}
-		rootFunc.Arg.Add(rootFuncInitArg)
+		rootFunc.AddArg(rootFuncInitArg)
 		rootFuncInitArg.Name = strings.ToLower(t.config.Global.InstanceName)
 		rootFuncInitArg.Type = t.config.Global.InstanceType
 
@@ -74,7 +69,7 @@ func (t *GenCode) gen(config *config.Config, genData *GenData) (genCode string, 
 				rootVars := &codegen.Var{}
 				rootVars.Type = group.Name
 				rootVars.Name = strings.ToLower(gen_group.Name)
-				rootStruct.Fields.Add(rootVars)
+				rootStruct.AddField(rootVars)
 
 				// root init body 작성
 				s_code := fmt.Sprintf("%s.%s.%s(%s)\n", t.config.Global.StructName, rootVars.Name, "Init", rootFunc.Arg.Items[0].Name)
@@ -102,7 +97,7 @@ func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
 	{
 		// root 구조체 연결을 위한 구조체 필드 변수 제작
 		groupVar := &codegen.Var{}
-		genGroup.Fields.Add(groupVar)
+		genGroup.AddField(groupVar)
 		{
 			groupVar.Name = t.config.Global.InstanceName
 			groupVar.Type = t.config.Global.InstanceType
@@ -118,7 +113,7 @@ func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
 
 			// args
 			groupFuncInitArg := &codegen.Var{}
-			groupFuncInit.Arg.Add(groupFuncInitArg)
+			groupFuncInit.AddArg(groupFuncInitArg)
 			groupFuncInitArg.Name = strings.ToLower(t.config.Global.InstanceName)
 			groupFuncInitArg.Type = t.config.Global.InstanceType
 
@@ -171,10 +166,10 @@ func (t *GenCode) genQuerySelect(
 		// 2-1. 쿼리-리턴 변수 선언
 		{
 			ret.Name = fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(query.tableName), strings.ToLower(funcQuery.FuncName))
-			for _, pt_field_type := range query.ret.arrpt_pair {
+			for _, pt_field_type := range query.ret.pairs {
 				item := &codegen.Var{}
 				item.Name = sql.Util_ConvFirstToUpper(pt_field_type.Key)
-				item.Type = t.config.Global.ConvFieldType(pt_field_type.Value)
+				item.Type = pt_field_type.Value
 				ret.AddField(item)
 			}
 		}
@@ -187,12 +182,12 @@ func (t *GenCode) genQuerySelect(
 				retItem.Type = fmt.Sprintf("*%s", ret.Name)
 				s_body_code__ret_set = fmt.Sprintf("%s = pt_struct\n\tbreak", retItem.Name)
 			} else {
-				retItem.Name = fmt.Sprintf("arrpt_%ss", strings.ToLower(funcQuery.FuncName))
+				retItem.Name = fmt.Sprintf("%ss", strings.ToLower(funcQuery.FuncName))
 				retItem.Type = fmt.Sprintf("[]*%s", ret.Name)
 				s_body_code__ret_declare = fmt.Sprintf("\n%s = make(%s, 0, 100)", retItem.Name, retItem.Type)
 				s_body_code__ret_set = fmt.Sprintf("%s = append(%s, pt_struct)", retItem.Name, retItem.Name)
 			}
-			funcQuery.Ret.Add(retItem)
+			funcQuery.AddRet(retItem)
 
 			// error 추가
 			t.gen_query__add__func__ret__error(funcQuery)
@@ -203,23 +198,23 @@ func (t *GenCode) genQuerySelect(
 	{
 		funcQuery.InlineCode = fmt.Sprintf(`
 %s
-s_sql := fmt.Sprintf(
+sql := fmt.Sprintf(
 	"%s",%s
 )
-pc_ret := %s.%s.Query(
-	s_sql,
-	arri_arg...,
+ret, err := %s.%s.Query(
+	sql,
+	args...,
 )
-defer pc_ret.Close()
+if err != nil {
+	return nil, err
+}
+defer ret.Close()
 %s
-for {
+for ret.Next() {
 	pt_struct := &%s{}
-	is_end, err := pc_ret.Row_next(pt_struct)
+	err := ret.Scan(pt_struct)
 	if err != nil {
 		return nil, err
-	}
-	if is_end == true {
-		break
 	}
 	%s
 }
@@ -267,16 +262,19 @@ func (t *GenCode) genQueryInsert(funcQuery *codegen.Function, query *GenDataQuer
 
 		funcQuery.InlineCode = fmt.Sprintf(`
 %s
-s_sql := fmt.Sprintf(
+sql := fmt.Sprintf(
 	"%s",%s%s
 )
 
-pc_exec := %s.%s.Exec(
-	s_sql,
-	arri_arg...,
+exec, err := %s.%s.Exec(
+	sql,
+	args...,
 )
+if err != nil {
+	return 0, err
+}
 
-return pc_exec.LastInsertId()
+return exec.LastInsertId()
 `,
 			genArgs,
 			query.query,
@@ -308,16 +306,19 @@ func (t *GenCode) genQueryUpdate(funcQuery *codegen.Function, query *GenDataQuer
 			s_body__set_args = t.gen_query__add__func__body__set_args(arg)
 		}
 		funcQuery.InlineCode = fmt.Sprintf(`
-s_sql := fmt.Sprintf(
+sql := fmt.Sprintf(
 	"%s",%s
 )
 %s
-pc_exec := %s.%s.Exec(
-	s_sql,
-	arri_arg...,
+exec, err := %s.%s.Exec(
+	sql,
+	args...,
 )
+if err != nil {
+	return 0, err
+}
 
-return pc_exec.RowsAffected()
+return exec.RowsAffected()
 `,
 			query.query,
 			t.gen_query__add__func__body__arg(tpl),
@@ -342,16 +343,19 @@ func (t *GenCode) genQueryDelete(funcQuery *codegen.Function, query *GenDataQuer
 	{
 		funcQuery.InlineCode = fmt.Sprintf(`
 %s
-s_sql := fmt.Sprintf(
+sql := fmt.Sprintf(
 	"%s",%s
 )
 		
-pc_exec := %s.%s.Exec(
-	s_sql,
-	arri_arg...,
+exec, err := %s.%s.Exec(
+	sql,
+	args...,
 )
+if err != nil {
+	return 0, err
+}
 
-return pc_exec.RowsAffected()
+return exec.RowsAffected()
 `,
 			t.gen_query__add__func__body__set_args(arrs_arg),
 			query.query,
@@ -364,10 +368,10 @@ return pc_exec.RowsAffected()
 }
 
 func (t *GenCode) gen_query__add__func__arg__tpl(funcQuery *codegen.Function, query *GenDataQuery) (arrs_tpl []string) {
-	arrs_tpl = make([]string, 0, len(query.tpl.arrpt_pair))
-	for _, pt_tpl := range query.tpl.arrpt_pair {
+	arrs_tpl = make([]string, 0, len(query.tpl.pairs))
+	for _, pt_tpl := range query.tpl.pairs {
 		arg := &codegen.Var{}
-		funcQuery.Arg.Add(arg)
+		funcQuery.AddArg(arg)
 		arg.Name = fmt.Sprintf("%s%s", t.config.Global.TplPrefix, pt_tpl.Key)
 		arg.Type = "string"
 
@@ -377,9 +381,9 @@ func (t *GenCode) gen_query__add__func__arg__tpl(funcQuery *codegen.Function, qu
 }
 
 func (t *GenCode) gen_query__add__func__arg(funcQuery *codegen.Function, query *GenDataQuery) (arrs_arg []string) {
-	arrs_arg = make([]string, 0, len(query.tpl.arrpt_pair))
+	arrs_arg = make([]string, 0, len(query.tpl.pairs))
 
-	for _, pt_field_type := range query.arg.arrpt_pair {
+	for _, pt_field_type := range query.arg.pairs {
 		arg := &codegen.Var{}
 		var varType string
 		// 1. type 판정
@@ -387,7 +391,7 @@ func (t *GenCode) gen_query__add__func__arg(funcQuery *codegen.Function, query *
 			if pt_field_type.Value == "" { // 형을 특정할 수 없을 때
 				varType = "interface{}"
 			} else { // 형을 특정할 수 있을 때
-				varType = "*" + t.config.Global.ConvFieldType(pt_field_type.Value)
+				varType = "*" + pt_field_type.Value
 			}
 			if query.InsertMulti == true {
 				varType = "[]" + varType
@@ -398,7 +402,7 @@ func (t *GenCode) gen_query__add__func__arg(funcQuery *codegen.Function, query *
 		{
 			arg.Name = fmt.Sprintf("%s%s", t.config.Global.ArgPrefix, pt_field_type.Key)
 			arg.Type = varType
-			funcQuery.Arg.Add(arg)
+			funcQuery.AddArg(arg)
 		}
 		arrs_arg = append(arrs_arg, arg.Name)
 	}
@@ -409,21 +413,21 @@ func (t *GenCode) gen_query__add__func__ret__error(funcQuery *codegen.Function) 
 	retErr := &codegen.Var{}
 	retErr.Name = "err"
 	retErr.Type = "error"
-	funcQuery.Ret.Add(retErr)
+	funcQuery.AddRet(retErr)
 }
 
 func (t *GenCode) gen_query__add__func__ret__last_insert_id(funcQuery *codegen.Function) {
 	retLastid := &codegen.Var{}
-	retLastid.Name = "nn_last_insert_id"
+	retLastid.Name = "lastInsertId"
 	retLastid.Type = "int64"
-	funcQuery.Ret.Add(retLastid)
+	funcQuery.AddRet(retLastid)
 }
 
 func (t *GenCode) gen_query__add__func__ret__row_affected(funcQuery *codegen.Function) {
 	pt_query__ret__row_affected := &codegen.Var{}
-	pt_query__ret__row_affected.Name = "nn_row_affected"
+	pt_query__ret__row_affected.Name = "rowAffected"
 	pt_query__ret__row_affected.Type = "int64"
-	funcQuery.Ret.Add(pt_query__ret__row_affected)
+	funcQuery.AddRet(pt_query__ret__row_affected)
 }
 
 func (t *GenCode) gen_query__add__func__body__arg(_arrs_arg []string) (s_arg string) {
@@ -440,8 +444,8 @@ func (t *GenCode) gen_query__add__func__body__set_args(_arrs_arg []string) (s_ge
 		s_gen_arg__item += "\n"
 	}
 
-	s_gen_arg += fmt.Sprintf(`arri_arg := make([]interface{}, 0, %d)
-arri_arg = append(arri_arg, I_to_arri(%s)...)
+	s_gen_arg += fmt.Sprintf(`args := make([]interface{}, 0, %d)
+args = append(args, I_to_arri(%s)...)
 `,
 		len(_arrs_arg),
 		s_gen_arg__item,
@@ -480,9 +484,9 @@ if %s {
 	return 0, fmt.Errorf("arg len is not same")
 }
 
-arri_arg := make([]interface{}, 0, n_len_arg*%d)
+args := make([]interface{}, 0, n_len_arg*%d)
 for i := 0; i < n_len_arg; i++ {
-	arri_arg = append(arri_arg, I_to_arri(
+	args = append(args, I_to_arri(
 		%s,
 	)...)
 }
@@ -494,15 +498,15 @@ for i := 0; i < n_len_arg; i++ {
 	return s_multi_insert__body
 }
 
-func (t *GenCode) gen_query__add__func__body__set_args__remove_sets(_arrs_arg []string) (s_sql_update__delete_sets string) {
-	var s_sql_is_nil string
+func (t *GenCode) gen_query__add__func__body__set_args__remove_sets(_arrs_arg []string) (sql_update__delete_sets string) {
+	var sql_is_nil string
 	for _, s_arg := range _arrs_arg {
 		s_field_name := strings.TrimPrefix(s_arg, t.config.Global.ArgPrefix)
 
-		s_sql_is_nil += fmt.Sprintf(`if %s == nil {
+		sql_is_nil += fmt.Sprintf(`if %s == nil {
 	arrs_sets__removed = append(arrs_sets__removed, "%s")
 } else {
-	arri_arg = append(arri_arg, %s)
+	args = append(args, %s)
 }
 `,
 			s_arg,
@@ -511,18 +515,18 @@ func (t *GenCode) gen_query__add__func__body__set_args__remove_sets(_arrs_arg []
 		)
 	}
 
-	s_sql_update__delete_sets = fmt.Sprintf(`
-arri_arg := make([]interface{}, 0, %d)
+	sql_update__delete_sets = fmt.Sprintf(`
+args := make([]interface{}, 0, %d)
 arrs_sets__removed := make([]string, 0, %d)
 %s
 if len(arrs_sets__removed) != 0 {
-	s_sql, _ = %s(s_sql, arrs_sets__removed)
+	sql, _ = %s(sql, arrs_sets__removed)
 }
 `,
 		len(_arrs_arg),
 		len(_arrs_arg),
-		s_sql_is_nil,
+		sql_is_nil,
 		DEF_s_gen_config__go__db__func__body__func_name__SQL_remove__update_set_field__null,
 	)
-	return s_sql_update__delete_sets
+	return sql_update__delete_sets
 }

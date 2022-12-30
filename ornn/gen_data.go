@@ -6,7 +6,6 @@ import (
 
 	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/db"
-	"github.com/gokch/ornn/db/db_mysql"
 	"github.com/gokch/ornn/sql"
 	"github.com/gokch/ornn/sql/parser"
 )
@@ -18,9 +17,9 @@ type GenData struct {
 	groups []*GenDataGroup
 }
 
-func (t *GenData) Init(db *db.Conn) {
+func (t *GenData) Init(db *db.Conn, vendor db.Vendor) {
 	t.db = db
-	t.vendor = db_mysql.NewVendor(db)
+	t.vendor = vendor
 	t.groups = make([]*GenDataGroup, 0, 10)
 }
 
@@ -347,7 +346,7 @@ type Pair struct {
 }
 
 type genDataStruct struct {
-	arrpt_pair []*Pair
+	pairs []*Pair
 }
 
 func (t *genDataStruct) setKs(Keys []string) {
@@ -357,18 +356,18 @@ func (t *genDataStruct) setKs(Keys []string) {
 }
 
 func (t *genDataStruct) setKV(key string, valueNew string) {
-	if t.arrpt_pair == nil {
-		t.arrpt_pair = make([]*Pair, 0, 10)
+	if t.pairs == nil {
+		t.pairs = make([]*Pair, 0, 10)
 	}
 
-	for _, field := range t.arrpt_pair {
+	for _, field := range t.pairs {
 		if field.Key == key {
 			field.Value = valueNew
 			return
 		}
 	}
 
-	t.arrpt_pair = append(t.arrpt_pair, &Pair{
+	t.pairs = append(t.pairs, &Pair{
 		Key:   key,
 		Value: valueNew,
 	})

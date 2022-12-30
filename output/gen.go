@@ -9,59 +9,112 @@ import (
 )
 
 type Schema struct {
-	authors Authors
+	user User
 }
 
 func (t *Schema) Init(
 	job *Job,
 ) {
-	t.authors.Init(job)
+	t.user.Init(job)
 }
 
-func (t *Authors) Init(
+func (t *User) Init(
 	job *Job,
 ) {
-	t.job = job
+	t.Job = job
 }
 
-type Authors struct {
-	job *Job
+type User struct {
+	Job *Job
 }
 
-type Authors__select struct {
-	Id   int
-	Name string
-	Bio   string
-}
-
-func (t *Authors) Select() (
-	arrpt_select []*Authors__select,
+func (t *User) Insert(
+	arg_seq *int64,
+	arg_id *string,
+	arg_name *string,
+) (
+	lastInsertId int64,
 	err error,
 ) {
-	arri_arg := make([]interface{}, 0, 0)
-	arri_arg = append(arri_arg)
+	args := make([]interface{}, 0, 3)
+	args = append(args, I_to_arri(
+		arg_seq,
+		arg_id,
+		arg_name,
+	)...)
 	
-	s_sql := fmt.Sprintf(
-		"SELECT * FROM authors",
+	sql := fmt.Sprintf(
+		"INSERT INTO user VALUES (?, ?, ?)",
 	)
-	pc_ret, err := t.job.Query(
-		s_sql,
-		arri_arg...,
+	
+	exec, err := t.Job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.LastInsertId()
+}
+
+type User_select struct {
+	Seq  int64
+	Id   string
+	Name string
+}
+
+func (t *User) Select() (
+	selects []*User_select,
+	err error,
+) {
+	args := make([]interface{}, 0, 0)
+	args = append(args, I_to_arri()...)
+	
+	sql := fmt.Sprintf(
+		"SELECT * FROM user",
+	)
+	ret, err := t.Job.Query(
+		sql,
+		args...,
 	)
 	if err != nil {
 		return nil, err
 	}
-	defer pc_ret.Close()
+	defer ret.Close()
 	
-	arrpt_select = make([]*Authors__select, 0, 100)
-	for pc_ret.Next(){
-		pt_struct := &Authors__select{}
-		err := pc_ret.Scan(pt_struct)
+	selects = make([]*User_select, 0, 100)
+	for ret.Next() {
+		pt_struct := &User_select{}
+		err := ret.Scan(pt_struct)
 		if err != nil {
 			return nil, err
 		}
-		arrpt_select = append(arrpt_select, pt_struct)
+		selects = append(selects, pt_struct)
 	}
 	
-	return arrpt_select, nil
+	return selects, nil
 }
+
+func (t *User) Delete() (
+	rowAffected int64,
+	err error,
+) {
+	args := make([]interface{}, 0, 0)
+	args = append(args, I_to_arri()...)
+	
+	sql := fmt.Sprintf(
+		"DELETE FROM user",
+	)
+			
+	exec, err := t.Job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.RowsAffected()
+}
+

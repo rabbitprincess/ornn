@@ -11,7 +11,7 @@ type Config struct {
 	Queries Queries `json:"queries"`
 }
 
-// 임시 - 추후 config 형식 변경 예정
+// TODO - 추후 config 형식 변경 예정
 func (t *Config) Load(config string) error {
 	data, err := ioutil.ReadFile(config)
 	if err != nil {

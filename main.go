@@ -13,15 +13,15 @@ func main() {
 	var err error
 
 	db := &db.Conn{}
-	db, err = db_mysql.New("127.0.0.1", "3306", "root", "1234", "myTestDatabase")
+	db, err = db_mysql.New("127.0.0.1", "3306", "root", "1234", "test")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var ornn *ornn.ORM = &ornn.ORM{}
 	config := &config.Config{}
 	config.Global.InitDefault()
 
+	var ornn *ornn.ORNN = &ornn.ORNN{}
 	ornn.Init(db, config)
 
 	// config
@@ -30,7 +30,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = ornn.SchemaLoad("")
+	err = ornn.InitConfigBySchema("")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -10,8 +10,7 @@ type Global struct {
 	TplPrefix    string `json:"tpl_prefix"`
 	ArgPrefix    string `json:"arg_prefix"`
 
-	Import    []*Import `json:"import"`
-	FieldType []string  `json:"field_type"`
+	Import []*Import `json:"import"`
 }
 
 // TODO: 코브라로 변경 예정
@@ -24,15 +23,11 @@ func (t *Global) InitDefault() {
 	t.StructName = "t"
 	t.TplPrefix = "tpl_"
 	t.ArgPrefix = "arg_"
-}
 
-func (t *Global) ConvFieldType(fieldType string) string {
-	for _, field := range t.FieldType {
-		if field == fieldType {
-			return fieldType
-		}
+	t.Import = []*Import{
+		{Alias: "", Path: "fmt"},
+		{Alias: "", Path: "github.com/gokch/ornn/db"},
 	}
-	return ""
 }
 
 type Import struct {
