@@ -26,7 +26,7 @@ func (t *Global) InitDefault() {
 
 	t.Import = []*Import{
 		{Alias: "", Path: "fmt"},
-		{Alias: "", Path: "github.com/gokch/ornn/db"},
+		{Alias: ".", Path: "github.com/gokch/ornn/db"},
 	}
 }
 
