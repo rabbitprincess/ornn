@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/gokch/go-orm-gen/db"
-	"github.com/gokch/go-orm-gen/db/db_mysql"
-	"github.com/gokch/go-orm-gen/orm"
+	"github.com/gokch/ornn/db"
+	"github.com/gokch/ornn/db/db_mysql"
+	"github.com/gokch/ornn/orm"
 )
 
 func main() {

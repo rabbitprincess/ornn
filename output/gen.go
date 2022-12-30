@@ -5,7 +5,7 @@ package gen
 
 import (
 	"fmt"
-	. "github.com/gokch/go-orm-gen/db"
+	. "github.com/gokch/ornn/db"
 )
 
 type Schema struct {

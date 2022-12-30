@@ -3,7 +3,7 @@ package db_mysql
 import (
 	"strings"
 
-	"github.com/gokch/go-orm-gen/db"
+	"github.com/gokch/ornn/db"
 )
 
 func NewVendor(db *db.Conn) *Vendor {

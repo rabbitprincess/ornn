@@ -2,8 +2,8 @@ package orm
 
 import (
 	"github.com/blastrain/vitess-sqlparser/sqlparser"
-	"github.com/gokch/go-orm-gen/config"
-	"github.com/gokch/go-orm-gen/db"
+	"github.com/gokch/ornn/config"
+	"github.com/gokch/ornn/db"
 )
 
 type DbVendor struct {

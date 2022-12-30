@@ -3,8 +3,8 @@ package orm
 import (
 	"os"
 
-	"github.com/gokch/go-orm-gen/config"
-	"github.com/gokch/go-orm-gen/db"
+	"github.com/gokch/ornn/config"
+	"github.com/gokch/ornn/db"
 )
 
 type Gen struct {

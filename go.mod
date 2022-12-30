@@ -1,4 +1,4 @@
-module github.com/gokch/go-orm-gen
+module github.com/gokch/ornn
 
 go 1.19
 

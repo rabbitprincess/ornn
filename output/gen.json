@@ -42,7 +42,7 @@
 		"import": [
 			{
 				"alias": ".",
-				"path": "github.com/gokch/go-orm-gen/db"
+				"path": "github.com/gokch/ornn/db"
 			},
 			{
 				"alias": "",

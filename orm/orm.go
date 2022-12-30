@@ -3,9 +3,9 @@ package orm
 import (
 	"fmt"
 
-	"github.com/gokch/go-orm-gen/config"
-	"github.com/gokch/go-orm-gen/db"
-	"github.com/gokch/go-orm-gen/db/db_mysql"
+	"github.com/gokch/ornn/config"
+	"github.com/gokch/ornn/db"
+	"github.com/gokch/ornn/db/db_mysql"
 )
 
 type ORM struct {

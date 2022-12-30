@@ -6,9 +6,9 @@ import (
 
 	"strings"
 
-	"github.com/gokch/go-orm-gen/codegen"
-	"github.com/gokch/go-orm-gen/config"
-	"github.com/gokch/go-orm-gen/sql"
+	"github.com/gokch/ornn/codegen"
+	"github.com/gokch/ornn/config"
+	"github.com/gokch/ornn/sql"
 )
 
 const (
