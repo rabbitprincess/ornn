@@ -7,12 +7,12 @@ import (
 
 func TestCodeGen(_t *testing.T) {
 	input := struct {
-		PackageName string
-		StructName  string
-		Fields      []string
+		Package    string
+		StructName string
+		Fields     []string
 	}{
-		PackageName: "pkg",
-		StructName:  "MyStruct",
+		Package:    "pkg",
+		StructName: "MyStruct",
 		Fields: []string{
 			"Field1",
 			"Field2",
@@ -22,7 +22,7 @@ func TestCodeGen(_t *testing.T) {
 	w := &Writer{}
 	w.Init()
 
-	w.W("package %s\n\n", input.PackageName)
+	w.W("package %s\n\n", input.Package)
 	w.W("func (o %[1]s) ShallowCopy() %[1]s {\n", input.StructName)
 
 	{

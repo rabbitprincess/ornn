@@ -12,7 +12,7 @@ type Gen struct {
 	code *GenCode
 }
 
-func (t *Gen) Gen(database *db.Conn, conf *config.Config, mapConf map[string]string, path string) (code string, err error) {
+func (t *Gen) Gen(database *db.Conn, conf *config.Config, path string) (code string, err error) {
 	// json -> 코드 생성을 위한 gen 데이터 준비
 	t.data = &GenData{}
 	t.data.Init(database)
@@ -41,7 +41,7 @@ func (t *Gen) Gen(database *db.Conn, conf *config.Config, mapConf map[string]str
 	*/
 	// gen code
 	t.code = &GenCode{}
-	code, err = t.code.gen(conf, mapConf, t.data)
+	code, err = t.code.gen(conf, t.data)
 	if err != nil {
 		return "", err
 	}

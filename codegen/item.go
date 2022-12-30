@@ -13,10 +13,10 @@ type Item interface {
 // global
 
 type Global struct {
-	DoNotEdit   string
-	PackageName string
-	Imports     Import
-	Items       []Item
+	DoNotEdit string
+	Package   string
+	Imports   Import
+	Items     []Item
 }
 
 func (t *Global) Init() {
@@ -32,9 +32,9 @@ func (t *Global) AddItem(i Item) {
 }
 
 func (t *Global) Code(w *Writer) {
-	w.W("%s\n", t.DoNotEdit)             // comment ( do not edit )
-	w.W("package %s\n\n", t.PackageName) // package
-	t.Imports.Code(w)                    // import
+	w.W("%s\n", t.DoNotEdit)         // comment ( do not edit )
+	w.W("package %s\n\n", t.Package) // package
+	t.Imports.Code(w)                // import
 
 	for _, pt := range t.Items {
 		pt.Code(w)

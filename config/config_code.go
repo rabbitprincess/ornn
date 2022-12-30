@@ -1,11 +1,11 @@
 package config
 
-type Code struct {
+type Global struct {
 	Import    []*Import `json:"import"`
 	FieldType []string  `json:"field_type"`
 }
 
-func (t *Code) ConvFieldType(fldType string) string {
+func (t *Global) ConvFieldType(fldType string) string {
 	for _, fld := range t.FieldType {
 		if fld == fldType {
 			return fldType

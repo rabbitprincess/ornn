@@ -6,17 +6,19 @@ import (
 )
 
 type Config struct {
-	Schema Schema `json:"db"`
-	Code   Code   `json:"gen"`
+	Global  Global  `json:"global"`
+	Schema  Schema  `json:"schema"`
+	Queries Queries `json:"queries"`
 }
 
+// 임시 - 추후 config 형식 변경 예정
 func (t *Config) Load(config string) error {
-	bt_data, err := ioutil.ReadFile(config)
+	data, err := ioutil.ReadFile(config)
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(bt_data, &t)
+	err = json.Unmarshal(data, &t)
 	if err != nil {
 		return err
 	}
@@ -24,12 +26,12 @@ func (t *Config) Load(config string) error {
 }
 
 func (t *Config) Save(config string) error {
-	bt_data, err := json.MarshalIndent(&t, "", "\t")
+	data, err := json.MarshalIndent(&t, "", "\t")
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(config, bt_data, 0700)
+	err = ioutil.WriteFile(config, data, 0700)
 	if err != nil {
 		return err
 	}

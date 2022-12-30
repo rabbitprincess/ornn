@@ -12,7 +12,7 @@ func main() {
 	var err error
 
 	db := &db.Conn{}
-	db, err = db_mysql.New("127.0.0.1", "3306", "root", "951753ck", "myTestDatabase")
+	db, err = db_mysql.New("127.0.0.1", "3306", "root", "1234", "myTestDatabase")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func main() {
 	}
 
 	// code - generate
-	err = orm.GenCode("./output/gen.go", map[string]string{})
+	err = orm.GenCode("./output/gen.go")
 	if err != nil {
 		log.Fatal(err)
 	}

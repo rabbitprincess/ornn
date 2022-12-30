@@ -63,16 +63,13 @@ func (t *ORM) SchemaLoad(tablePrefix string) error {
 	return nil
 }
 
-func (t *ORM) GenCode(path string, config map[string]string) (err error) {
-	if config == nil {
-		return fmt.Errorf("config is emtpy")
-	}
+func (t *ORM) GenCode(path string) (err error) {
 	if t.config == nil {
-		return fmt.Errorf("json is emtpy")
+		return fmt.Errorf("config is emtpy")
 	}
 
 	gen := &Gen{}
-	_, err = gen.Gen(t.db, t.config, config, path)
+	_, err = gen.Gen(t.db, t.config, path)
 	if err != nil {
 		return err
 	}

@@ -14,16 +14,10 @@ import (
 const (
 	DEF_s_gen_config__go__comment__do_not_edit string = "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n"
 
-	DEF_s_gen_config__go__db__package_name   string = "package_name"
-	DEF_s_gen_config__go__db__class__name    string = "class_name"
-	DEF_s_gen_config__go__db__instance__type string = "db_instance_type"
-
 	DEF_s_gen_config__default__go__db__package_name  string = "gen"
 	DEF_s_gen_config__default__go__db__class_name    string = "Schema"
 	DEF_s_gen_config__default__go__db__instance_type string = "*Job"
 	DEF_s_gen_config__go__db__instance_name          string = "job"
-	DEF_s_gen_config__go__db__class__prefix          string = ""
-	DEF_s_gen_config__go__db__struct__prefix         string = ""
 	DEF_s_gen_config__go__db__func__struct_var_name  string = "t"
 	DEF_s_gen_config__go__db__func__arg__prefix      string = ""
 	DEF_s_gen_config__go__db__func__arg__prefix__tpl string = "tpl__"
@@ -50,48 +44,30 @@ type GenCode struct {
 	config *config.Config
 }
 
-func (t *GenCode) init(config *config.Config, mapConfig map[string]string) {
+func (t *GenCode) init(config *config.Config) {
 	t.config = config
 	t.codeGen = &codegen.CodeGen{}
 	t.codeGen.Global = &codegen.Global{}
 
-	// config
-	if mapConfig == nil {
-		mapConfig = make(map[string]string)
-	}
-
-	if mapConfig[DEF_s_gen_config__go__comment__do_not_edit] == "" {
-		mapConfig[DEF_s_gen_config__go__comment__do_not_edit] = DEF_s_gen_config__go__comment__do_not_edit
-	}
-	if mapConfig[DEF_s_gen_config__go__db__package_name] == "" {
-		mapConfig[DEF_s_gen_config__go__db__package_name] = DEF_s_gen_config__default__go__db__package_name
-	}
-	if mapConfig[DEF_s_gen_config__go__db__class__name] == "" {
-		mapConfig[DEF_s_gen_config__go__db__class__name] = DEF_s_gen_config__default__go__db__class_name
-	}
-	if mapConfig[DEF_s_gen_config__go__db__instance__type] == "" {
-		mapConfig[DEF_s_gen_config__go__db__instance__type] = DEF_s_gen_config__default__go__db__instance_type
-	}
-
-	t.s_cfg__comment__do_not_edit = mapConfig[DEF_s_gen_config__go__comment__do_not_edit]
-	t.s_cfg__db__package__name = mapConfig[DEF_s_gen_config__go__db__package_name]
-	t.s_cfg__db__class__name = mapConfig[DEF_s_gen_config__go__db__class__name]
-	t.s_cfg__db__instance__type = mapConfig[DEF_s_gen_config__go__db__instance__type]
+	t.s_cfg__comment__do_not_edit = DEF_s_gen_config__go__comment__do_not_edit
+	t.s_cfg__db__package__name = DEF_s_gen_config__default__go__db__package_name
+	t.s_cfg__db__class__name = DEF_s_gen_config__default__go__db__class_name
+	t.s_cfg__db__instance__type = DEF_s_gen_config__default__go__db__instance_type
 	return
 }
 
-func (t *GenCode) gen(config *config.Config, mapConfig map[string]string, genData *GenData) (genCode string, err error) {
+func (t *GenCode) gen(config *config.Config, genData *GenData) (genCode string, err error) {
 	// config 설정
-	t.init(config, mapConfig)
+	t.init(config)
 
 	// gen_go 에 소스 생성을 위한 데이터 넣기
 	{
 		t.codeGen.Init()
 		t.codeGen.DoNotEdit = t.s_cfg__comment__do_not_edit
-		t.codeGen.PackageName = t.s_cfg__db__package__name
+		t.codeGen.Package = t.s_cfg__db__package__name
 
 		// import 경로 추가
-		for _, imp := range config.Code.Import {
+		for _, imp := range config.Global.Import {
 			t.codeGen.AddImport(&codegen.ImportItem{
 				Path:  imp.Path,
 				Alias: imp.Alias,
@@ -128,7 +104,7 @@ func (t *GenCode) gen(config *config.Config, mapConfig map[string]string, genDat
 				// root 구조체 안에 group 구조체 포인터 선언
 				rootVars := &codegen.VarItem{}
 				rootVars.Type = group.Name
-				rootVars.Name = fmt.Sprintf("%s%s", DEF_s_gen_config__go__db__class__prefix, strings.ToLower(gen_group.Name))
+				rootVars.Name = strings.ToLower(gen_group.Name)
 				rootStruct.Field.Add(rootVars)
 
 				// root init body 작성
@@ -151,7 +127,7 @@ func (t *GenCode) gen(config *config.Config, mapConfig map[string]string, genDat
 
 func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
 	genGroup = &codegen.Struct{}
-	genGroup.Name = fmt.Sprintf("%s%s", DEF_s_gen_config__go__db__class__prefix, sql.Util_ConvFirstToUpper(group))
+	genGroup.Name = sql.Util_ConvFirstToUpper(group)
 
 	// group 구조체 안에
 	{
@@ -228,11 +204,11 @@ func (t *GenCode) genQuerySelect(
 	{
 		// 2-1. 쿼리-리턴 변수 선언
 		{
-			ret.Name = fmt.Sprintf("%s%s__%s", DEF_s_gen_config__go__db__struct__prefix, sql.Util_ConvFirstToUpper(query.tableName), strings.ToLower(funcQuery.FuncName))
+			ret.Name = fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(query.tableName), strings.ToLower(funcQuery.FuncName))
 			for _, pt_field_type := range query.ret.arrpt_pair {
 				item := &codegen.VarItem{}
 				item.Name = sql.Util_ConvFirstToUpper(pt_field_type.Key)
-				item.Type = t.config.Code.ConvFieldType(pt_field_type.Value)
+				item.Type = t.config.Global.ConvFieldType(pt_field_type.Value)
 				ret.Field.Add(item)
 			}
 		}
@@ -445,7 +421,7 @@ func (t *GenCode) gen_query__add__func__arg(funcQuery *codegen.Func, query *GenD
 			if pt_field_type.Value == "" { // 형을 특정할 수 없을 때
 				varType = DEF_s_gen_config__go__db__func__in_arg__type
 			} else { // 형을 특정할 수 있을 때
-				varType = "*" + t.config.Code.ConvFieldType(pt_field_type.Value)
+				varType = "*" + t.config.Global.ConvFieldType(pt_field_type.Value)
 			}
 			if query.InsertMulti == true {
 				varType = "[]" + varType

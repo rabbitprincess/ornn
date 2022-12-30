@@ -50,11 +50,6 @@ func (t *Schema) UpdateTable(schema *Schema, tablePrefix string) error {
 				table2.UpdateField(table1)
 				tablesNew = append(tablesNew, table2)
 
-				// 임시 - 수정 필요!!
-				for _, query := range table1.Queries {
-					table2.AddQuery(query)
-				}
-
 				exist = true
 				break
 			}
@@ -108,19 +103,12 @@ type Table struct {
 	Name   string   `json:"table_name"`
 	Indexs []*Index `json:"indexs"`
 	Fields []*Field `json:"fields"`
-
-	Queries []*Query `json:"queries,omitempty"`
 }
 
 func (t *Table) Init(tableName string) {
 	t.Name = tableName
 	t.Fields = make([]*Field, 0, 10)
 	t.Indexs = make([]*Index, 0, 10)
-	t.Queries = make([]*Query, 0, 10)
-	t.AddQuery(&Query{
-		Name: "Select",
-		Sql:  "SELECT * FROM " + tableName,
-	})
 }
 
 func (t *Table) AddField(field *Field) {
@@ -173,10 +161,6 @@ func (t *Table) UpdateIndex(table *Table) error {
 	return nil
 }
 
-func (t *Table) AddQuery(query *Query) {
-	t.Queries = append(t.Queries, query)
-}
-
 //------------------------------------------------------------------------------------------------//
 // index
 
@@ -209,23 +193,6 @@ func (t *Field) Set(name string, typeDB string, typeGen string) {
 	t.Name = name
 	t.TypeDB = typeDB
 	t.TypeGen = typeGen
-}
-
-//------------------------------------------------------------------------------------------------//
-// query
-
-type Query struct {
-	Name    string `json:"name"`
-	Comment string `json:"comment,omitempty"`
-
-	Sql string `json:"sql"`
-
-	SelectFieldTypes []*SelectFieldType `json:"fields,omitempty"`
-	InsertMulti      bool               `json:"insert_multi,omitempty"`
-	UpdateNullIgnore bool               `json:"update_null_ignore,omitempty"`
-
-	ErrQuery  string `json:"-"`
-	ErrParser string `json:"-"`
 }
 
 // select 만 field type이 있는 이유

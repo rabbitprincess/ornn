@@ -39,7 +39,12 @@ func (t *GenData) SetData(config *config.Config) (err error) {
 		t.Add(genGroup)
 
 		// func
-		for _, query := range table.Queries {
+		defaultQueryByTable, ok := config.Queries.Default[table.Name]
+		if ok != true {
+			continue
+		}
+
+		for _, query := range defaultQueryByTable {
 			genQuery := &GenDataQuery{}
 
 			// set args
