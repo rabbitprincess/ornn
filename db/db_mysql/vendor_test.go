@@ -27,7 +27,7 @@ func TestVendor(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, tbl := range tables {
-		fmt.Println(tbl)
+	for _, table := range tables {
+		fmt.Println(table)
 	}
 }

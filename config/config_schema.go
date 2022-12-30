@@ -81,7 +81,7 @@ func (t *Schema) UpdateTable(schema *Schema, tablePrefix string) error {
 	return nil
 }
 
-func (t *Schema) GetTableFieldMatched(fldName string, tablesName []string) (matched []string, err error) {
+func (t *Schema) GetTableFieldMatched(fieldName string, tablesName []string) (matched []string, err error) {
 	matched = make([]string, 0, 10)
 
 	for _, tableName := range tablesName {
@@ -89,7 +89,7 @@ func (t *Schema) GetTableFieldMatched(fldName string, tablesName []string) (matc
 		if table == nil {
 			return nil, fmt.Errorf("wrong table name in sql query, table name is not exist in schema | table_name : %s", tableName)
 		}
-		if table.GetField(fldName) != nil {
+		if table.GetField(fieldName) != nil {
 			matched = append(matched, tableName)
 		}
 	}

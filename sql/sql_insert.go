@@ -8,13 +8,13 @@ import (
 )
 
 type Insert struct {
-	TblName string
-	Fields  []*Field
+	TableName string
+	Fields    []*Field
 }
 
 func (t *Insert) parse(psr *parser.Insert) error {
 	// table name
-	t.TblName = psr.Table.Name.String()
+	t.TableName = psr.Table.Name.String()
 
 	switch row := psr.Rows.(type) {
 	case parser.Values:
@@ -33,19 +33,19 @@ func (t *Insert) parse(psr *parser.Insert) error {
 		for i, val := range row[0] {
 			field := &Field{}
 			if psr.Columns != nil {
-				field.FldName = psr.Columns[i].String()
+				field.FieldName = psr.Columns[i].String()
 			}
 
 			// value 값이 NULL 이면 처리하지 않음
 			if _, ok := val.(*parser.NullVal); ok == true {
 				field.Val = []byte("")
-				t.addFld(field)
+				t.addField(field)
 				continue
 			}
 
 			if sqlVal, ok := val.(*parser.SQLVal); ok == true {
 				field.Val = sqlVal.Val
-				t.addFld(field)
+				t.addField(field)
 				continue
 			}
 
@@ -63,10 +63,10 @@ func (t *Insert) parse(psr *parser.Insert) error {
 	return nil
 }
 
-func (t *Insert) addFld(fld *Field) {
+func (t *Insert) addField(field *Field) {
 	if t.Fields == nil {
 		t.Fields = make([]*Field, 0, 10)
 	}
 
-	t.Fields = append(t.Fields, fld)
+	t.Fields = append(t.Fields, field)
 }

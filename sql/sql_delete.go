@@ -16,7 +16,7 @@ func (t *Delete) parse(psr *parser.Delete) error {
 
 		switch data := tableExprs.(type) {
 		case *parser.AliasedTableExpr: // 단순 테이블
-			tableAs.Tbl = data.Expr.(parser.TableName).Name.String()
+			tableAs.Table = data.Expr.(parser.TableName).Name.String()
 			tableAs.As = data.As.String()
 		case *parser.ParenTableExpr:
 			// 임시 - 작업필요

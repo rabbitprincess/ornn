@@ -26,10 +26,10 @@ func (t *Global) InitDefault() {
 	t.ArgPrefix = "arg_"
 }
 
-func (t *Global) ConvFieldType(fldType string) string {
-	for _, fld := range t.FieldType {
-		if fld == fldType {
-			return fldType
+func (t *Global) ConvFieldType(fieldType string) string {
+	for _, field := range t.FieldType {
+		if field == fieldType {
+			return fieldType
 		}
 	}
 	return ""

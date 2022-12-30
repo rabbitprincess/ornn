@@ -15,19 +15,18 @@ type Item interface {
 type Global struct {
 	DoNotEdit string
 	Package   string
-	Imports   Import
+	Imports   Imports
 	Items     []Item
 }
 
-func (t *Global) Init() {
-	t.Items = make([]Item, 0, 10)
-}
-
-func (t *Global) AddImport(item *ImportItem) {
+func (t *Global) AddImport(item *Import) {
 	t.Imports.Add(item)
 }
 
 func (t *Global) AddItem(i Item) {
+	if t.Items == nil {
+		t.Items = make([]Item, 0, 10)
+	}
 	t.Items = append(t.Items, i)
 }
 
@@ -46,20 +45,22 @@ func (t *Global) Code(w *Writer) {
 
 type Struct struct {
 	Name    string
-	Field   Var
-	Methods []*Func
+	Fields  *Vars
+	Methods []*Function
 }
 
-func (t *Struct) Init() {
-	t.Field.Scope = VarScopeStructField
-	t.Methods = make([]*Func, 0, 10)
+func (t *Struct) AddField(item *Var) {
+	if t.Fields == nil {
+		t.Fields = &Vars{}
+		t.Fields.Init(VarScopeStructField)
+	}
+	t.Fields.Add(item)
 }
 
-func (t *Struct) AddField(item *VarItem) {
-	t.Field.Add(item)
-}
-
-func (t *Struct) AddFunc(item *Func) {
+func (t *Struct) AddFunc(item *Function) {
+	if t.Methods == nil {
+		t.Methods = make([]*Function, 0, 10)
+	}
 	t.Methods = append(t.Methods, item)
 }
 
@@ -67,7 +68,7 @@ func (t *Struct) Code(w *Writer) {
 	// struct
 	w.W("type %s struct {\n", t.Name)
 	w.IndentIn()
-	t.Field.Code(w)
+	t.Fields.Code(w)
 	w.IndentOut()
 	w.W("}\n\n")
 
@@ -78,37 +79,43 @@ func (t *Struct) Code(w *Writer) {
 }
 
 //--------------------------------------------------------------------------------------------------------------//
-// func
+// function
 
-type Func struct {
+type Function struct {
 	StructName string
 	StructType string
 	FuncName   string
 	InlineCode string
 
-	Arg   Var
-	Ret   Var
-	Const Const
+	Arg   *Vars
+	Ret   *Vars
+	Const *Consts
 }
 
-func (t *Func) Init() {
-	t.Arg.Scope = VarScopeFuncArg
-	t.Ret.Scope = VarScopeFuncRet
-}
-
-func (t *Func) AddArg(item *VarItem) {
+func (t *Function) AddArg(item *Var) {
+	if t.Arg == nil {
+		t.Arg = &Vars{}
+		t.Arg.Init(VarScopeFuncArg)
+	}
 	t.Arg.Add(item)
 }
 
-func (t *Func) AddRet(item *VarItem) {
+func (t *Function) AddRet(item *Var) {
+	if t.Ret == nil {
+		t.Ret = &Vars{}
+		t.Ret.Init(VarScopeFuncRet)
+	}
 	t.Ret.Add(item)
 }
 
-func (t *Func) AddConst(item *ConstItem) {
+func (t *Function) AddConst(item *Const) {
+	if t.Const == nil {
+		t.Const = &Consts{}
+	}
 	t.Const.Add(item)
 }
 
-func (t *Func) Code(w *Writer) {
+func (t *Function) Code(w *Writer) {
 	w.W("func ")
 
 	if t.StructType != "" {
@@ -116,7 +123,7 @@ func (t *Func) Code(w *Writer) {
 	}
 
 	w.N("%s(", t.FuncName)
-	if len(t.Arg.Items) != 0 {
+	if t.Arg != nil {
 		w.N("\n")
 		w.IndentIn()
 		t.Arg.Code(w)
@@ -124,7 +131,7 @@ func (t *Func) Code(w *Writer) {
 	}
 	w.W(")")
 
-	if len(t.Ret.Items) != 0 {
+	if t.Ret != nil {
 		w.N(" ") // 인자와 리턴() 간에 빈칸 1개 추가
 		t.Ret.Code(w)
 	}
@@ -132,7 +139,9 @@ func (t *Func) Code(w *Writer) {
 	// 함수 내용 출력
 	w.N(" {\n")
 	w.IndentIn()
-	t.Const.Code(w)
+	if t.Const != nil {
+		t.Const.Code(w)
+	}
 
 	// 코드 첫 빈줄 제거
 	if len(t.InlineCode) != 0 && t.InlineCode[0:1] == "\n" {
@@ -161,19 +170,23 @@ const (
 	VarScopeFuncRet
 )
 
-type Var struct {
+type Vars struct {
 	Scope VarScope
-	Items []*VarItem
+	Items []*Var
 }
 
-func (t *Var) Add(item *VarItem) {
+func (t *Vars) Init(scope VarScope) {
+	t.Scope = scope
+}
+
+func (t *Vars) Add(item *Var) {
 	if t.Items == nil {
-		t.Items = make([]*VarItem, 0, 10)
+		t.Items = make([]*Var, 0, 10)
 	}
 	t.Items = append(t.Items, item)
 }
 
-func (t *Var) MaxLenName() int {
+func (t *Vars) maxLenField() int {
 	var max int
 	for _, pt := range t.Items {
 		if max < len(pt.Name) {
@@ -183,78 +196,67 @@ func (t *Var) MaxLenName() int {
 	return max
 }
 
-func (t *Var) Code(w *Writer) {
+func (t *Vars) Code(w *Writer) {
 	switch t.Scope {
 	case VarScopeGlobal:
-		{
-			w.W("var (\n")
-			w.IndentIn()
-			for _, pt := range t.Items {
-				w.W("")
-				pt.Code(w, 0)
-				w.N("\n")
-			}
-			w.IndentOut()
-			w.W(")\n")
+		w.W("var (\n")
+		w.IndentIn()
+		for _, pt := range t.Items {
+			w.W("")
+			pt.Code(w)
+			w.N("\n")
 		}
+		w.IndentOut()
+		w.W(")\n")
 	case VarScopeStructField:
-		{
-			max := t.MaxLenName()
-			for _, pt := range t.Items {
-				blank := max - len(pt.Name)
-				w.W("")
-				pt.Code(w, blank)
-				w.N("\n")
-			}
+		for _, pt := range t.Items {
+			// set blanks
+			pt.Type = strings.Repeat(" ", t.maxLenField()-len(pt.Name)) + pt.Type
+			w.W("")
+			pt.Code(w)
+			w.N("\n")
 		}
 	case VarScopeFuncArg:
-		{
-			for i := 0; i < len(t.Items); i++ {
-				w.W("")
-				t.Items[i].Code(w, 0)
-				w.N(",\n")
-			}
+		for i := 0; i < len(t.Items); i++ {
+			w.W("")
+			t.Items[i].Code(w)
+			w.N(",\n")
 		}
 	case VarScopeFuncRet:
-		{
-			lenItem := len(t.Items)
-			if lenItem == 0 {
-				// 출력 할 것이 없음
-				break
-			}
-
-			if lenItem == 1 && t.Items[0].Name == "" {
-				t.Items[0].Code(w, 0)
-				// 더 출력 할 것이 없음 = 단일 리턴값의 type 만 출력 (name 이 없음)
-				break
-			}
-
-			w.N("(\n")
-			w.IndentIn()
-			for i := 0; i < len(t.Items); i++ {
-				w.W("")
-				t.Items[i].Code(w, 0)
-				w.N(",\n")
-			}
-			w.IndentOut()
-			w.W(")")
+		if len(t.Items) == 0 {
+			// 출력 할 것이 없음
+			break
+		} else if len(t.Items) == 1 && t.Items[0].Name == "" {
+			t.Items[0].Code(w)
+			// 더 출력 할 것이 없음 = 단일 리턴값의 type 만 출력 (name 이 없음)
+			break
 		}
+
+		w.N("(\n")
+		w.IndentIn()
+		for i := 0; i < len(t.Items); i++ {
+			w.W("")
+			t.Items[i].Code(w)
+			w.N(",\n")
+		}
+		w.IndentOut()
+		w.W(")")
 	default:
 		log.Fatalf("input undefined type of scope - %v", t.Scope)
 	}
 }
 
 //--------------------------------------------------------------------------------------------------------------//
-// var - item
+// var
 
-type VarItem struct {
+type Var struct {
 	Name string
 	Type string
 }
 
-func (t *VarItem) Code(w *Writer, blank int) {
+func (t *Var) Code(w *Writer) {
 	if t.Name != "" {
-		w.N("%s%s %s", t.Name, strings.Repeat(" ", blank), t.Type)
+		w.N("%s %s", t.Name, t.Type)
 	} else {
 		w.N("%s", t.Type)
 	}
@@ -263,18 +265,18 @@ func (t *VarItem) Code(w *Writer, blank int) {
 //--------------------------------------------------------------------------------------------------------------//
 // const
 
-type Const struct {
-	items []*ConstItem
+type Consts struct {
+	items []*Const
 }
 
-func (t *Const) Add(item *ConstItem) {
+func (t *Consts) Add(item *Const) {
 	if t.items == nil {
-		t.items = make([]*ConstItem, 0, 10)
+		t.items = make([]*Const, 0, 10)
 	}
 	t.items = append(t.items, item)
 }
 
-func (t *Const) Code(w *Writer) {
+func (t *Consts) Code(w *Writer) {
 	if len(t.items) > 0 {
 		w.W("const (\n")
 		w.IndentIn()
@@ -289,31 +291,31 @@ func (t *Const) Code(w *Writer) {
 //--------------------------------------------------------------------------------------------------------------//
 // const - item
 
-type ConstItem struct {
+type Const struct {
 	Name  string
 	Type  string // type 이 없으면 value 로 형이 결정 됨
 	Value string // value 가 없으면 상위 개체가 iota 일 수 있음
 }
 
-func (t *ConstItem) Code(w *Writer) {
+func (t *Const) Code(w *Writer) {
 	w.W("%s %s = %s\n", t.Name, t.Type, t.Value)
 }
 
 //--------------------------------------------------------------------------------------------------------------//
-// import
+// imports
 
-type Import struct {
-	items []*ImportItem
+type Imports struct {
+	items []*Import
 }
 
-func (t *Import) Add(item *ImportItem) {
+func (t *Imports) Add(item *Import) {
 	if t.items == nil {
-		t.items = make([]*ImportItem, 0, 10)
+		t.items = make([]*Import, 0, 10)
 	}
 	t.items = append(t.items, item)
 }
 
-func (t *Import) Code(w *Writer) {
+func (t *Imports) Code(w *Writer) {
 	if len(t.items) > 0 {
 		w.W("import (\n")
 		w.IndentIn()
@@ -326,14 +328,14 @@ func (t *Import) Code(w *Writer) {
 }
 
 //--------------------------------------------------------------------------------------------------------------//
-// import - item
+// import
 
-type ImportItem struct {
+type Import struct {
 	Path  string
 	Alias string // 기본 ""(없음)  or . or  임의이름
 }
 
-func (t *ImportItem) Code(w *Writer) {
+func (t *Import) Code(w *Writer) {
 	if t.Alias != "" {
 		w.W("%s \"%s\"\n", t.Alias, t.Path)
 	} else {

@@ -152,16 +152,16 @@ func (t *GenData) Select(conf *config.Config, table *config.Table, query *config
 		}
 
 		for _, col := range cols {
-			var fldName, fldType string
-			fldName = col.Name()
-			fldType = query.GetFieldType(fldName)
+			var fieldName, fieldType string
+			fieldName = col.Name()
+			fieldType = query.GetFieldType(fieldName)
 
 			// if custom type is not defined, get database type
-			if fldType == "" {
+			if fieldType == "" {
 				colType := col.DatabaseTypeName()
-				fldType = t.vendor.ConvType(colType)
+				fieldType = t.vendor.ConvType(colType)
 			}
-			genQuery.ret.setKV(fldName, fldType)
+			genQuery.ret.setKV(fieldName, fieldType)
 		}
 	}
 	// single select 처리
@@ -178,22 +178,22 @@ func (t *GenData) Insert(conf *config.Config, schema *config.Schema, table *conf
 
 	// 필드 정보를 얻어온다.
 	{
-		schemaTbl := schema.GetTable(sqlInsert.TblName)
-		if schemaTbl == nil {
-			return fmt.Errorf("table name is not exist | table name - %s", sqlInsert.TblName)
+		schemaTable := schema.GetTable(sqlInsert.TableName)
+		if schemaTable == nil {
+			return fmt.Errorf("table name is not exist | table name - %s", sqlInsert.TableName)
 		}
 
 		// 스키마와 파서의 전체 필드 숫자가 다르면 -> 파서에서 모든 필드 이름이 제공되어야 함 -> 하나라도 없으면 에러
-		if len(sqlInsert.Fields) != len(schemaTbl.Fields) {
+		if len(sqlInsert.Fields) != len(schemaTable.Fields) {
 			for _, pt_field_value := range sqlInsert.Fields {
-				if pt_field_value.FldName == "" {
+				if pt_field_value.FieldName == "" {
 					return fmt.Errorf("field name is empty")
 				}
 			}
 		} else {
 			// 스키마와 파서의 전체 필드수가 같으면 -> 파서에서 모든 필드 이름이 없어도 가능 -> 스키마에서 추출하여 모든 필드명을 채움
 			for i, field := range sqlInsert.Fields {
-				field.FldName = schemaTbl.Fields[i].Name
+				field.FieldName = schemaTable.Fields[i].Name
 			}
 		}
 
@@ -205,12 +205,12 @@ func (t *GenData) Insert(conf *config.Config, schema *config.Schema, table *conf
 			}
 
 			// 입력값이 ? (arg) 일 때만 필드이름 조사 = func arg 의 name 으로 활용
-			schemaFld := schemaTbl.GetField(field.FldName)
-			if schemaFld == nil {
-				return fmt.Errorf("not exist field in schema | field name : %s", field.FldName)
+			schemaField := schemaTable.GetField(field.FieldName)
+			if schemaField == nil {
+				return fmt.Errorf("not exist field in schema | field name : %s", field.FieldName)
 			}
 
-			genQuery.arg.setKV(field.FldName, schemaFld.TypeGen)
+			genQuery.arg.setKV(field.FieldName, schemaField.TypeGen)
 		}
 	}
 	// multi insert 처리
@@ -230,13 +230,13 @@ func (t *GenData) Update(conf *config.Config, schema *config.Schema, table *conf
 				continue
 			}
 
-			fldName := field.FldName
-			tblName := field.TblName
+			fieldName := field.FieldName
+			tableName := field.TableName
 
 			// 정의된 table name 이 없으면 update 대상 테이블 중 매칭되는 테이블을 찾는다
-			if tblName == "" {
+			if tableName == "" {
 				tables := sqlUpdate.GetTableNames()
-				tablesMatch, err := schema.GetTableFieldMatched(fldName, tables)
+				tablesMatch, err := schema.GetTableFieldMatched(fieldName, tables)
 				if err != nil {
 					return err
 				}
@@ -250,33 +250,33 @@ func (t *GenData) Update(conf *config.Config, schema *config.Schema, table *conf
 							dup += fmt.Sprintf("%s, ", s_table_name__match)
 						}
 						dup = dup[:len(dup)-2]
-						return fmt.Errorf("duplicated field name in multiple table | field name - %s | tables name - %s", fldName, dup)
+						return fmt.Errorf("duplicated field name in multiple table | field name - %s | tables name - %s", fieldName, dup)
 					}
 					// 매칭되는 테이블이 한개도 없음
 					if len(tablesMatch) == 0 {
-						return fmt.Errorf("no tables match the field | field name - %s", fldName)
+						return fmt.Errorf("no tables match the field | field name - %s", fieldName)
 					}
 				}
 
 				// 테이블 이름 설정
-				tblName = tablesMatch[0]
+				tableName = tablesMatch[0]
 			}
 
 			// 테이블과 필드 이름을 이용해 필드 타입을 찾아낸다
 			var genType string
 			{
-				schemaTbl := schema.GetTable(tblName)
-				if schemaTbl == nil {
-					return fmt.Errorf("not exist table | table name - %s", tblName)
+				schemaTable := schema.GetTable(tableName)
+				if schemaTable == nil {
+					return fmt.Errorf("not exist table | table name - %s", tableName)
 				}
-				schemaFld := schemaTbl.GetField(fldName)
-				if schemaFld == nil {
-					return fmt.Errorf("not exist field | field name - %s", field.FldName)
+				schemaField := schemaTable.GetField(fieldName)
+				if schemaField == nil {
+					return fmt.Errorf("not exist field | field name - %s", field.FieldName)
 				}
-				genType = string(schemaFld.TypeGen)
+				genType = string(schemaField.TypeGen)
 			}
 
-			genQuery.arg.setKV(field.FldName, genType)
+			genQuery.arg.setKV(field.FieldName, genType)
 		}
 	}
 	// update 시 null 값 ignore 처리
@@ -360,9 +360,9 @@ func (t *genDataStruct) setKV(key string, valueNew string) {
 		t.arrpt_pair = make([]*Pair, 0, 10)
 	}
 
-	for _, fld := range t.arrpt_pair {
-		if fld.Key == key {
-			fld.Value = valueNew
+	for _, field := range t.arrpt_pair {
+		if field.Key == key {
+			field.Value = valueNew
 			return
 		}
 	}

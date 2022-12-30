@@ -40,24 +40,24 @@ func (t *DbVendor) schemaGet(sqlCreateTable string) (*config.Table, error) {
 		panic(err)
 	}
 	parser := stmt.(*sqlparser.CreateTable)
-	tblName := parser.NewName.Name.String()
+	tableName := parser.NewName.Name.String()
 
 	table := &config.Table{}
-	table.Init(tblName)
+	table.Init(tableName)
 
 	for _, idx := range parser.Constraints {
 		index := &config.Index{}
-		arrs_keys := make([]string, 0, len(idx.Keys))
-		for _, pt_key := range idx.Keys {
-			arrs_keys = append(arrs_keys, pt_key.String())
+		keys := make([]string, 0, len(idx.Keys))
+		for _, key := range idx.Keys {
+			keys = append(keys, key.String())
 		}
-		index.Set(idx.Name, idx.Type.String(), arrs_keys)
+		index.Set(idx.Name, idx.Type.String(), keys)
 		table.AddIndex(index)
 	}
 
-	for _, fld := range parser.Columns {
+	for _, column := range parser.Columns {
 		field := &config.Field{}
-		field.Set(fld.Name, fld.Type, t.vendor.ConvType(fld.Type))
+		field.Set(column.Name, column.Type, t.vendor.ConvType(column.Type))
 		table.AddField(field)
 	}
 	return table, nil

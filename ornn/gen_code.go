@@ -17,16 +17,13 @@ const (
 )
 
 type GenCode struct {
+	config  *config.Config
 	codeGen *codegen.CodeGen
-
-	config *config.Config
 }
 
 func (t *GenCode) init(config *config.Config) {
 	t.config = config
 	t.codeGen = &codegen.CodeGen{}
-	t.codeGen.Global = &codegen.Global{}
-
 	return
 }
 
@@ -36,13 +33,12 @@ func (t *GenCode) gen(config *config.Config, genData *GenData) (genCode string, 
 
 	// gen_go 에 소스 생성을 위한 데이터 넣기
 	{
-		t.codeGen.Init()
 		t.codeGen.DoNotEdit = t.config.Global.DoNotEdit
 		t.codeGen.Package = t.config.Global.PackageName
 
 		// import 경로 추가
 		for _, imp := range config.Global.Import {
-			t.codeGen.AddImport(&codegen.ImportItem{
+			t.codeGen.AddImport(&codegen.Import{
 				Path:  imp.Path,
 				Alias: imp.Alias,
 			})
@@ -50,18 +46,18 @@ func (t *GenCode) gen(config *config.Config, genData *GenData) (genCode string, 
 
 		// 루트 구조체 작성
 		rootStruct := &codegen.Struct{}
-		rootStruct.Init()
 		t.codeGen.AddItem(rootStruct)
 		rootStruct.Name = t.config.Global.ClassName
 
 		// 루트 함수 작성
-		rootFunc := &codegen.Func{}
-		rootFunc.Init()
+		rootFunc := &codegen.Function{}
 		t.codeGen.AddItem(rootFunc)
 		rootFunc.StructName = t.config.Global.StructName
 		rootFunc.StructType = fmt.Sprintf("*%s", rootStruct.Name)
 		rootFunc.FuncName = "Init"
-		rootFuncInitArg := &codegen.VarItem{} // arg
+
+		// arg
+		rootFuncInitArg := &codegen.Var{}
 		rootFunc.Arg.Add(rootFuncInitArg)
 		rootFuncInitArg.Name = strings.ToLower(t.config.Global.InstanceName)
 		rootFuncInitArg.Type = t.config.Global.InstanceType
@@ -70,16 +66,15 @@ func (t *GenCode) gen(config *config.Config, genData *GenData) (genCode string, 
 		for _, gen_group := range genData.groups {
 			// group 구조체 생성
 			group := t.genGroup(gen_group.Name)
-			group.Init()
 			t.codeGen.AddItem(group)
 
 			// root 구조체 안에 필드 변수 선언 -> group 구조체 사용을 위해
 			{
 				// root 구조체 안에 group 구조체 포인터 선언
-				rootVars := &codegen.VarItem{}
+				rootVars := &codegen.Var{}
 				rootVars.Type = group.Name
 				rootVars.Name = strings.ToLower(gen_group.Name)
-				rootStruct.Field.Add(rootVars)
+				rootStruct.Fields.Add(rootVars)
 
 				// root init body 작성
 				s_code := fmt.Sprintf("%s.%s.%s(%s)\n", t.config.Global.StructName, rootVars.Name, "Init", rootFunc.Arg.Items[0].Name)
@@ -106,16 +101,15 @@ func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
 	// group 구조체 안에
 	{
 		// root 구조체 연결을 위한 구조체 필드 변수 제작
-		groupVar := &codegen.VarItem{}
-		genGroup.Field.Add(groupVar)
+		groupVar := &codegen.Var{}
+		genGroup.Fields.Add(groupVar)
 		{
 			groupVar.Name = t.config.Global.InstanceName
 			groupVar.Type = t.config.Global.InstanceType
 		}
 
 		// root 구조체에서 초기화를 요청할 Init 함수 제작
-		groupFuncInit := &codegen.Func{}
-		groupFuncInit.Init()
+		groupFuncInit := &codegen.Function{}
 		t.codeGen.AddItem(groupFuncInit)
 		{
 			groupFuncInit.FuncName = "Init"
@@ -123,7 +117,7 @@ func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
 			groupFuncInit.StructType = fmt.Sprintf("*%s", genGroup.Name)
 
 			// args
-			groupFuncInitArg := &codegen.VarItem{}
+			groupFuncInitArg := &codegen.Var{}
 			groupFuncInit.Arg.Add(groupFuncInitArg)
 			groupFuncInitArg.Name = strings.ToLower(t.config.Global.InstanceName)
 			groupFuncInitArg.Type = t.config.Global.InstanceType
@@ -136,8 +130,7 @@ func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
 }
 
 func (t *GenCode) genQuery(structGroup *codegen.Struct, query *GenDataQuery) {
-	funcQuery := &codegen.Func{}
-	funcQuery.Init()
+	funcQuery := &codegen.Function{}
 
 	funcQuery.StructName = t.config.Global.StructName
 	funcQuery.StructType = fmt.Sprintf("*%s", structGroup.Name)
@@ -160,7 +153,7 @@ func (t *GenCode) genQuery(structGroup *codegen.Struct, query *GenDataQuery) {
 }
 
 func (t *GenCode) genQuerySelect(
-	funcQuery *codegen.Func,
+	funcQuery *codegen.Function,
 	query *GenDataQuery,
 ) {
 	// 1. 함수 입력 인자
@@ -169,10 +162,9 @@ func (t *GenCode) genQuerySelect(
 
 	// 2. 함수 리턴
 	ret := &codegen.Struct{}
-	ret.Init()
 	t.codeGen.AddItem(ret)
 
-	retItem := &codegen.VarItem{}
+	retItem := &codegen.Var{}
 	var s_body_code__ret_declare string
 	var s_body_code__ret_set string
 	{
@@ -180,10 +172,10 @@ func (t *GenCode) genQuerySelect(
 		{
 			ret.Name = fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(query.tableName), strings.ToLower(funcQuery.FuncName))
 			for _, pt_field_type := range query.ret.arrpt_pair {
-				item := &codegen.VarItem{}
+				item := &codegen.Var{}
 				item.Name = sql.Util_ConvFirstToUpper(pt_field_type.Key)
 				item.Type = t.config.Global.ConvFieldType(pt_field_type.Value)
-				ret.Field.Add(item)
+				ret.AddField(item)
 			}
 		}
 
@@ -195,7 +187,7 @@ func (t *GenCode) genQuerySelect(
 				retItem.Type = fmt.Sprintf("*%s", ret.Name)
 				s_body_code__ret_set = fmt.Sprintf("%s = pt_struct\n\tbreak", retItem.Name)
 			} else {
-				retItem.Name = fmt.Sprintf("arrpt_%s", strings.ToLower(funcQuery.FuncName))
+				retItem.Name = fmt.Sprintf("arrpt_%ss", strings.ToLower(funcQuery.FuncName))
 				retItem.Type = fmt.Sprintf("[]*%s", ret.Name)
 				s_body_code__ret_declare = fmt.Sprintf("\n%s = make(%s, 0, 100)", retItem.Name, retItem.Type)
 				s_body_code__ret_set = fmt.Sprintf("%s = append(%s, pt_struct)", retItem.Name, retItem.Name)
@@ -248,7 +240,7 @@ return %s, nil
 	return
 }
 
-func (t *GenCode) genQueryInsert(funcQuery *codegen.Func, query *GenDataQuery) {
+func (t *GenCode) genQueryInsert(funcQuery *codegen.Function, query *GenDataQuery) {
 	// 1. 함수 입력 인자
 	tpl := t.gen_query__add__func__arg__tpl(funcQuery, query)
 	arg := t.gen_query__add__func__arg(funcQuery, query)
@@ -297,7 +289,7 @@ return pc_exec.LastInsertId()
 	return
 }
 
-func (t *GenCode) genQueryUpdate(funcQuery *codegen.Func, query *GenDataQuery) {
+func (t *GenCode) genQueryUpdate(funcQuery *codegen.Function, query *GenDataQuery) {
 	// 1. 함수 입력 인자
 	tpl := t.gen_query__add__func__arg__tpl(funcQuery, query)
 	arg := t.gen_query__add__func__arg(funcQuery, query)
@@ -337,7 +329,7 @@ return pc_exec.RowsAffected()
 	return
 }
 
-func (t *GenCode) genQueryDelete(funcQuery *codegen.Func, query *GenDataQuery) {
+func (t *GenCode) genQueryDelete(funcQuery *codegen.Function, query *GenDataQuery) {
 	// 1. 함수 입력 인자
 	arrs_tpl := t.gen_query__add__func__arg__tpl(funcQuery, query)
 	arrs_arg := t.gen_query__add__func__arg(funcQuery, query)
@@ -371,10 +363,10 @@ return pc_exec.RowsAffected()
 	return
 }
 
-func (t *GenCode) gen_query__add__func__arg__tpl(funcQuery *codegen.Func, query *GenDataQuery) (arrs_tpl []string) {
+func (t *GenCode) gen_query__add__func__arg__tpl(funcQuery *codegen.Function, query *GenDataQuery) (arrs_tpl []string) {
 	arrs_tpl = make([]string, 0, len(query.tpl.arrpt_pair))
 	for _, pt_tpl := range query.tpl.arrpt_pair {
-		arg := &codegen.VarItem{}
+		arg := &codegen.Var{}
 		funcQuery.Arg.Add(arg)
 		arg.Name = fmt.Sprintf("%s%s", t.config.Global.TplPrefix, pt_tpl.Key)
 		arg.Type = "string"
@@ -384,11 +376,11 @@ func (t *GenCode) gen_query__add__func__arg__tpl(funcQuery *codegen.Func, query 
 	return
 }
 
-func (t *GenCode) gen_query__add__func__arg(funcQuery *codegen.Func, query *GenDataQuery) (arrs_arg []string) {
+func (t *GenCode) gen_query__add__func__arg(funcQuery *codegen.Function, query *GenDataQuery) (arrs_arg []string) {
 	arrs_arg = make([]string, 0, len(query.tpl.arrpt_pair))
 
 	for _, pt_field_type := range query.arg.arrpt_pair {
-		arg := &codegen.VarItem{}
+		arg := &codegen.Var{}
 		var varType string
 		// 1. type 판정
 		{
@@ -413,22 +405,22 @@ func (t *GenCode) gen_query__add__func__arg(funcQuery *codegen.Func, query *GenD
 	return
 }
 
-func (t *GenCode) gen_query__add__func__ret__error(funcQuery *codegen.Func) {
-	retErr := &codegen.VarItem{}
+func (t *GenCode) gen_query__add__func__ret__error(funcQuery *codegen.Function) {
+	retErr := &codegen.Var{}
 	retErr.Name = "err"
 	retErr.Type = "error"
 	funcQuery.Ret.Add(retErr)
 }
 
-func (t *GenCode) gen_query__add__func__ret__last_insert_id(funcQuery *codegen.Func) {
-	retLastid := &codegen.VarItem{}
+func (t *GenCode) gen_query__add__func__ret__last_insert_id(funcQuery *codegen.Function) {
+	retLastid := &codegen.Var{}
 	retLastid.Name = "nn_last_insert_id"
 	retLastid.Type = "int64"
 	funcQuery.Ret.Add(retLastid)
 }
 
-func (t *GenCode) gen_query__add__func__ret__row_affected(funcQuery *codegen.Func) {
-	pt_query__ret__row_affected := &codegen.VarItem{}
+func (t *GenCode) gen_query__add__func__ret__row_affected(funcQuery *codegen.Function) {
+	pt_query__ret__row_affected := &codegen.Var{}
 	pt_query__ret__row_affected.Name = "nn_row_affected"
 	pt_query__ret__row_affected.Type = "int64"
 	funcQuery.Ret.Add(pt_query__ret__row_affected)

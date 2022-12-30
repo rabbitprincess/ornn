@@ -18,7 +18,7 @@ func (t *Update) parse(psr *parser.Update) error {
 
 		switch data := tableExpr.(type) {
 		case *parser.AliasedTableExpr: // 단순 테이블
-			tableAs.Tbl = data.Expr.(parser.TableName).Name.String()
+			tableAs.Table = data.Expr.(parser.TableName).Name.String()
 			tableAs.As = data.As.String()
 		case *parser.ParenTableExpr:
 			// 임시 - 작업필요
@@ -29,15 +29,15 @@ func (t *Update) parse(psr *parser.Update) error {
 			// -> 반드시 sub query 를 재귀호출로 해체하여 제일 외부 에 있는 () 에 대해 서만 table list 에 남긴다. = *  타입 지정 문제
 			log.Fatal("need more programming")
 		}
-		t.AddTbl(tableAs)
+		t.AddTable(tableAs)
 	}
 
 	// field value
 	for _, pt_expr := range psr.Exprs {
 
 		pt_field := &Field{}
-		pt_field.TblName = pt_expr.Name.Qualifier.Name.String()
-		pt_field.FldName = pt_expr.Name.Name.String()
+		pt_field.TableName = pt_expr.Name.Qualifier.Name.String()
+		pt_field.FieldName = pt_expr.Name.Name.String()
 		switch data := pt_expr.Expr.(type) {
 		case *parser.SQLVal:
 			{
@@ -85,7 +85,7 @@ func (t *Update) parse(psr *parser.Update) error {
 			log.Fatal("need more programming")
 		}
 
-		t.AddFld(pt_field)
+		t.AddField(pt_field)
 	}
 
 	/*
@@ -111,15 +111,15 @@ func (t *Update) parse(psr *parser.Update) error {
 }
 
 func (t *Update) GetTableNames() []string {
-	tblName := make([]string, len(t.TableAs))
+	tableName := make([]string, len(t.TableAs))
 
 	for i, pt_table := range t.TableAs {
-		tblName[i] = pt_table.Tbl
+		tableName[i] = pt_table.Table
 	}
-	return tblName
+	return tableName
 }
 
-func (t *Update) AddFld(field *Field) {
+func (t *Update) AddField(field *Field) {
 	if t.Field == nil {
 		t.Field = make([]*Field, 0, 10)
 	}
@@ -127,7 +127,7 @@ func (t *Update) AddFld(field *Field) {
 	t.Field = append(t.Field, field)
 }
 
-func (t *Update) AddTbl(tableAs *TableAs) {
+func (t *Update) AddTable(tableAs *TableAs) {
 	if t.TableAs == nil {
 		t.TableAs = make([]*TableAs, 0, 10)
 	}

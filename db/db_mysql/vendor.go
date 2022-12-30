@@ -79,16 +79,16 @@ func (t *Vendor) convType(_s_field_type_db string, _is_unsigned bool) string {
 
 func (t *Vendor) CreateTable() (sql []string, err error) {
 	// db 안 모든 테이블 이름을 가져옴
-	tblNames, err := t.allTable()
+	tableNames, err := t.allTable()
 	if err != nil {
 		return nil, err
 	}
 
-	sql = make([]string, 0, len(tblNames))
-	for _, tblName := range tblNames {
-		s_sql := "show create table `" + tblName + "`"
+	sql = make([]string, 0, len(tableNames))
+	for _, tableName := range tableNames {
+		s_sql := "show create table `" + tableName + "`"
 
-		var tbl string
+		var table string
 		var sqlCreateTable string
 
 		job, err := t.db.Begin()
@@ -101,7 +101,7 @@ func (t *Vendor) CreateTable() (sql []string, err error) {
 			return nil, err
 		}
 		if rows.Next() == true {
-			err = rows.Scan(&tbl, &sqlCreateTable)
+			err = rows.Scan(&table, &sqlCreateTable)
 			if err != nil {
 				return nil, err
 			}
@@ -125,12 +125,12 @@ func (t *Vendor) allTable() (tables []string, err error) {
 	}
 	tables = make([]string, 0, 10)
 	for rows.Next() {
-		var tblName string = "table_name"
-		err = rows.Scan(&tblName)
+		var tableName string = "table_name"
+		err = rows.Scan(&tableName)
 		if err != nil {
 			return nil, err
 		}
-		tables = append(tables, tblName)
+		tables = append(tables, tableName)
 	}
 	return tables, nil
 }

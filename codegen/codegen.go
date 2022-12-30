@@ -1,7 +1,7 @@
 package codegen
 
 type CodeGen struct {
-	*Global
+	Global
 }
 
 func (t *CodeGen) Code() (code string) { // for I_Gen interface

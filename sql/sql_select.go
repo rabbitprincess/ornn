@@ -22,7 +22,7 @@ func (t *Select) parse(psr *parser.Select) error {
 
 		switch data := from.(type) {
 		case *parser.AliasedTableExpr: // 단순 테이블
-			tableAs.Tbl = data.Expr.(parser.TableName).Name.String()
+			tableAs.Table = data.Expr.(parser.TableName).Name.String()
 			tableAs.As = data.As.String()
 		case *parser.ParenTableExpr:
 			// 임시 - 작업필요
@@ -34,7 +34,7 @@ func (t *Select) parse(psr *parser.Select) error {
 			log.Fatal("need more programming")
 		}
 
-		t.addTbl(tableAs)
+		t.addTable(tableAs)
 	}
 
 	// select
@@ -43,21 +43,21 @@ func (t *Select) parse(psr *parser.Select) error {
 
 		switch data := selectExpr.(type) {
 		case *parser.StarExpr:
-			fieldAs.Fld = "*"
-			fieldAs.Tbl = data.TableName.Name.String()
-			if fieldAs.Tbl == "" {
+			fieldAs.Field = "*"
+			fieldAs.Table = data.TableName.Name.String()
+			if fieldAs.Table == "" {
 				// 임시 - 작업중
 			}
 		case *parser.AliasedExpr:
-			fieldAs.Fld = data.Expr.(*parser.ColName).Name.String()
+			fieldAs.Field = data.Expr.(*parser.ColName).Name.String()
 			fieldAs.As = data.As.String()
-			fieldAs.Tbl = data.Expr.(*parser.ColName).Qualifier.Name.String()
+			fieldAs.Table = data.Expr.(*parser.ColName).Qualifier.Name.String()
 
 		case parser.Nextval:
 			log.Fatal("need more programming")
 		}
 
-		t.addFld(fieldAs)
+		t.addField(fieldAs)
 	}
 
 	/*
@@ -105,7 +105,7 @@ func (t *Select) getTableNames() []string {
 	tables := make([]string, len(t.TableAs))
 
 	for i, table := range t.TableAs {
-		tables[i] = table.Tbl
+		tables[i] = table.Table
 	}
 	return tables
 }
@@ -118,9 +118,9 @@ func (t *Select) getTableName(tableNameSql string) (tableName string, err error)
 
 	// 지정된 table name 이 있는 경우 as 인지 schema 인지 구분하여 리턴
 	for _, table := range t.TableAs {
-		tblNameSchema := table.get()
-		if tblNameSchema == tableNameSql {
-			return table.Tbl, nil // schema table 리턴
+		tableNameSchema := table.get()
+		if tableNameSchema == tableNameSql {
+			return table.Table, nil // schema table 리턴
 		}
 	}
 
@@ -128,14 +128,14 @@ func (t *Select) getTableName(tableNameSql string) (tableName string, err error)
 	return "", fmt.Errorf("not exist table name in select expr - table name : %s", tableNameSql)
 }
 
-func (t *Select) addFld(as *FieldAs) {
+func (t *Select) addField(as *FieldAs) {
 	if t.FieldAs == nil {
 		t.FieldAs = make([]*FieldAs, 0, 10)
 	}
 	t.FieldAs = append(t.FieldAs, as)
 }
 
-func (t *Select) addTbl(as *TableAs) {
+func (t *Select) addTable(as *TableAs) {
 	if t.TableAs == nil {
 		t.TableAs = make([]*TableAs, 0, 10)
 	}
