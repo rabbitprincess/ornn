@@ -1,4 +1,4 @@
-package orm
+package ornn
 
 import (
 	"github.com/blastrain/vitess-sqlparser/sqlparser"
@@ -6,12 +6,12 @@ import (
 	"github.com/gokch/ornn/db"
 )
 
-type DbVendor struct {
-	vendor db.Vendor
+func NewVendor(vendor db.Vendor) *DbVendor {
+	return &DbVendor{vendor: vendor}
 }
 
-func (t *DbVendor) Init(vendor db.Vendor) {
-	t.vendor = vendor
+type DbVendor struct {
+	vendor db.Vendor
 }
 
 func (t *DbVendor) SchemaGet() (*config.Schema, error) {

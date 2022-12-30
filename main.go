@@ -3,9 +3,10 @@ package main
 import (
 	"log"
 
+	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/db"
 	"github.com/gokch/ornn/db/db_mysql"
-	"github.com/gokch/ornn/orm"
+	"github.com/gokch/ornn/ornn"
 )
 
 func main() {
@@ -17,26 +18,29 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var orm *orm.ORM = &orm.ORM{}
-	orm.Init(db)
+	var ornn *ornn.ORM = &ornn.ORM{}
+	config := &config.Config{}
+	config.Global.InitDefault()
+
+	ornn.Init(db, config)
 
 	// config
-	err = orm.ConfigLoad("./output/gen.json")
+	err = ornn.ConfigLoad("./output/gen.json")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = orm.SchemaLoad("")
+	err = ornn.SchemaLoad("")
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = orm.ConfigSave("./output/gen.json")
+	err = ornn.ConfigSave("./output/gen.json")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// code - generate
-	err = orm.GenCode("./output/gen.go")
+	err = ornn.GenCode("./output/gen.go")
 	if err != nil {
 		log.Fatal(err)
 	}

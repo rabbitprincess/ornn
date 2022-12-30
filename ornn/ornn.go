@@ -1,4 +1,4 @@
-package orm
+package ornn
 
 import (
 	"fmt"
@@ -10,12 +10,14 @@ import (
 
 type ORM struct {
 	db     *db.Conn
+	vendor *DbVendor
 	config *config.Config
 }
 
-func (t *ORM) Init(db *db.Conn) {
+func (t *ORM) Init(db *db.Conn, config *config.Config) {
 	t.db = db
-	t.config = &config.Config{}
+	t.vendor = NewVendor(db_mysql.NewVendor(db))
+	t.config = config
 }
 
 func (t *ORM) ConfigLoad(path string) error {
@@ -47,10 +49,7 @@ func (t *ORM) ConfigSave(path string) error {
 }
 
 func (t *ORM) SchemaLoad(tablePrefix string) error {
-	vendor := &DbVendor{}
-	vendor.Init(db_mysql.NewVendor(t.db))
-
-	schema, err := vendor.SchemaGet()
+	schema, err := t.vendor.SchemaGet()
 	if err != nil {
 		return err
 	}
