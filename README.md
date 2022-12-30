@@ -1,4 +1,4 @@
 # ornn
-![alt text](https://github.com/gokch/ornn/blob/main/ornn.jpgg?raw=true)
+![alt text](https://github.com/gokch/ornn/blob/main/ornn.jpg?raw=true)
 
 오른이 되세요
