@@ -35,7 +35,7 @@ func (t *GenData) SetData(config *config.Config) (err error) {
 
 	for _, table := range config.Schema.Tables {
 		genGroup := &GenDataGroup{}
-		genGroup.Set(table.Name)
+		genGroup.Init(table.Name)
 		t.Add(genGroup)
 
 		// func
@@ -49,13 +49,13 @@ func (t *GenData) SetData(config *config.Config) (err error) {
 
 			// set args
 			// tpl args ( # name # )를 배열로 추출
-			tpls, err := sql.Util_ExportBetweenDelimiter(query.Sql, sql.DEF_s_sql__tpl__delimiter)
+			tpls, err := sql.Util_ExportBetweenDelimiter(query.Sql, sql.TplDelimiter)
 			if err != nil {
 				return err
 			}
 
 			for _, tpl := range tpls {
-				tmps := strings.Split(tpl, sql.DEF_s_sql__tpl__split)
+				tmps := strings.Split(tpl, sql.TplSplit)
 				var argName string
 				var argData string
 				if len(tmps) == 1 {
@@ -72,34 +72,34 @@ func (t *GenData) SetData(config *config.Config) (err error) {
 			}
 
 			// args ( % name % )를 배열로 추출
-			args, err := sql.Util_ExportBetweenDelimiter(query.Sql, sql.DEF_s_sql__prepare_statement__delimiter)
+			args, err := sql.Util_ExportBetweenDelimiter(query.Sql, sql.PrepareStatementDelimeter)
 			if err != nil {
 				return err
 			}
 			genQuery.arg.setKs(args)
 
 			// %arg% -> ? # # +  /
-			sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(query.Sql, sql.DEF_s_sql__prepare_statement__delimiter, sql.DEF_s_sql__prepare_statement__after)
+			sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(query.Sql, sql.PrepareStatementDelimeter, sql.PrepareStatementAfter)
 
 			// 쿼리 분석 후 struct 화
 			// #tpl# -> tpl
-			sqlAfterArgClearTpl := sql.Util_ReplaceInDelimiter(sqlAfterArg, sql.DEF_s_sql__tpl__delimiter, sql.DEF_s_sql__tpl__split)
+			sqlAfterArgClearTpl := sql.Util_ReplaceInDelimiter(sqlAfterArg, sql.TplDelimiter, sql.TplSplit)
 
-			isql, err := parser.New(sqlAfterArgClearTpl)
+			psr, err := parser.New(sqlAfterArgClearTpl)
 			if err != nil {
 				query.ErrParser = fmt.Sprintf("%v", err)
 				continue
 			}
 
-			switch data_parser := isql.(type) {
+			switch data := psr.(type) {
 			case *parser.Select:
-				err = t.Select(config, table, query, genQuery, data_parser)
+				err = t.Select(config, table, query, genQuery, data)
 			case *parser.Insert:
-				err = t.Insert(config, schema, table, query, genQuery, data_parser)
+				err = t.Insert(config, schema, table, query, genQuery, data)
 			case *parser.Update:
-				err = t.Update(config, schema, table, query, genQuery, data_parser)
+				err = t.Update(config, schema, table, query, genQuery, data)
 			case *parser.Delete:
-				err = t.Delete(config, table, query, genQuery, data_parser)
+				err = t.Delete(config, table, query, genQuery, data)
 			}
 
 			if err != nil {
@@ -107,7 +107,7 @@ func (t *GenData) SetData(config *config.Config) (err error) {
 				continue
 			}
 
-			// pt_gen__query 데이터 구성 후처리
+			// query 데이터 구성 후처리
 			{
 				// 그룹 이름 복사
 				genQuery.tableName = table.Name
@@ -116,7 +116,7 @@ func (t *GenData) SetData(config *config.Config) (err error) {
 				genQuery.queryName = query.Name
 
 				// sql 문 복사 ( #이름# -> %s 로 변경 )
-				sqlAfterArgTpl := sql.Util_ReplaceBetweenDelimiter(sqlAfterArg, sql.DEF_s_sql__tpl__delimiter, sql.DEF_s_sql__tpl__after)
+				sqlAfterArgTpl := sql.Util_ReplaceBetweenDelimiter(sqlAfterArg, sql.TplDelimiter, sql.TplAfter)
 				genQuery.query = sqlAfterArgTpl
 
 				// group list 에 func 추가
@@ -133,15 +133,15 @@ func (t *GenData) Select(conf *config.Config, table *config.Table, query *config
 
 	// 필드 정보를 얻어온다.
 	{
-		s_sql, _ := sql.Util_SplitByDelimiter(query.Sql, "where")
-		s_sql__after_arg := sql.Util_ReplaceBetweenDelimiter(s_sql, sql.DEF_s_sql__prepare_statement__delimiter, sql.DEF_s_sql__prepare_statement__after)
-		s_sql__after_arg_clear_tpl := sql.Util_ReplaceInDelimiter(s_sql__after_arg, sql.DEF_s_sql__tpl__delimiter, sql.DEF_s_sql__tpl__split)
+		sqlWithoutWhere, _ := sql.Util_SplitByDelimiter(query.Sql, "where")
+		sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(sqlWithoutWhere, sql.PrepareStatementDelimeter, sql.PrepareStatementAfter)
+		sqlAfterArgClearTpl := sql.Util_ReplaceInDelimiter(sqlAfterArg, sql.TplDelimiter, sql.TplSplit)
 
 		job, err := t.db.Begin()
 		if err != nil {
 			return err
 		}
-		rows, err := job.Query(s_sql__after_arg_clear_tpl)
+		rows, err := job.Query(sqlAfterArgClearTpl)
 		if err != nil {
 			return err
 		}
@@ -185,8 +185,8 @@ func (t *GenData) Insert(conf *config.Config, schema *config.Schema, table *conf
 
 		// 스키마와 파서의 전체 필드 숫자가 다르면 -> 파서에서 모든 필드 이름이 제공되어야 함 -> 하나라도 없으면 에러
 		if len(sqlInsert.Fields) != len(schemaTable.Fields) {
-			for _, pt_field_value := range sqlInsert.Fields {
-				if pt_field_value.FieldName == "" {
+			for _, field := range sqlInsert.Fields {
+				if field.FieldName == "" {
 					return fmt.Errorf("field name is empty")
 				}
 			}
@@ -223,61 +223,59 @@ func (t *GenData) Update(conf *config.Config, schema *config.Schema, table *conf
 	genQuery.queryType = QueryTypeUpdate
 
 	// set
-	{
-		for _, field := range sqlUpdate.Field {
-			// 입력값이 ? (arg) 형식이 아니면 func arg 를 만들 필요가 없음으로 continue
-			if sql.Util_IsParserValArg(field.Val) == false {
-				continue
-			}
-
-			fieldName := field.FieldName
-			tableName := field.TableName
-
-			// 정의된 table name 이 없으면 update 대상 테이블 중 매칭되는 테이블을 찾는다
-			if tableName == "" {
-				tables := sqlUpdate.GetTableNames()
-				tablesMatch, err := schema.GetTableFieldMatched(fieldName, tables)
-				if err != nil {
-					return err
-				}
-
-				// parse 에러 처리
-				{
-					// 두개 이상의 테이블이 매칭됨
-					if len(tablesMatch) > 1 {
-						var dup string
-						for _, s_table_name__match := range tablesMatch {
-							dup += fmt.Sprintf("%s, ", s_table_name__match)
-						}
-						dup = dup[:len(dup)-2]
-						return fmt.Errorf("duplicated field name in multiple table | field name - %s | tables name - %s", fieldName, dup)
-					}
-					// 매칭되는 테이블이 한개도 없음
-					if len(tablesMatch) == 0 {
-						return fmt.Errorf("no tables match the field | field name - %s", fieldName)
-					}
-				}
-
-				// 테이블 이름 설정
-				tableName = tablesMatch[0]
-			}
-
-			// 테이블과 필드 이름을 이용해 필드 타입을 찾아낸다
-			var genType string
-			{
-				schemaTable := schema.GetTable(tableName)
-				if schemaTable == nil {
-					return fmt.Errorf("not exist table | table name - %s", tableName)
-				}
-				schemaField := schemaTable.GetField(fieldName)
-				if schemaField == nil {
-					return fmt.Errorf("not exist field | field name - %s", field.FieldName)
-				}
-				genType = string(schemaField.TypeGen)
-			}
-
-			genQuery.arg.setKV(field.FieldName, genType)
+	for _, field := range sqlUpdate.Field {
+		// 입력값이 ? (arg) 형식이 아니면 func arg 를 만들 필요가 없음으로 continue
+		if sql.Util_IsParserValArg(field.Val) == false {
+			continue
 		}
+
+		fieldName := field.FieldName
+		tableName := field.TableName
+
+		// 정의된 table name 이 없으면 update 대상 테이블 중 매칭되는 테이블을 찾는다
+		if tableName == "" {
+			tables := sqlUpdate.GetTableNames()
+			tablesMatch, err := schema.GetTableFieldMatched(fieldName, tables)
+			if err != nil {
+				return err
+			}
+
+			// parse 에러 처리
+			{
+				// 두개 이상의 테이블이 매칭됨
+				if len(tablesMatch) > 1 {
+					var dup string
+					for _, table := range tablesMatch {
+						dup += fmt.Sprintf("%s, ", table)
+					}
+					dup = dup[:len(dup)-2]
+					return fmt.Errorf("duplicated field name in multiple table | field name - %s | tables name - %s", fieldName, dup)
+				}
+				// 매칭되는 테이블이 한개도 없음
+				if len(tablesMatch) == 0 {
+					return fmt.Errorf("no tables match the field | field name - %s", fieldName)
+				}
+			}
+
+			// 테이블 이름 설정
+			tableName = tablesMatch[0]
+		}
+
+		// 테이블과 필드 이름을 이용해 필드 타입을 찾아낸다
+		var genType string
+		{
+			schemaTable := schema.GetTable(tableName)
+			if schemaTable == nil {
+				return fmt.Errorf("not exist table | table name - %s", tableName)
+			}
+			schemaField := schemaTable.GetField(fieldName)
+			if schemaField == nil {
+				return fmt.Errorf("not exist field | field name - %s", field.FieldName)
+			}
+			genType = string(schemaField.TypeGen)
+		}
+
+		genQuery.arg.setKV(field.FieldName, genType)
 	}
 	// update 시 null 값 ignore 처리
 	genQuery.UpdateNullIgnore = query.UpdateNullIgnore
@@ -286,7 +284,6 @@ func (t *GenData) Update(conf *config.Config, schema *config.Schema, table *conf
 }
 
 func (t *GenData) Delete(conf *config.Config, table *config.Table, query *config.Query, genQuery *GenDataQuery, sqlDelete *parser.Delete) error {
-
 	genQuery.queryType = QueryTypeDelete
 
 	// 임시 - 할게 없음
@@ -305,14 +302,14 @@ type GenDataGroup struct {
 	Queries []*GenDataQuery
 }
 
-func (t *GenDataGroup) Set(Name string) {
-	if t.Queries == nil {
-		t.Queries = make([]*GenDataQuery, 0, 10)
-	}
+func (t *GenDataGroup) Init(Name string) {
 	t.Name = Name
 }
 
 func (t *GenDataGroup) AddQuery(query *GenDataQuery) {
+	if t.Queries == nil {
+		t.Queries = make([]*GenDataQuery, 0, 10)
+	}
 	t.Queries = append(t.Queries, query)
 }
 
@@ -350,8 +347,8 @@ type genDataStruct struct {
 }
 
 func (t *genDataStruct) setKs(Keys []string) {
-	for _, s_field_name := range Keys {
-		t.setKV(s_field_name, "")
+	for _, key := range Keys {
+		t.setKV(key, "")
 	}
 }
 

@@ -6,12 +6,12 @@ import (
 )
 
 const (
-	DEF_s_sql__prepare_statement__delimiter = "%"
-	DEF_s_sql__prepare_statement__after     = "?"
+	PrepareStatementDelimeter = "%"
+	PrepareStatementAfter     = "?"
 
-	DEF_s_sql__tpl__delimiter = "#"
-	DEF_s_sql__tpl__after     = "%s"
-	DEF_s_sql__tpl__split     = "/"
+	TplDelimiter = "#"
+	TplAfter     = "%s"
+	TplSplit     = "/"
 )
 
 func Util_ClearInQuot(input string) (output string) {

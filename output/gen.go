@@ -85,12 +85,12 @@ func (t *User) Select() (
 	
 	selects = make([]*User_select, 0, 100)
 	for ret.Next() {
-		pt_struct := &User_select{}
-		err := ret.Scan(pt_struct)
+		scan := &User_select{}
+		err := ret.Scan(scan)
 		if err != nil {
 			return nil, err
 		}
-		selects = append(selects, pt_struct)
+		selects = append(selects, scan)
 	}
 	
 	return selects, nil

@@ -31,14 +31,13 @@ func (t *Vendor) ConvType(dbType string) (genType string) {
 		return ""
 	}
 
-	s_field_type_with_len := opts[0]
-
-	n_pos_start_len := strings.Index(s_field_type_with_len, "(")
-	if n_pos_start_len != -1 {
-		s_field_type_with_len = s_field_type_with_len[0:n_pos_start_len]
+	fieldTypeWithLen := opts[0]
+	pos := strings.Index(fieldTypeWithLen, "(")
+	if pos != -1 {
+		fieldTypeWithLen = fieldTypeWithLen[0:pos]
 	}
 
-	return t.convType(s_field_type_with_len, unsigned)
+	return t.convType(fieldTypeWithLen, unsigned)
 }
 
 func (t *Vendor) convType(dbType string, unsigned bool) string {
@@ -72,7 +71,7 @@ func (t *Vendor) convType(dbType string, unsigned bool) string {
 	case "double", "real":
 		return "float64"
 	default:
-		return "error"
+		return ""
 	}
 }
 

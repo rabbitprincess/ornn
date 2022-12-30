@@ -55,7 +55,7 @@ func (t *Vendor) vendorByTable(sqlCreateTable string) (*config.Table, []*config.
 
 	// parse table
 	table := &config.Table{}
-	table.Init(tableName)
+	table.Name = tableName
 
 	// parse index
 	for _, idx := range parser.Constraints {

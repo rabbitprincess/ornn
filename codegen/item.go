@@ -57,7 +57,7 @@ func (t *Struct) AddField(item *Var) {
 	t.Fields.Add(item)
 }
 
-func (t *Struct) AddFunc(item *Function) {
+func (t *Struct) AddFunction(item *Function) {
 	if t.Methods == nil {
 		t.Methods = make([]*Function, 0, 10)
 	}
@@ -65,7 +65,6 @@ func (t *Struct) AddFunc(item *Function) {
 }
 
 func (t *Struct) Code(w *Writer) {
-	// struct
 	w.W("type %s struct {\n", t.Name)
 	w.IndentIn()
 	t.Fields.Code(w)

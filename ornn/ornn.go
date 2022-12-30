@@ -45,7 +45,7 @@ func (t *ORNN) ConfigSave(path string) error {
 }
 
 func (t *ORNN) InitConfigBySchema(tablePrefix string) error {
-	// TODO : arrs_table_name__prefix 가 존재할 시 해당 prefix 를 가지고 있는 테이블 스키마만 생성
+	// TODO : prefix 가 있을 시 해당 prefix 를 가지고 있는 테이블 스키마만 생성
 	// TODO : custom type 은 업데이트 되지 않음
 	// init config by schema
 	err := t.vendor.VendorBySchema(t.config)
