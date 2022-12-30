@@ -8,6 +8,7 @@ import (
 	"github.com/gokch/ornn/db"
 	"github.com/gokch/ornn/db/db_mysql"
 	"github.com/gokch/ornn/sql"
+	"github.com/gokch/ornn/sql/parser"
 )
 
 type GenData struct {
@@ -85,20 +86,20 @@ func (t *GenData) SetData(config *config.Config) (err error) {
 			// #tpl# -> tpl
 			sqlAfterArgClearTpl := sql.Util_ReplaceInDelimiter(sqlAfterArg, sql.DEF_s_sql__tpl__delimiter, sql.DEF_s_sql__tpl__split)
 
-			isql, err := sql.New(sqlAfterArgClearTpl)
+			isql, err := parser.New(sqlAfterArgClearTpl)
 			if err != nil {
 				query.ErrParser = fmt.Sprintf("%v", err)
 				continue
 			}
 
 			switch data_parser := isql.(type) {
-			case *sql.Select:
+			case *parser.Select:
 				err = t.Select(config, table, query, genQuery, data_parser)
-			case *sql.Insert:
+			case *parser.Insert:
 				err = t.Insert(config, schema, table, query, genQuery, data_parser)
-			case *sql.Update:
+			case *parser.Update:
 				err = t.Update(config, schema, table, query, genQuery, data_parser)
-			case *sql.Delete:
+			case *parser.Delete:
 				err = t.Delete(config, table, query, genQuery, data_parser)
 			}
 
@@ -128,7 +129,7 @@ func (t *GenData) SetData(config *config.Config) (err error) {
 	return nil
 }
 
-func (t *GenData) Select(conf *config.Config, table *config.Table, query *config.Query, genQuery *GenDataQuery, sqlSelect *sql.Select) error {
+func (t *GenData) Select(conf *config.Config, table *config.Table, query *config.Query, genQuery *GenDataQuery, sqlSelect *parser.Select) error {
 	genQuery.queryType = QueryTypeSelect
 
 	// 필드 정보를 얻어온다.
@@ -172,7 +173,7 @@ func (t *GenData) Select(conf *config.Config, table *config.Table, query *config
 	return nil
 }
 
-func (t *GenData) Insert(conf *config.Config, schema *config.Schema, table *config.Table, query *config.Query, genQuery *GenDataQuery, sqlInsert *sql.Insert) error {
+func (t *GenData) Insert(conf *config.Config, schema *config.Schema, table *config.Table, query *config.Query, genQuery *GenDataQuery, sqlInsert *parser.Insert) error {
 
 	genQuery.queryType = QueryTypeInsert
 
@@ -219,7 +220,7 @@ func (t *GenData) Insert(conf *config.Config, schema *config.Schema, table *conf
 	return nil
 }
 
-func (t *GenData) Update(conf *config.Config, schema *config.Schema, table *config.Table, query *config.Query, genQuery *GenDataQuery, sqlUpdate *sql.Update) error {
+func (t *GenData) Update(conf *config.Config, schema *config.Schema, table *config.Table, query *config.Query, genQuery *GenDataQuery, sqlUpdate *parser.Update) error {
 	genQuery.queryType = QueryTypeUpdate
 
 	// set
@@ -285,7 +286,7 @@ func (t *GenData) Update(conf *config.Config, schema *config.Schema, table *conf
 	return nil
 }
 
-func (t *GenData) Delete(conf *config.Config, table *config.Table, query *config.Query, genQuery *GenDataQuery, sqlDelete *sql.Delete) error {
+func (t *GenData) Delete(conf *config.Config, table *config.Table, query *config.Query, genQuery *GenDataQuery, sqlDelete *parser.Delete) error {
 
 	genQuery.queryType = QueryTypeDelete
 

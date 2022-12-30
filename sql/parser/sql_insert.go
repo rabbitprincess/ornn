@@ -1,10 +1,10 @@
-package sql
+package parser
 
 import (
 	"fmt"
 	"log"
 
-	parser "github.com/blastrain/vitess-sqlparser/sqlparser"
+	"github.com/blastrain/vitess-sqlparser/sqlparser"
 )
 
 type Insert struct {
@@ -12,12 +12,12 @@ type Insert struct {
 	Fields    []*Field
 }
 
-func (t *Insert) parse(psr *parser.Insert) error {
+func (t *Insert) parse(psr *sqlparser.Insert) error {
 	// table name
 	t.TableName = psr.Table.Name.String()
 
 	switch row := psr.Rows.(type) {
-	case parser.Values:
+	case sqlparser.Values:
 		if len(row) != 1 {
 			// bp config 에서 multi insert 쿼리 직접 입력 금지
 			// multi insert 는 bp config 의 mutli insert option 을 true 로 설정하고, 단일 쿼리를 그대로 사용
@@ -37,13 +37,13 @@ func (t *Insert) parse(psr *parser.Insert) error {
 			}
 
 			// value 값이 NULL 이면 처리하지 않음
-			if _, ok := val.(*parser.NullVal); ok == true {
+			if _, ok := val.(*sqlparser.NullVal); ok == true {
 				field.Val = []byte("")
 				t.addField(field)
 				continue
 			}
 
-			if sqlVal, ok := val.(*parser.SQLVal); ok == true {
+			if sqlVal, ok := val.(*sqlparser.SQLVal); ok == true {
 				field.Val = sqlVal.Val
 				t.addField(field)
 				continue
@@ -51,7 +51,7 @@ func (t *Insert) parse(psr *parser.Insert) error {
 
 			return fmt.Errorf("parser error - unexpacted type of field value")
 		}
-	case *parser.Select:
+	case *sqlparser.Select:
 		// 임시 - 작업필요
 		// -> insert 에 입력값으로 select query 를 사용하는 경우로
 		// -> 추후 작업할때 where 절에 ? 를 처리해주면 됨

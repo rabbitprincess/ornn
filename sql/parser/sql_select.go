@@ -1,11 +1,11 @@
-package sql
+package parser
 
 import (
 	"fmt"
 	"log"
 	"strconv"
 
-	parser "github.com/blastrain/vitess-sqlparser/sqlparser"
+	"github.com/blastrain/vitess-sqlparser/sqlparser"
 )
 
 type Select struct {
@@ -15,20 +15,20 @@ type Select struct {
 	Limit   *int64
 }
 
-func (t *Select) parse(psr *parser.Select) error {
+func (t *Select) parse(psr *sqlparser.Select) error {
 	// from
 	for _, from := range psr.From {
 		tableAs := &TableAs{}
 
 		switch data := from.(type) {
-		case *parser.AliasedTableExpr: // 단순 테이블
-			tableAs.Table = data.Expr.(parser.TableName).Name.String()
+		case *sqlparser.AliasedTableExpr: // 단순 테이블
+			tableAs.Table = data.Expr.(sqlparser.TableName).Name.String()
 			tableAs.As = data.As.String()
-		case *parser.ParenTableExpr:
+		case *sqlparser.ParenTableExpr:
 			// 임시 - 작업필요
 			// -> 반드시 sub query 를 재귀호출로 해체하여 제일 외부 에 있는 () 에 대해 서만 table list 에 남긴다. = *  타입 지정 문제
 			log.Fatal("need more programming")
-		case *parser.JoinTableExpr:
+		case *sqlparser.JoinTableExpr:
 			// 임시 - 작업필요
 			// -> 반드시 sub query 를 재귀호출로 해체하여 제일 외부 에 있는 () 에 대해 서만 table list 에 남긴다. = *  타입 지정 문제
 			log.Fatal("need more programming")
@@ -42,18 +42,18 @@ func (t *Select) parse(psr *parser.Select) error {
 		fieldAs := &FieldAs{}
 
 		switch data := selectExpr.(type) {
-		case *parser.StarExpr:
+		case *sqlparser.StarExpr:
 			fieldAs.Field = "*"
 			fieldAs.Table = data.TableName.Name.String()
 			if fieldAs.Table == "" {
 				// 임시 - 작업중
 			}
-		case *parser.AliasedExpr:
-			fieldAs.Field = data.Expr.(*parser.ColName).Name.String()
+		case *sqlparser.AliasedExpr:
+			fieldAs.Field = data.Expr.(*sqlparser.ColName).Name.String()
 			fieldAs.As = data.As.String()
-			fieldAs.Table = data.Expr.(*parser.ColName).Qualifier.Name.String()
+			fieldAs.Table = data.Expr.(*sqlparser.ColName).Qualifier.Name.String()
 
-		case parser.Nextval:
+		case sqlparser.Nextval:
 			log.Fatal("need more programming")
 		}
 
@@ -80,16 +80,16 @@ func (t *Select) parse(psr *parser.Select) error {
 
 	// limit, offset
 	if psr.Limit != nil {
-		if offset, ok := psr.Limit.Offset.(*parser.SQLVal); ok == true {
-			if offset.Type == parser.IntVal {
+		if offset, ok := psr.Limit.Offset.(*sqlparser.SQLVal); ok == true {
+			if offset.Type == sqlparser.IntVal {
 				n, err := strconv.ParseInt(string(offset.Val), 10, 64)
 				if err == nil {
 					t.Offset = &n
 				}
 			}
 		}
-		if limit, ok := psr.Limit.Rowcount.(*parser.SQLVal); ok == true {
-			if limit.Type == parser.IntVal {
+		if limit, ok := psr.Limit.Rowcount.(*sqlparser.SQLVal); ok == true {
+			if limit.Type == sqlparser.IntVal {
 				n, err := strconv.ParseInt(string(limit.Val), 10, 64)
 				if err == nil {
 					t.Limit = &n

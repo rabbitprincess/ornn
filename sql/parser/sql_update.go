@@ -1,10 +1,10 @@
-package sql
+package parser
 
 import (
 	"log"
 	"strings"
 
-	parser "github.com/blastrain/vitess-sqlparser/sqlparser"
+	"github.com/blastrain/vitess-sqlparser/sqlparser"
 )
 
 type Update struct {
@@ -12,19 +12,19 @@ type Update struct {
 	Field   []*Field
 }
 
-func (t *Update) parse(psr *parser.Update) error {
+func (t *Update) parse(psr *sqlparser.Update) error {
 	for _, tableExpr := range psr.TableExprs {
 		tableAs := &TableAs{}
 
 		switch data := tableExpr.(type) {
-		case *parser.AliasedTableExpr: // 단순 테이블
-			tableAs.Table = data.Expr.(parser.TableName).Name.String()
+		case *sqlparser.AliasedTableExpr: // 단순 테이블
+			tableAs.Table = data.Expr.(sqlparser.TableName).Name.String()
 			tableAs.As = data.As.String()
-		case *parser.ParenTableExpr:
+		case *sqlparser.ParenTableExpr:
 			// 임시 - 작업필요
 			// -> 반드시 sub query 를 재귀호출로 해체하여 제일 외부 에 있는 () 에 대해 서만 table list 에 남긴다. = *  타입 지정 문제
 			log.Fatal("need more programming")
-		case *parser.JoinTableExpr:
+		case *sqlparser.JoinTableExpr:
 			// 임시 - 작업필요
 			// -> 반드시 sub query 를 재귀호출로 해체하여 제일 외부 에 있는 () 에 대해 서만 table list 에 남긴다. = *  타입 지정 문제
 			log.Fatal("need more programming")
@@ -39,14 +39,14 @@ func (t *Update) parse(psr *parser.Update) error {
 		pt_field.TableName = pt_expr.Name.Qualifier.Name.String()
 		pt_field.FieldName = pt_expr.Name.Name.String()
 		switch data := pt_expr.Expr.(type) {
-		case *parser.SQLVal:
+		case *sqlparser.SQLVal:
 			{
 				pt_field.Val = data.Val
 			}
-		case *parser.BinaryExpr:
+		case *sqlparser.BinaryExpr:
 			{
-				data_left, is_ok_left := data.Left.(*parser.SQLVal)
-				data_right, is_ok_right := data.Right.(*parser.SQLVal)
+				data_left, is_ok_left := data.Left.(*sqlparser.SQLVal)
+				data_right, is_ok_right := data.Right.(*sqlparser.SQLVal)
 				if is_ok_left == true && is_ok_right == true {
 					// 양쪽 다 val 일 경우 - 에러 ( set u8_num = %u8_num% + %u8_num% )
 					log.Fatal("need more programming")
@@ -58,7 +58,7 @@ func (t *Update) parse(psr *parser.Update) error {
 					pt_field.Val = data_right.Val
 				}
 			}
-		case *parser.FuncExpr:
+		case *sqlparser.FuncExpr:
 			{
 				s_func_name := strings.ToLower(data.Name.String())
 				switch s_func_name {
@@ -66,11 +66,11 @@ func (t *Update) parse(psr *parser.Update) error {
 					{
 						// update 시 nil 값을 입력하면 업데이트 하지 않도록 하기 위함
 						// sql - "seq = ifnull(%seq%, seq)" 식으로 작성
-						pt_alised_expr, is_ok := data.Exprs[0].(*parser.AliasedExpr)
+						pt_alised_expr, is_ok := data.Exprs[0].(*sqlparser.AliasedExpr)
 						if is_ok == false {
 							log.Fatal("need more programming")
 						}
-						pt_val, is_ok := pt_alised_expr.Expr.(*parser.SQLVal)
+						pt_val, is_ok := pt_alised_expr.Expr.(*sqlparser.SQLVal)
 						pt_field.Val = pt_val.Val
 						// is_pointer 플래그 추가
 						// nil 을 입력받을 수 있어야 함으로 포인터로 세팅
