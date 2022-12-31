@@ -22,6 +22,9 @@ func (t *Config) Load(config string) error {
 	if err != nil {
 		return err
 	}
+
+	// queries 초기화
+
 	return nil
 }
 

@@ -16,10 +16,10 @@ type Gen struct {
 func (t *Gen) Gen(conn *db.Conn, conf *config.Config, path string) (code string, err error) {
 	vendor := db_mysql.NewVendor(conn)
 
-	// json -> 코드 생성을 위한 gen 데이터 준비
+	// 코드 생성을 위한 gen 데이터 준비
 	t.data = &GenData{}
-	t.data.Init(conn, vendor)
-	err = t.data.SetData(conf)
+	t.data.Init(conf, conn, vendor)
+	err = t.data.SetData()
 	if err != nil {
 		return "", err
 	}

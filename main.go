@@ -20,7 +20,6 @@ func main() {
 	ornn := &ornn.ORNN{}
 	ornn.Init(db, config)
 
-	// config
 	err = ornn.ConfigLoad("./output/gen.json")
 	if err != nil {
 		log.Fatal(err)

@@ -11,124 +11,179 @@ import (
 )
 
 type GenData struct {
+	conf   *config.Config
 	db     *db.Conn
 	vendor db.Vendor
 
 	groups []*GenDataGroup
 }
 
-func (t *GenData) Init(db *db.Conn, vendor db.Vendor) {
+type GenDataGroup struct {
+	Name    string
+	Queries []*GenDataQuery
+}
+
+type GenDataQuery struct {
+	queryType QueryType
+	groupName string
+	queryName string
+	query     string
+
+	tpl genDataStruct
+	arg genDataStruct
+	ret genDataStruct
+
+	// options
+	SelectSingle     bool
+	InsertMulti      bool
+	UpdateNullIgnore bool
+}
+
+type QueryType int8
+
+const (
+	QueryTypeSelect QueryType = iota + 1
+	QueryTypeInsert
+	QueryTypeUpdate
+	QueryTypeDelete
+)
+
+type genDataStruct struct {
+	pairs []*Pair
+}
+
+type Pair struct {
+	Key   string
+	Value string
+}
+
+func (t *GenData) Init(conf *config.Config, db *db.Conn, vendor db.Vendor) {
+	t.conf = conf
 	t.db = db
 	t.vendor = vendor
 	t.groups = make([]*GenDataGroup, 0, 10)
 }
 
-func (t *GenData) SetData(config *config.Config) (err error) {
-	job, err := t.db.Begin()
-	if err != nil {
-		return err
-	}
-	job.Exec("Insert from test_table")
-
-	// group
-	schema := &config.Schema
-
-	for _, table := range config.Schema.Tables {
-		genGroup := &GenDataGroup{}
-		genGroup.Init(table.Name)
-		t.Add(genGroup)
-
-		// func
-		defaultQueryByTable, ok := config.Queries.Default[table.Name]
+func (t *GenData) SetData() (err error) {
+	// default
+	for _, group := range t.conf.Schema.Tables {
+		Queries, ok := t.conf.Queries.Default[group.Name]
 		if ok != true {
 			continue
 		}
 
-		for _, query := range defaultQueryByTable {
-			genQuery := &GenDataQuery{}
-
-			// set args
-			// tpl args ( # name # )를 배열로 추출
-			tpls, err := sql.Util_ExportBetweenDelimiter(query.Sql, sql.TplDelimiter)
-			if err != nil {
-				return err
-			}
-
-			for _, tpl := range tpls {
-				tmps := strings.Split(tpl, sql.TplSplit)
-				var argName string
-				var argData string
-				if len(tmps) == 1 {
-					argName = tmps[0]
-					argData = ""
-				} else if len(tmps) == 2 {
-					argName = tmps[0]
-					argData = tmps[1]
-				} else {
-					return fmt.Errorf("tpl format is wrong - %s", tpl)
-				}
-
-				genQuery.tpl.setKV(argName, argData)
-			}
-
-			// args ( % name % )를 배열로 추출
-			args, err := sql.Util_ExportBetweenDelimiter(query.Sql, sql.PrepareStatementDelimeter)
-			if err != nil {
-				return err
-			}
-			genQuery.arg.setKs(args)
-
-			// %arg% -> ? # # +  /
-			sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(query.Sql, sql.PrepareStatementDelimeter, sql.PrepareStatementAfter)
-
-			// 쿼리 분석 후 struct 화
-			// #tpl# -> tpl
-			sqlAfterArgClearTpl := sql.Util_ReplaceInDelimiter(sqlAfterArg, sql.TplDelimiter, sql.TplSplit)
-
-			psr, err := parser.New(sqlAfterArgClearTpl)
-			if err != nil {
-				query.ErrParser = fmt.Sprintf("%v", err)
-				continue
-			}
-
-			switch data := psr.(type) {
-			case *parser.Select:
-				err = t.Select(config, table, query, genQuery, data)
-			case *parser.Insert:
-				err = t.Insert(config, schema, table, query, genQuery, data)
-			case *parser.Update:
-				err = t.Update(config, schema, table, query, genQuery, data)
-			case *parser.Delete:
-				err = t.Delete(config, table, query, genQuery, data)
-			}
-
-			if err != nil {
-				query.ErrQuery = fmt.Sprintf("%v", err)
-				continue
-			}
-
-			// query 데이터 구성 후처리
-			{
-				// 그룹 이름 복사
-				genQuery.tableName = table.Name
-
-				// 쿼리 이름 복사
-				genQuery.queryName = query.Name
-
-				// sql 문 복사 ( #이름# -> %s 로 변경 )
-				sqlAfterArgTpl := sql.Util_ReplaceBetweenDelimiter(sqlAfterArg, sql.TplDelimiter, sql.TplAfter)
-				genQuery.query = sqlAfterArgTpl
-
-				// group list 에 func 추가
-				genGroup.AddQuery(genQuery)
-			}
+		genGroup, err := t.SetDataGroup(group.Name, Queries)
+		if err != nil {
+			return err
 		}
+		t.Add(genGroup)
 	}
+
+	// custom
+	Queries := t.conf.Queries.Custom
+	genGroup, err := t.SetDataGroup("custom", Queries)
+	if err != nil {
+		return err
+	}
+	t.Add(genGroup)
 
 	return nil
 }
 
-func (t *GenData) Select(conf *config.Config, table *config.Table, query *config.Query, genQuery *GenDataQuery, sqlSelect *parser.Select) error {
+func (t *GenData) SetDataGroup(groupName string, queries []*config.Query) (genGroup *GenDataGroup, err error) {
+	genGroup = &GenDataGroup{}
+	genGroup.Init(groupName)
+
+	for _, query := range queries {
+		genQuery, err := t.SetDataQuery(groupName, query)
+		if err != nil {
+			return nil, err
+		}
+		genGroup.AddQuery(genQuery)
+	}
+	return genGroup, nil
+}
+
+func (t *GenData) SetDataQuery(groupName string, query *config.Query) (genQuery *GenDataQuery, err error) {
+	genQuery = &GenDataQuery{}
+
+	// set args
+	// tpl args ( # name # )를 배열로 추출
+	tpls, err := sql.Util_ExportBetweenDelimiter(query.Sql, sql.TplDelimiter)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, tpl := range tpls {
+		tmps := strings.Split(tpl, sql.TplSplit)
+		var argName string
+		var argData string
+		if len(tmps) == 1 {
+			argName = tmps[0]
+			argData = ""
+		} else if len(tmps) == 2 {
+			argName = tmps[0]
+			argData = tmps[1]
+		} else {
+			return nil, fmt.Errorf("tpl format is wrong - %s", tpl)
+		}
+
+		genQuery.tpl.setKV(argName, argData)
+	}
+
+	// args ( % name % )를 배열로 추출
+	args, err := sql.Util_ExportBetweenDelimiter(query.Sql, sql.PrepareStatementDelimeter)
+	if err != nil {
+		return nil, err
+	}
+	genQuery.arg.setKs(args)
+
+	// %arg% -> ? # # +  /
+	sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(query.Sql, sql.PrepareStatementDelimeter, sql.PrepareStatementAfter)
+
+	// 쿼리 분석 후 struct 화
+	// #tpl# -> tpl
+	sqlAfterArgClearTpl := sql.Util_ReplaceInDelimiter(sqlAfterArg, sql.TplDelimiter, sql.TplSplit)
+
+	psr, err := parser.New(sqlAfterArgClearTpl)
+	if err != nil {
+		query.ErrParser = fmt.Sprintf("%v", err)
+		return nil, nil
+	}
+
+	switch data := psr.(type) {
+	case *parser.Select:
+		err = t.Select(t.conf, query, genQuery, data)
+	case *parser.Insert:
+		err = t.Insert(t.conf, query, genQuery, data)
+	case *parser.Update:
+		err = t.Update(t.conf, query, genQuery, data)
+	case *parser.Delete:
+		err = t.Delete(t.conf, query, genQuery, data)
+	}
+
+	if err != nil {
+		query.ErrQuery = fmt.Sprintf("%v", err)
+		return nil, nil
+	}
+
+	// query 데이터 구성 후처리
+	{
+		// 그룹 이름 복사
+		genQuery.groupName = groupName
+
+		// 쿼리 이름 복사
+		genQuery.queryName = query.Name
+
+		// sql 문 복사 ( #이름# -> %s 로 변경 )
+		sqlAfterArgTpl := sql.Util_ReplaceBetweenDelimiter(sqlAfterArg, sql.TplDelimiter, sql.TplAfter)
+		genQuery.query = sqlAfterArgTpl
+
+	}
+	return genQuery, nil
+}
+
+func (t *GenData) Select(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlSelect *parser.Select) error {
 	genQuery.queryType = QueryTypeSelect
 
 	// 필드 정보를 얻어온다.
@@ -167,18 +222,18 @@ func (t *GenData) Select(conf *config.Config, table *config.Table, query *config
 	// single select 처리
 	// 코드 생성 시 단일 구조체 반환 목적
 	if sqlSelect.Limit != nil && *(sqlSelect.Limit) == 1 {
-		genQuery.isSelectSingle = true
+		genQuery.SelectSingle = true
 	}
 	return nil
 }
 
-func (t *GenData) Insert(conf *config.Config, schema *config.Schema, table *config.Table, query *config.Query, genQuery *GenDataQuery, sqlInsert *parser.Insert) error {
+func (t *GenData) Insert(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlInsert *parser.Insert) error {
 
 	genQuery.queryType = QueryTypeInsert
 
 	// 필드 정보를 얻어온다.
 	{
-		schemaTable := schema.GetTable(sqlInsert.TableName)
+		schemaTable := query.Schema.GetTable(sqlInsert.TableName)
 		if schemaTable == nil {
 			return fmt.Errorf("table name is not exist | table name - %s", sqlInsert.TableName)
 		}
@@ -219,7 +274,7 @@ func (t *GenData) Insert(conf *config.Config, schema *config.Schema, table *conf
 	return nil
 }
 
-func (t *GenData) Update(conf *config.Config, schema *config.Schema, table *config.Table, query *config.Query, genQuery *GenDataQuery, sqlUpdate *parser.Update) error {
+func (t *GenData) Update(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlUpdate *parser.Update) error {
 	genQuery.queryType = QueryTypeUpdate
 
 	// set
@@ -235,7 +290,7 @@ func (t *GenData) Update(conf *config.Config, schema *config.Schema, table *conf
 		// 정의된 table name 이 없으면 update 대상 테이블 중 매칭되는 테이블을 찾는다
 		if tableName == "" {
 			tables := sqlUpdate.GetTableNames()
-			tablesMatch, err := schema.GetTableFieldMatched(fieldName, tables)
+			tablesMatch, err := query.Schema.GetTableFieldMatched(fieldName, tables)
 			if err != nil {
 				return err
 			}
@@ -264,7 +319,7 @@ func (t *GenData) Update(conf *config.Config, schema *config.Schema, table *conf
 		// 테이블과 필드 이름을 이용해 필드 타입을 찾아낸다
 		var genType string
 		{
-			schemaTable := schema.GetTable(tableName)
+			schemaTable := query.Schema.GetTable(tableName)
 			if schemaTable == nil {
 				return fmt.Errorf("not exist table | table name - %s", tableName)
 			}
@@ -283,7 +338,7 @@ func (t *GenData) Update(conf *config.Config, schema *config.Schema, table *conf
 	return nil
 }
 
-func (t *GenData) Delete(conf *config.Config, table *config.Table, query *config.Query, genQuery *GenDataQuery, sqlDelete *parser.Delete) error {
+func (t *GenData) Delete(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlDelete *parser.Delete) error {
 	genQuery.queryType = QueryTypeDelete
 
 	// 임시 - 할게 없음
@@ -297,11 +352,6 @@ func (t *GenData) Add(group *GenDataGroup) {
 	t.groups = append(t.groups, group)
 }
 
-type GenDataGroup struct {
-	Name    string
-	Queries []*GenDataQuery
-}
-
 func (t *GenDataGroup) Init(Name string) {
 	t.Name = Name
 }
@@ -311,39 +361,6 @@ func (t *GenDataGroup) AddQuery(query *GenDataQuery) {
 		t.Queries = make([]*GenDataQuery, 0, 10)
 	}
 	t.Queries = append(t.Queries, query)
-}
-
-type QueryType int8
-
-const (
-	QueryTypeSelect QueryType = iota + 1
-	QueryTypeInsert
-	QueryTypeUpdate
-	QueryTypeDelete
-)
-
-type GenDataQuery struct {
-	queryType QueryType
-	tableName string
-	queryName string
-	query     string
-
-	tpl genDataStruct
-	arg genDataStruct
-	ret genDataStruct
-
-	isSelectSingle   bool
-	InsertMulti      bool
-	UpdateNullIgnore bool
-}
-
-type Pair struct {
-	Key   string
-	Value string
-}
-
-type genDataStruct struct {
-	pairs []*Pair
 }
 
 func (t *genDataStruct) setKs(Keys []string) {

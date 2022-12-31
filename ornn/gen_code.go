@@ -80,7 +80,7 @@ func (t *GenCode) code(config *config.Config, genData *GenData) (genCode string,
 			for _, query := range genGroup.Queries {
 				t.genQuery(group, query)
 			}
-		} // end of for pt_group
+		} // end of for group
 	}
 
 	// 실제 소스 출력
@@ -162,7 +162,7 @@ func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *GenDataQuer
 	{
 		// 2-1. 쿼리-리턴 변수 선언
 		{
-			ret.Name = fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(query.tableName), strings.ToLower(funcQuery.FuncName))
+			ret.Name = fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(query.groupName), strings.ToLower(funcQuery.FuncName))
 			for _, pair := range query.ret.pairs {
 				item := &codegen.Var{}
 				item.Name = sql.Util_ConvFirstToUpper(pair.Key)
@@ -174,7 +174,7 @@ func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *GenDataQuer
 		// 2-2. 리턴 변수 처리
 		{
 			// 리턴 변수 선언 - 구조체
-			if query.isSelectSingle == true {
+			if query.SelectSingle == true {
 				retItem.Name = fmt.Sprintf("pt_%s", strings.ToLower(funcQuery.FuncName))
 				retItem.Type = fmt.Sprintf("*%s", ret.Name)
 				bodyRetSet = fmt.Sprintf("%s = scan\n\tbreak", retItem.Name)
