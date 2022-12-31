@@ -6,7 +6,7 @@ Object Relation No Need
 
 ## Quick Start
 
-1. get repository
+1. go get
 ```
 go get github.com/gokch/ornn
 ```
