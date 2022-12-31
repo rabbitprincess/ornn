@@ -11,11 +11,6 @@ import (
 	"github.com/gokch/ornn/sql"
 )
 
-const (
-	// TODO
-	DEF_s_gen_config__go__db__func__body__func_name__SQL_remove__update_set_field__null string = "SQL_remove__update_set_field__null"
-)
-
 type GenCode struct {
 	config  *config.Config
 	codeGen *codegen.CodeGen
@@ -149,8 +144,8 @@ func (t *GenCode) genQuery(structGroup *codegen.Struct, query *GenDataQuery) {
 
 func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *GenDataQuery) {
 	// 1. 함수 입력 인자
-	tpl := t.genQuery_tpls(funcQuery, query)
-	arg := t.genQuery_args(funcQuery, query)
+	tpls := t.genQuery_tpls(funcQuery, query)
+	args := t.genQuery_args(funcQuery, query)
 
 	// 2. 함수 리턴
 	ret := &codegen.Struct{}
@@ -160,35 +155,31 @@ func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *GenDataQuer
 	var bodyRetDeclare string
 	var bodyRetSet string
 	{
-		// 2-1. 쿼리-리턴 변수 선언
-		{
-			ret.Name = fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(query.groupName), strings.ToLower(funcQuery.FuncName))
-			for _, pair := range query.ret.pairs {
-				item := &codegen.Var{}
-				item.Name = sql.Util_ConvFirstToUpper(pair.Key)
-				item.Type = pair.Value
-				ret.AddField(item)
-			}
+		// 2-1. 리턴 변수 선언
+		ret.Name = fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(query.groupName), strings.ToLower(funcQuery.FuncName))
+		for _, pair := range query.ret.pairs {
+			item := &codegen.Var{}
+			item.Name = sql.Util_ConvFirstToUpper(pair.Key)
+			item.Type = pair.Value
+			ret.AddField(item)
 		}
 
 		// 2-2. 리턴 변수 처리
-		{
-			// 리턴 변수 선언 - 구조체
-			if query.SelectSingle == true {
-				retItem.Name = fmt.Sprintf("pt_%s", strings.ToLower(funcQuery.FuncName))
-				retItem.Type = fmt.Sprintf("*%s", ret.Name)
-				bodyRetSet = fmt.Sprintf("%s = scan\n\tbreak", retItem.Name)
-			} else {
-				retItem.Name = fmt.Sprintf("%ss", strings.ToLower(funcQuery.FuncName))
-				retItem.Type = fmt.Sprintf("[]*%s", ret.Name)
-				bodyRetDeclare = fmt.Sprintf("\n%s = make(%s, 0, 100)", retItem.Name, retItem.Type)
-				bodyRetSet = fmt.Sprintf("%s = append(%s, scan)", retItem.Name, retItem.Name)
-			}
-			funcQuery.AddRet(retItem)
-
-			// error 추가
-			t.genQuery_ret_error(funcQuery)
+		// 리턴 변수 선언 - 구조체
+		if query.SelectSingle == true {
+			retItem.Name = fmt.Sprintf("pt_%s", strings.ToLower(funcQuery.FuncName))
+			retItem.Type = fmt.Sprintf("*%s", ret.Name)
+			bodyRetSet = fmt.Sprintf("%s = scan\n\tbreak", retItem.Name)
+		} else {
+			retItem.Name = fmt.Sprintf("%ss", strings.ToLower(funcQuery.FuncName))
+			retItem.Type = fmt.Sprintf("[]*%s", ret.Name)
+			bodyRetDeclare = fmt.Sprintf("\n%s = make(%s, 0, 100)", retItem.Name, retItem.Type)
+			bodyRetSet = fmt.Sprintf("%s = append(%s, scan)", retItem.Name, retItem.Name)
 		}
+		funcQuery.AddRet(retItem)
+
+		// error 추가
+		t.genQuery_ret_error(funcQuery)
 	}
 
 	// 3. 함수 body
@@ -217,9 +208,9 @@ for ret.Next() {
 
 return %s, nil
 `,
-		t.genQuery_body_setArgs(arg),
+		t.genQuery_body_setArgs(args),
 		query.query,
-		t.genQuery_body_arg(tpl),
+		t.genQuery_body_arg(tpls),
 		"t",
 		"Job",
 		bodyRetDeclare,
@@ -494,13 +485,12 @@ args := make([]interface{}, 0, %d)
 setsRemoved := make([]string, 0, %d)
 %s
 if len(setsRemoved) != 0 {
-	sql, _ = %s(sql, setsRemoved)
+	sql, _ = RemoveNull(sql, setsRemoved)
 }
 `,
 		len(args),
 		len(args),
 		isNil,
-		DEF_s_gen_config__go__db__func__body__func_name__SQL_remove__update_set_field__null,
 	)
 	return removeSets
 }
