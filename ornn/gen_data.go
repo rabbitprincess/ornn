@@ -153,12 +153,16 @@ func (t *GenData) SetDataQuery(groupName string, query *config.Query) (genQuery 
 
 	switch data := psr.(type) {
 	case *parser.Select:
+		genQuery.queryType = QueryTypeSelect
 		err = t.Select(t.conf, query, genQuery, data)
 	case *parser.Insert:
+		genQuery.queryType = QueryTypeInsert
 		err = t.Insert(t.conf, query, genQuery, data)
 	case *parser.Update:
+		genQuery.queryType = QueryTypeUpdate
 		err = t.Update(t.conf, query, genQuery, data)
 	case *parser.Delete:
+		genQuery.queryType = QueryTypeDelete
 		err = t.Delete(t.conf, query, genQuery, data)
 	}
 
@@ -184,41 +188,38 @@ func (t *GenData) SetDataQuery(groupName string, query *config.Query) (genQuery 
 }
 
 func (t *GenData) Select(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlSelect *parser.Select) error {
-	genQuery.queryType = QueryTypeSelect
-
 	// 필드 정보를 얻어온다.
-	{
-		sqlWithoutWhere, _ := sql.Util_SplitByDelimiter(query.Sql, "where")
-		sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(sqlWithoutWhere, sql.PrepareStatementDelimeter, sql.PrepareStatementAfter)
-		sqlAfterArgClearTpl := sql.Util_ReplaceInDelimiter(sqlAfterArg, sql.TplDelimiter, sql.TplSplit)
+	sqlWithoutWhere, _ := sql.Util_SplitByDelimiter(query.Sql, "where")
+	sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(sqlWithoutWhere, sql.PrepareStatementDelimeter, sql.PrepareStatementAfter)
+	sqlAfterArgClearTpl := sql.Util_ReplaceInDelimiter(sqlAfterArg, sql.TplDelimiter, sql.TplSplit)
 
-		job, err := t.db.Begin()
-		if err != nil {
-			return err
-		}
-		rows, err := job.Query(sqlAfterArgClearTpl)
-		if err != nil {
-			return err
-		}
-
-		cols, err := rows.ColumnTypes()
-		if err != nil {
-			return err
-		}
-
-		for _, col := range cols {
-			var fieldName, fieldType string
-			fieldName = col.Name()
-			fieldType = query.GetFieldType(fieldName)
-
-			// if custom type is not defined, get database type
-			if fieldType == "" {
-				colType := col.DatabaseTypeName()
-				fieldType = t.vendor.ConvType(colType)
-			}
-			genQuery.ret.setKV(fieldName, fieldType)
-		}
+	job, err := t.db.Begin()
+	if err != nil {
+		return err
 	}
+	rows, err := job.Query(sqlAfterArgClearTpl)
+	if err != nil {
+		return err
+	}
+
+	cols, err := rows.ColumnTypes()
+	if err != nil {
+		return err
+	}
+
+	for _, col := range cols {
+		var fieldName, fieldType string
+		fieldName = col.Name()
+		fieldType = query.GetFieldType(fieldName)
+
+		// if custom type is not defined, get database type
+		if fieldType == "" {
+			colType := col.DatabaseTypeName()
+			fieldType = t.vendor.ConvType(colType)
+		}
+		genQuery.ret.setKV(fieldName, fieldType)
+	}
+
 	// single select 처리
 	// 코드 생성 시 단일 구조체 반환 목적
 	if sqlSelect.Limit != nil && *(sqlSelect.Limit) == 1 {
@@ -228,46 +229,42 @@ func (t *GenData) Select(conf *config.Config, query *config.Query, genQuery *Gen
 }
 
 func (t *GenData) Insert(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlInsert *parser.Insert) error {
-
-	genQuery.queryType = QueryTypeInsert
-
 	// 필드 정보를 얻어온다.
-	{
-		schemaTable := query.Schema.GetTable(sqlInsert.TableName)
-		if schemaTable == nil {
-			return fmt.Errorf("table name is not exist | table name - %s", sqlInsert.TableName)
-		}
+	schemaTable := query.Schema.GetTable(sqlInsert.TableName)
+	if schemaTable == nil {
+		return fmt.Errorf("table name is not exist | table name - %s", sqlInsert.TableName)
+	}
 
-		// 스키마와 파서의 전체 필드 숫자가 다르면 -> 파서에서 모든 필드 이름이 제공되어야 함 -> 하나라도 없으면 에러
-		if len(sqlInsert.Fields) != len(schemaTable.Fields) {
-			for _, field := range sqlInsert.Fields {
-				if field.FieldName == "" {
-					return fmt.Errorf("field name is empty")
-				}
-			}
-		} else {
-			// 스키마와 파서의 전체 필드수가 같으면 -> 파서에서 모든 필드 이름이 없어도 가능 -> 스키마에서 추출하여 모든 필드명을 채움
-			for i, field := range sqlInsert.Fields {
-				field.FieldName = schemaTable.Fields[i].Name
-			}
-		}
-
-		// 필드 이름을 모두 채운 상태에서 처리 시작
+	// 스키마와 파서의 전체 필드 숫자가 다르면 -> 파서에서 모든 필드 이름이 제공되어야 함 -> 하나라도 없으면 에러
+	if len(sqlInsert.Fields) != len(schemaTable.Fields) {
 		for _, field := range sqlInsert.Fields {
-			// 입력값이 ? (arg) 형식이 아니면 func arg 를 만들 필요가 없음으로 continue
-			if sql.Util_IsParserValArg(field.Val) == false {
-				continue
+			if field.FieldName == "" {
+				return fmt.Errorf("field name is empty")
 			}
-
-			// 입력값이 ? (arg) 일 때만 필드이름 조사 = func arg 의 name 으로 활용
-			schemaField := schemaTable.GetField(field.FieldName)
-			if schemaField == nil {
-				return fmt.Errorf("not exist field in schema | field name : %s", field.FieldName)
-			}
-
-			genQuery.arg.setKV(field.FieldName, schemaField.TypeGen)
+		}
+	} else {
+		// 스키마와 파서의 전체 필드수가 같으면 -> 파서에서 모든 필드 이름이 없어도 가능 -> 스키마에서 추출하여 모든 필드명을 채움
+		for i, field := range sqlInsert.Fields {
+			field.FieldName = schemaTable.Fields[i].Name
 		}
 	}
+
+	// 필드 이름을 모두 채운 상태에서 처리 시작
+	for _, field := range sqlInsert.Fields {
+		// 입력값이 ? (arg) 형식이 아니면 func arg 를 만들 필요가 없음으로 continue
+		if sql.Util_IsParserValArg(field.Val) == false {
+			continue
+		}
+
+		// 입력값이 ? (arg) 일 때만 필드이름 조사 = func arg 의 name 으로 활용
+		schemaField := schemaTable.GetField(field.FieldName)
+		if schemaField == nil {
+			return fmt.Errorf("not exist field in schema | field name : %s", field.FieldName)
+		}
+
+		genQuery.arg.setKV(field.FieldName, schemaField.TypeGen)
+	}
+
 	// multi insert 처리
 	genQuery.InsertMulti = query.InsertMulti
 
@@ -275,8 +272,6 @@ func (t *GenData) Insert(conf *config.Config, query *config.Query, genQuery *Gen
 }
 
 func (t *GenData) Update(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlUpdate *parser.Update) error {
-	genQuery.queryType = QueryTypeUpdate
-
 	// set
 	for _, field := range sqlUpdate.Field {
 		// 입력값이 ? (arg) 형식이 아니면 func arg 를 만들 필요가 없음으로 continue
@@ -339,9 +334,6 @@ func (t *GenData) Update(conf *config.Config, query *config.Query, genQuery *Gen
 }
 
 func (t *GenData) Delete(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlDelete *parser.Delete) error {
-	genQuery.queryType = QueryTypeDelete
-
-	// 임시 - 할게 없음
 	return nil
 }
 
