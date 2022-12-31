@@ -2,27 +2,27 @@ package template
 
 import "fmt"
 
-func TemplateSelect(args []string, query string, tpls []string, structName string, instanceName string, bodyCodeDeclare, bodyCodeRet, retName, retItemName string) string {
+func Select(args []string, query string, tpls []string, structName string, instanceName string, bodyCodeDeclare, bodyCodeRet, retName, retItemName string) string {
 	return fmt.Sprintf(`
 %s
-s_sql := fmt.Sprintf(
+sql := fmt.Sprintf(
 	"%s",%s
 )
-pc_ret := %s.%s.Query(
-	s_sql,
-	arri_arg...,
+ret, err := %s.%s.Query(
+	sql,
+	args...,
 )
-defer pc_ret.Close()
+if err != nil {
+	return nil, err
+}
+defer ret.Close()
 %s
-for {
-	pt_struct := &%s{}
-	is_end, err := pc_ret.Row_next(pt_struct)
+for ret.Next() {
+	scan := &%s{}
+	err := ret.Scan(scan)
 	if err != nil {
 		return nil, err
 	}
-	if is_end == true {
-		break
-	
 	%s
 }
 

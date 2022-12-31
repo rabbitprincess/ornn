@@ -19,54 +19,44 @@
 	"schema": {
 		"tables": [
 			{
-				"table_name": "user",
+				"table_name": "myTestTable",
 				"indexs": [
 					{
 						"name": "",
 						"type": "PRIMARY KEY",
 						"keys": [
-							"seq"
+							"id"
 						]
 					}
 				],
 				"fields": [
 					{
-						"name": "seq",
-						"type_db": "bigint(20)",
-						"type_gen": "int64"
-					},
-					{
 						"name": "id",
-						"type_db": "varchar(50)",
-						"type_gen": "string"
-					},
-					{
-						"name": "name",
-						"type_db": "varchar(50)",
-						"type_gen": "string"
+						"type_db": "int(11) UNSIGNED",
+						"type_gen": "uint32"
 					}
 				]
 			}
 		]
 	},
 	"queries": {
-		"custom": null,
+		"custom": [],
 		"default": {
-			"user": [
+			"myTestTable": [
 				{
 					"name": "insert",
 					"comment": "default query - insert all",
-					"sql": "INSERT INTO user VALUES (?, ?, ?)"
+					"sql": "INSERT INTO myTestTable VALUES (?)"
 				},
 				{
 					"name": "select",
 					"comment": "default query - select all",
-					"sql": "SELECT * FROM user"
+					"sql": "SELECT * FROM myTestTable"
 				},
 				{
 					"name": "delete",
 					"comment": "default query - delete all",
-					"sql": "DELETE FROM user"
+					"sql": "DELETE FROM myTestTable"
 				}
 			]
 		}

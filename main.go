@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	db, err := db_mysql.New("127.0.0.1", "3306", "root", "1234", "test")
+	db, err := db_mysql.New("127.0.0.1", "3306", "root", "951753ck", "test")
 	if err != nil {
 		log.Fatal(err)
 	}

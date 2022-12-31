@@ -71,7 +71,7 @@ func (t *Vendor) convType(dbType string, unsigned bool) string {
 	case "double", "real":
 		return "float64"
 	default:
-		return ""
+		return "interface{}"
 	}
 }
 

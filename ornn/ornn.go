@@ -19,6 +19,7 @@ func (t *ORNN) Init(db *db.Conn, conf *config.Config) {
 	t.db = db
 	t.vendor = NewVendor(db_mysql.NewVendor(db))
 	t.conf = conf
+
 }
 
 func (t *ORNN) ConfigLoad(path string) error {

@@ -9,42 +9,40 @@ import (
 )
 
 type Schema struct {
-	user User
+	mytesttable MyTestTable
+	custom      Custom
 }
 
 func (t *Schema) Init(
 	job *Job,
 ) {
-	t.user.Init(job)
+	t.mytesttable.Init(job)
+	t.custom.Init(job)
 }
 
-func (t *User) Init(
+func (t *MyTestTable) Init(
 	job *Job,
 ) {
 	t.Job = job
 }
 
-type User struct {
+type MyTestTable struct {
 	Job *Job
 }
 
-func (t *User) Insert(
-	arg_seq *int64,
-	arg_id *string,
-	arg_name *string,
+func (t *MyTestTable) Insert(
+	arg_id *uint32,
 ) (
 	lastInsertId int64,
 	err error,
 ) {
-	args := make([]interface{}, 0, 3)
+	args := make([]interface{}, 0, 1)
 	args = append(args, I_to_arri(
-		arg_seq,
 		arg_id,
-		arg_name,
 	)...)
 	
 	sql := fmt.Sprintf(
-		"INSERT INTO user VALUES (?, ?, ?)",
+		"INSERT INTO myTestTable VALUES (?)",
 	)
 	
 	exec, err := t.Job.Exec(
@@ -58,21 +56,19 @@ func (t *User) Insert(
 	return exec.LastInsertId()
 }
 
-type User_select struct {
-	Seq  int64
-	Id   string
-	Name string
+type MyTestTable_select struct {
+	Id interface{}
 }
 
-func (t *User) Select() (
-	selects []*User_select,
+func (t *MyTestTable) Select() (
+	selects []*MyTestTable_select,
 	err error,
 ) {
 	args := make([]interface{}, 0, 0)
 	args = append(args, I_to_arri()...)
 	
 	sql := fmt.Sprintf(
-		"SELECT * FROM user",
+		"SELECT * FROM myTestTable",
 	)
 	ret, err := t.Job.Query(
 		sql,
@@ -83,9 +79,9 @@ func (t *User) Select() (
 	}
 	defer ret.Close()
 	
-	selects = make([]*User_select, 0, 100)
+	selects = make([]*MyTestTable_select, 0, 100)
 	for ret.Next() {
-		scan := &User_select{}
+		scan := &MyTestTable_select{}
 		err := ret.Scan(scan)
 		if err != nil {
 			return nil, err
@@ -96,7 +92,7 @@ func (t *User) Select() (
 	return selects, nil
 }
 
-func (t *User) Delete() (
+func (t *MyTestTable) Delete() (
 	rowAffected int64,
 	err error,
 ) {
@@ -104,7 +100,7 @@ func (t *User) Delete() (
 	args = append(args, I_to_arri()...)
 	
 	sql := fmt.Sprintf(
-		"DELETE FROM user",
+		"DELETE FROM myTestTable",
 	)
 			
 	exec, err := t.Job.Exec(
@@ -116,5 +112,15 @@ func (t *User) Delete() (
 	}
 	
 	return exec.RowsAffected()
+}
+
+func (t *Custom) Init(
+	job *Job,
+) {
+	t.Job = job
+}
+
+type Custom struct {
+	Job *Job
 }
 

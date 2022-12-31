@@ -24,6 +24,7 @@ func (t *Config) Load(config string) error {
 	}
 
 	// queries 초기화
+	t.Queries.init(&t.Schema)
 
 	return nil
 }
