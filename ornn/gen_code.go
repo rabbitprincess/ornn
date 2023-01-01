@@ -18,114 +18,100 @@ type GenCode struct {
 }
 
 func (t *GenCode) code(config *config.Config, genData *GenData) (genCode string, err error) {
-	// config 설정
 	t.config = config
 	t.codeGen = &codegen.CodeGen{}
-
-	// gen_go 에 소스 생성을 위한 데이터 넣기
-	{
-		t.codeGen.DoNotEdit = t.config.Global.DoNotEdit
-		t.codeGen.Package = t.config.Global.PackageName
-
-		// import 경로 추가
-		for _, imp := range config.Global.Import {
-			t.codeGen.AddImport(&codegen.Import{
-				Path:  imp.Path,
-				Alias: imp.Alias,
-			})
-		}
-
-		// 루트 구조체 작성
-		rootStruct := &codegen.Struct{}
-		t.codeGen.AddItem(rootStruct)
-		rootStruct.Name = t.config.Global.ClassName
-
-		// 루트 함수 작성
-		rootFunc := &codegen.Function{}
-		t.codeGen.AddItem(rootFunc)
-		rootFunc.StructName = "t"
-		rootFunc.StructType = fmt.Sprintf("*%s", rootStruct.Name)
-		rootFunc.FuncName = "Init"
-
-		// arg
-		rootFuncInitArg := &codegen.Var{}
-		rootFunc.AddArg(rootFuncInitArg)
-		rootFuncInitArg.Name = strings.ToLower("Job")
-		rootFuncInitArg.Type = "*Job"
-
-		// group 단위 구조체
-		for _, genGroup := range genData.groups {
-			// group 구조체 생성
-			group := t.genGroup(genGroup.Name)
-			t.codeGen.AddItem(group)
-
-			// root 구조체 안에 필드 변수 선언 -> group 구조체 사용을 위해
-			{
-				// root 구조체 안에 group 구조체 포인터 선언
-				rootVars := &codegen.Var{}
-				rootVars.Type = group.Name
-				rootVars.Name = strings.ToLower(genGroup.Name)
-				rootStruct.AddField(rootVars)
-
-				// root init body 작성
-				code := fmt.Sprintf("%s.%s.%s(%s)\n", "t", rootVars.Name, "Init", rootFunc.Arg.Items[0].Name)
-				rootFunc.InlineCode += code
-			}
-
-			// group 구조체 안에 query 함수 생성
-			for _, query := range genGroup.Queries {
-				t.genQuery(group, query)
-			}
-		} // end of for group
+	t.codeGen.DoNotEdit = t.config.Global.DoNotEdit
+	t.codeGen.Package = t.config.Global.PackageName
+	for _, imp := range config.Global.Import {
+		t.codeGen.AddImport(&codegen.Import{
+			Path:  imp.Path,
+			Alias: imp.Alias,
+		})
 	}
 
-	// 실제 소스 출력
-	genCode = t.codeGen.Code()
+	// root struct
+	rootStruct := &codegen.Struct{
+		Name: t.config.Global.ClassName,
+	}
+	t.codeGen.AddItem(rootStruct)
 
+	// init function
+	rootFunc := &codegen.Function{
+		StructName: "t",
+		StructType: "*" + rootStruct.Name,
+		FuncName:   "Init",
+	}
+	t.codeGen.AddItem(rootFunc)
+
+	// arg
+	rootFuncInitArg := &codegen.Var{
+		Name: strings.ToLower("Job"),
+		Type: "*Job",
+	}
+	rootFunc.AddArg(rootFuncInitArg)
+
+	for _, genGroup := range genData.groups {
+		group := t.genGroup(genGroup.Name)
+		t.codeGen.AddItem(group)
+
+		// root 구조체 안에 group 구조체 포인터 선언
+		rootVars := &codegen.Var{
+			Type: group.Name,
+			Name: strings.ToLower(genGroup.Name),
+		}
+		rootStruct.AddField(rootVars)
+		rootFunc.InlineCode += fmt.Sprintf("%s.%s.%s(%s)\n", "t", rootVars.Name, "Init", rootFunc.Arg.Items[0].Name)
+
+		for _, query := range genGroup.Queries {
+			funcQuery := t.genQuery(group.Name, query)
+			t.codeGen.AddItem(funcQuery)
+		}
+	}
+
+	// 소스 출력
+	genCode = t.codeGen.Code()
 	return genCode, nil
 }
 
 func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
-	genGroup = &codegen.Struct{}
-	genGroup.Name = sql.Util_ConvFirstToUpper(group)
-
-	// group 구조체 안에
-	{
-		// root 구조체 연결을 위한 구조체 필드 변수 제작
-		groupVar := &codegen.Var{}
-		genGroup.AddField(groupVar)
-		{
-			groupVar.Name = "Job"
-			groupVar.Type = "*Job"
-		}
-
-		// root 구조체에서 초기화를 요청할 Init 함수 제작
-		groupFuncInit := &codegen.Function{}
-		t.codeGen.AddItem(groupFuncInit)
-		{
-			groupFuncInit.FuncName = "Init"
-			groupFuncInit.StructName = "t"
-			groupFuncInit.StructType = fmt.Sprintf("*%s", genGroup.Name)
-
-			// args
-			groupFuncInitArg := &codegen.Var{}
-			groupFuncInit.AddArg(groupFuncInitArg)
-			groupFuncInitArg.Name = strings.ToLower("Job")
-			groupFuncInitArg.Type = "*Job"
-
-			// inline code
-			groupFuncInit.InlineCode = fmt.Sprintf("%s.%s = %s", groupFuncInit.StructName, groupVar.Name, groupFuncInitArg.Name)
-		}
+	genGroup = &codegen.Struct{
+		Name: sql.Util_ConvFirstToUpper(group),
 	}
+
+	// root 구조체 연결을 위한 구조체 필드 변수 제작
+	groupVar := &codegen.Var{
+		Name: "Job",
+		Type: "*Job",
+	}
+	genGroup.AddField(groupVar)
+
+	// root 구조체에서 초기화를 요청할 Init 함수 제작
+	groupFuncInit := &codegen.Function{
+		FuncName:   "Init",
+		StructName: "t",
+		StructType: fmt.Sprintf("*%s", genGroup.Name),
+	}
+	t.codeGen.AddItem(groupFuncInit)
+
+	// args
+	groupFuncInitArg := &codegen.Var{
+		Name: strings.ToLower("Job"),
+		Type: "*Job",
+	}
+	groupFuncInit.AddArg(groupFuncInitArg)
+
+	// inline code
+	groupFuncInit.InlineCode = fmt.Sprintf("%s.%s = %s", groupFuncInit.StructName, groupVar.Name, groupFuncInitArg.Name)
+
 	return genGroup
 }
 
-func (t *GenCode) genQuery(structGroup *codegen.Struct, query *GenDataQuery) {
-	funcQuery := &codegen.Function{}
-
-	funcQuery.StructName = "t"
-	funcQuery.StructType = "*" + structGroup.Name
-	funcQuery.FuncName = sql.Util_ConvFirstToUpper(query.queryName)
+func (t *GenCode) genQuery(groupName string, query *GenDataQuery) (funcQuery *codegen.Function) {
+	funcQuery = &codegen.Function{
+		StructName: "t",
+		StructType: "*" + groupName,
+		FuncName:   sql.Util_ConvFirstToUpper(query.queryName),
+	}
 
 	switch query.queryType {
 	case QueryTypeSelect:
@@ -139,8 +125,7 @@ func (t *GenCode) genQuery(structGroup *codegen.Struct, query *GenDataQuery) {
 	default:
 		log.Fatalf("need more programming | invalid query type | query type : %v", query.queryType)
 	}
-
-	t.codeGen.AddItem(funcQuery)
+	return funcQuery
 }
 
 func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *GenDataQuery) {
