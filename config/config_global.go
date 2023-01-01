@@ -1,11 +1,11 @@
 package config
 
 type Global struct {
-	DoNotEdit   string `cty:"do_not_edit"`
-	PackageName string `cty:"package_name"`
-	ClassName   string `cty:"class_name"`
+	DoNotEdit   string `json:"do_not_edit"`
+	PackageName string `json:"package_name"`
+	ClassName   string `json:"class_name"`
 
-	Import []*Import `cty:"import"`
+	Import []*Import `json:"import"`
 }
 
 func (t *Global) InitDefault() {
@@ -20,6 +20,6 @@ func (t *Global) InitDefault() {
 }
 
 type Import struct {
-	Alias string `cty:"alias"`
-	Path  string `cty:"path"`
+	Alias string `json:"alias"`
+	Path  string `json:"path"`
 }

@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"testing"
 
-	"ariga.io/atlas/schemahcl"
 	"ariga.io/atlas/sql/mysql"
+	"ariga.io/atlas/sql/schema"
 	"github.com/gokch/ornn/db/db_mysql"
 )
 
@@ -28,10 +29,24 @@ func TestAtlas(t *testing.T) {
 
 	fmt.Println(sch.Name)
 
-	bt, err := schemahcl.Marshal(sch)
+	bt, err := mysql.MarshalHCL(sch)
+
+	schemaNew := &schema.Schema{}
+
+	err = os.WriteFile("./gen.hcl", bt, 0700)
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(string(bt))
+
+	err = mysql.EvalHCLBytes(bt, schemaNew, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println(schemaNew.Name)
+	fmt.Printf("%T type", schemaNew)
+	for _, table := range schemaNew.Tables {
+		fmt.Println(table.Name)
+	}
 
 }
