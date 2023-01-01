@@ -2,21 +2,9 @@ package db_mysql
 
 import (
 	"strings"
-
-	"github.com/gokch/ornn/db"
 )
 
-func NewVendor(db *db.Conn) *Vendor {
-	return &Vendor{
-		db: db,
-	}
-}
-
-type Vendor struct {
-	db *db.Conn
-}
-
-func (t *Vendor) ConvType(dbType string) (genType string) {
+func ConvType(dbType string) (genType string) {
 	var unsigned bool
 
 	opts := strings.Split(string(dbType), " ")
@@ -37,10 +25,10 @@ func (t *Vendor) ConvType(dbType string) (genType string) {
 		fieldTypeWithLen = fieldTypeWithLen[0:pos]
 	}
 
-	return t.convType(fieldTypeWithLen, unsigned)
+	return convType(fieldTypeWithLen, unsigned)
 }
 
-func (t *Vendor) convType(dbType string, unsigned bool) string {
+func convType(dbType string, unsigned bool) string {
 	switch strings.ToLower(dbType) {
 	case "char", "varchar", "tinytext", "text", "mediumtext", "longtext", "json":
 		return "string"

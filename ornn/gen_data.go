@@ -6,14 +6,14 @@ import (
 
 	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/db"
+	"github.com/gokch/ornn/db/db_mysql"
 	"github.com/gokch/ornn/sql"
 	"github.com/gokch/ornn/sql/parser"
 )
 
 type GenData struct {
-	conf   *config.Config
-	db     *db.Conn
-	vendor db.Vendor
+	conf *config.Config
+	db   *db.Conn
 
 	groups []*GenDataGroup
 }
@@ -57,10 +57,9 @@ type Pair struct {
 	Value string
 }
 
-func (t *GenData) Init(conf *config.Config, db *db.Conn, vendor db.Vendor) {
+func (t *GenData) Init(conf *config.Config, db *db.Conn) {
 	t.conf = conf
 	t.db = db
-	t.vendor = vendor
 	t.groups = make([]*GenDataGroup, 0, 10)
 }
 
@@ -215,7 +214,8 @@ func (t *GenData) Select(conf *config.Config, query *config.Query, genQuery *Gen
 		// if custom type is not defined, get database type
 		if fieldType == "" {
 			colType := col.DatabaseTypeName()
-			fieldType = t.vendor.ConvType(colType)
+			// 임시 - 타입 벤더 제작 필요
+			fieldType = db_mysql.ConvType(colType)
 		}
 		genQuery.ret.setKV(fieldName, fieldType)
 	}
@@ -262,7 +262,8 @@ func (t *GenData) Insert(conf *config.Config, query *config.Query, genQuery *Gen
 			return fmt.Errorf("not exist field in schema | field name : %s", field.FieldName)
 		}
 
-		genQuery.arg.setKV(field.FieldName, t.vendor.ConvType(schemaField.Type.Raw))
+		// 임시 - 타입 벤더 제작 필요
+		genQuery.arg.setKV(field.FieldName, db_mysql.ConvType(schemaField.Type.Raw))
 	}
 
 	// multi insert 처리
@@ -283,35 +284,33 @@ func (t *GenData) Update(conf *config.Config, query *config.Query, genQuery *Gen
 		tableName := field.TableName
 
 		// 정의된 table name 이 없으면 update 대상 테이블 중 매칭되는 테이블을 찾는다
-		/*
-			if tableName == "" {
-				tables := sqlUpdate.GetTableNames()
-				tablesMatch, err := query.Schema.GetTableFieldMatched(fieldName, tables)
-				if err != nil {
-					return err
-				}
 
-				// parse 에러 처리
-				{
-					// 두개 이상의 테이블이 매칭됨
-					if len(tablesMatch) > 1 {
-						var dup string
-						for _, table := range tablesMatch {
-							dup += fmt.Sprintf("%s, ", table)
-						}
-						dup = dup[:len(dup)-2]
-						return fmt.Errorf("duplicated field name in multiple table | field name - %s | tables name - %s", fieldName, dup)
-					}
-					// 매칭되는 테이블이 한개도 없음
-					if len(tablesMatch) == 0 {
-						return fmt.Errorf("no tables match the field | field name - %s", fieldName)
-					}
-				}
-
-				// 테이블 이름 설정
-				tableName = tablesMatch[0]
+		if tableName == "" {
+			tables := sqlUpdate.GetTableNames()
+			tablesMatch, err := query.Schema.GetTableFieldMatched(fieldName, tables)
+			if err != nil {
+				return err
 			}
-		*/
+
+			// parse 에러 처리
+			// 두개 이상의 테이블이 매칭됨
+			if len(tablesMatch) > 1 {
+				var dup string
+				for _, table := range tablesMatch {
+					dup += fmt.Sprintf("%s, ", table)
+				}
+				dup = dup[:len(dup)-2]
+				return fmt.Errorf("duplicated field name in multiple table | field name - %s | tables name - %s", fieldName, dup)
+			}
+			// 매칭되는 테이블이 한개도 없음
+			if len(tablesMatch) == 0 {
+				return fmt.Errorf("no tables match the field | field name - %s", fieldName)
+			}
+
+			// 테이블 이름 설정 ( 임시 - 현재는 0번 테이블 )
+			tableName = tablesMatch[0]
+		}
+
 		// 테이블과 필드 이름을 이용해 필드 타입을 찾아낸다
 		var genType string
 		{
@@ -323,7 +322,8 @@ func (t *GenData) Update(conf *config.Config, query *config.Query, genQuery *Gen
 			if exist != true {
 				return fmt.Errorf("not exist field | field name - %s", field.FieldName)
 			}
-			genType = t.vendor.ConvType(schemaField.Type.Raw)
+			// 임시 - 타입 벤더 제작 필요
+			genType = db_mysql.ConvType(schemaField.Type.Raw)
 		}
 
 		genQuery.arg.setKV(field.FieldName, genType)

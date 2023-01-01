@@ -5,7 +5,6 @@ import (
 
 	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/db"
-	"github.com/gokch/ornn/db/db_mysql"
 )
 
 type Gen struct {
@@ -14,11 +13,9 @@ type Gen struct {
 }
 
 func (t *Gen) Gen(conn *db.Conn, conf *config.Config, path string) (code string, err error) {
-	vendor := db_mysql.NewVendor(conn)
-
 	// 코드 생성을 위한 gen 데이터 준비
 	t.data = &GenData{}
-	t.data.Init(conf, conn, vendor)
+	t.data.Init(conf, conn)
 	err = t.data.SetData()
 	if err != nil {
 		return "", err
