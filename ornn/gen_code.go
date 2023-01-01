@@ -144,77 +144,57 @@ func (t *GenCode) genQuery(structGroup *codegen.Struct, query *GenDataQuery) {
 }
 
 func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *GenDataQuery) {
-	// 1. 함수 입력 인자
+	// struct for select
+	structName := t.genQuery_struct_select(funcQuery, query)
+
+	// args
 	tpls := t.genQuery_tpls(funcQuery, query)
 	args := t.genQuery_args(funcQuery, query)
 
-	// 2. 함수 리턴
-	ret := &codegen.Struct{}
-	t.codeGen.AddItem(ret)
-
-	retItem := &codegen.Var{}
-	funcQuery.AddRet(retItem)
-
-	// 2-1. 리턴 변수 선언
-	ret.Name = fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(query.groupName), strings.ToLower(funcQuery.FuncName))
-	for _, pair := range query.ret.pairs {
-		item := &codegen.Var{}
-		item.Name = sql.Util_ConvFirstToUpper(pair.Key)
-		item.Type = pair.Value
-		ret.AddField(item)
-	}
-	// 2-2. 리턴 변수 처리
-	// 리턴 변수 선언 - 구조체
-	if query.SelectSingle == true {
-		retItem.Name = fmt.Sprintf("%s", strings.ToLower(funcQuery.FuncName))
-		retItem.Type = fmt.Sprintf("*%s", ret.Name)
-	} else {
-		retItem.Name = fmt.Sprintf("%ss", strings.ToLower(funcQuery.FuncName))
-		retItem.Type = fmt.Sprintf("[]*%s", ret.Name)
-	}
-	// error 추가
+	// rets
+	retItemName, retItemType := t.genQuery_ret_select(funcQuery, structName, query.SelectSingle)
 	t.genQuery_ret_error(funcQuery)
 
-	// 3. 함수 body
-	funcQuery.InlineCode = template.Select(args, tpls, query.query, query.SelectSingle, "t", "Job", ret.Name, retItem.Name, retItem.Type)
+	// body
+	funcQuery.InlineCode = template.Select(args, tpls, query.query, query.SelectSingle, "t", "Job", structName, retItemName, retItemType)
 }
 
 func (t *GenCode) genQueryInsert(funcQuery *codegen.Function, query *GenDataQuery) {
-	// 1. 함수 입력 인자
+	// args
 	args := t.genQuery_args(funcQuery, query)
 	tpls := t.genQuery_tpls(funcQuery, query)
 
-	// 2. 함수 리턴 변수
+	// rets
 	t.genQuery_ret_lastInsertId(funcQuery)
 	t.genQuery_ret_error(funcQuery)
 
-	// 3. 함수 body
+	// body
 	funcQuery.InlineCode = template.Insert(args, tpls, query.query, query.InsertMulti, "t", "Job")
 }
 
 func (t *GenCode) genQueryUpdate(funcQuery *codegen.Function, query *GenDataQuery) {
-	// 1. 함수 입력 인자
+	// args
 	args := t.genQuery_args(funcQuery, query)
 	tpls := t.genQuery_tpls(funcQuery, query)
 
-	// 2. 함수 리턴 변수
+	// rets
 	t.genQuery_ret_rowAffected(funcQuery)
 	t.genQuery_ret_error(funcQuery)
 
-	// 3. 함수 body
+	// body
 	funcQuery.InlineCode = template.Update(args, tpls, query.query, query.UpdateNullIgnore, "t", "Job")
 }
 
 func (t *GenCode) genQueryDelete(funcQuery *codegen.Function, query *GenDataQuery) {
-	// 1. 함수 입력 인자
+	// args
 	tpls := t.genQuery_tpls(funcQuery, query)
 	args := t.genQuery_args(funcQuery, query)
 
-	// 2. 함수 리턴 변수
+	// rets
 	t.genQuery_ret_rowAffected(funcQuery)
 	t.genQuery_ret_error(funcQuery)
 
-	// 3. 함수 body
+	// body
 	funcQuery.InlineCode = template.Delete(args, query.query, tpls, "t", "Job")
 }
 
@@ -256,6 +236,34 @@ func (t *GenCode) genQuery_ret_error(funcQuery *codegen.Function) {
 		Name: "err",
 		Type: "error",
 	})
+}
+
+func (t *GenCode) genQuery_struct_select(funcQuery *codegen.Function, query *GenDataQuery) (retStructName string) {
+	retStruct := &codegen.Struct{
+		Name: fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(query.groupName), strings.ToLower(funcQuery.FuncName)),
+	}
+	for _, pair := range query.ret.pairs {
+		item := &codegen.Var{
+			Name: sql.Util_ConvFirstToUpper(pair.Key),
+			Type: pair.Value,
+		}
+		retStruct.AddField(item)
+	}
+	t.codeGen.AddItem(retStruct)
+	return retStruct.Name
+}
+
+func (t *GenCode) genQuery_ret_select(funcQuery *codegen.Function, retStructName string, selectSingle bool) (retItemName, retItemType string) {
+	retItem := &codegen.Var{
+		Name: strings.ToLower(funcQuery.FuncName),
+		Type: "*" + retStructName,
+	}
+	if selectSingle != true {
+		retItem.Name = retItem.Name + "s"
+		retItem.Type = "[]" + retItem.Type
+	}
+	funcQuery.AddRet(retItem)
+	return retItem.Name, retItem.Type
 }
 
 func (t *GenCode) genQuery_ret_lastInsertId(funcQuery *codegen.Function) {

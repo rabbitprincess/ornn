@@ -43,14 +43,6 @@ return exec.LastInsertId()
 		instanceName,
 	)
 }
-
-func genQuery_body_arg(args []string) (ret string) {
-	for _, arg := range args {
-		ret += fmt.Sprintf("\n\t%s,", arg)
-	}
-	return ret
-}
-
 func genQuery_body_multiInsertProc(args []string) (multiInsertProc string) {
 	var checkLen string
 	for i, arg := range args {
