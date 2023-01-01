@@ -60,7 +60,7 @@ func (t *GenCode) code(config *config.Config, genData *GenData) (genCode string,
 			Name: strings.ToLower(genGroup.Name),
 		}
 		rootStruct.AddField(rootVars)
-		rootFunc.InlineCode += fmt.Sprintf("%s.%s.%s(%s)\n", "t", rootVars.Name, "Init", rootFunc.Arg.Items[0].Name)
+		rootFunc.InlineCode += fmt.Sprintf("%s.%s.%s(%s)\n", "t", rootVars.Name, "Init", rootFunc.Args.Items[0].Name)
 
 		for _, query := range genGroup.Queries {
 			funcQuery := t.genQuery(group.Name, query)

@@ -29,9 +29,9 @@ type GenDataQuery struct {
 	queryName string
 	query     string
 
-	tpl genDataStruct
-	arg genDataStruct
-	ret genDataStruct
+	tpl Pairs
+	arg Pairs
+	ret Pairs
 
 	// options
 	SelectSingle     bool
@@ -48,7 +48,7 @@ const (
 	QueryTypeDelete
 )
 
-type genDataStruct struct {
+type Pairs struct {
 	pairs []*Pair
 }
 
@@ -355,13 +355,13 @@ func (t *GenDataGroup) AddQuery(query *GenDataQuery) {
 	t.Queries = append(t.Queries, query)
 }
 
-func (t *genDataStruct) setKs(Keys []string) {
+func (t *Pairs) setKs(Keys []string) {
 	for _, key := range Keys {
 		t.setKV(key, "")
 	}
 }
 
-func (t *genDataStruct) setKV(key string, valueNew string) {
+func (t *Pairs) setKV(key string, valueNew string) {
 	if t.pairs == nil {
 		t.pairs = make([]*Pair, 0, 10)
 	}

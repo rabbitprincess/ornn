@@ -86,32 +86,32 @@ type Function struct {
 	FuncName   string
 	InlineCode string
 
-	Arg   *Vars
-	Ret   *Vars
-	Const *Consts
+	Args   *Vars
+	Rets   *Vars
+	Consts *Consts
 }
 
 func (t *Function) AddArg(item *Var) {
-	if t.Arg == nil {
-		t.Arg = &Vars{}
-		t.Arg.Init(VarScopeFuncArg)
+	if t.Args == nil {
+		t.Args = &Vars{}
+		t.Args.Init(VarScopeFuncArg)
 	}
-	t.Arg.Add(item)
+	t.Args.Add(item)
 }
 
 func (t *Function) AddRet(item *Var) {
-	if t.Ret == nil {
-		t.Ret = &Vars{}
-		t.Ret.Init(VarScopeFuncRet)
+	if t.Rets == nil {
+		t.Rets = &Vars{}
+		t.Rets.Init(VarScopeFuncRet)
 	}
-	t.Ret.Add(item)
+	t.Rets.Add(item)
 }
 
 func (t *Function) AddConst(item *Const) {
-	if t.Const == nil {
-		t.Const = &Consts{}
+	if t.Consts == nil {
+		t.Consts = &Consts{}
 	}
-	t.Const.Add(item)
+	t.Consts.Add(item)
 }
 
 func (t *Function) Code(w *Writer) {
@@ -122,24 +122,24 @@ func (t *Function) Code(w *Writer) {
 	}
 
 	w.N("%s(", t.FuncName)
-	if t.Arg != nil {
+	if t.Args != nil {
 		w.N("\n")
 		w.IndentIn()
-		t.Arg.Code(w)
+		t.Args.Code(w)
 		w.IndentOut()
 	}
 	w.W(")")
 
-	if t.Ret != nil {
+	if t.Rets != nil {
 		w.N(" ") // 인자와 리턴() 간에 빈칸 1개 추가
-		t.Ret.Code(w)
+		t.Rets.Code(w)
 	}
 
 	// 함수 내용 출력
 	w.N(" {\n")
 	w.IndentIn()
-	if t.Const != nil {
-		t.Const.Code(w)
+	if t.Consts != nil {
+		t.Consts.Code(w)
 	}
 
 	// 코드 첫 빈줄 제거
@@ -223,11 +223,9 @@ func (t *Vars) Code(w *Writer) {
 		}
 	case VarScopeFuncRet:
 		if len(t.Items) == 0 {
-			// 출력 할 것이 없음
 			break
 		} else if len(t.Items) == 1 && t.Items[0].Name == "" {
 			t.Items[0].Code(w)
-			// 더 출력 할 것이 없음 = 단일 리턴값의 type 만 출력 (name 이 없음)
 			break
 		}
 
