@@ -26,9 +26,7 @@ func TestAtlas(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	fmt.Println(sch.Name)
-
 	bt, err := mysql.MarshalHCL(sch)
 
 	schemaNew := &schema.Schema{}
@@ -44,7 +42,7 @@ func TestAtlas(t *testing.T) {
 	}
 
 	fmt.Println(schemaNew.Name)
-	fmt.Printf("%T type", schemaNew)
+	fmt.Printf("%T type\n", schemaNew)
 	for _, table := range schemaNew.Tables {
 		fmt.Println(table.Name)
 	}

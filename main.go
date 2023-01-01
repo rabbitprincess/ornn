@@ -22,19 +22,19 @@ func main() {
 
 	ornn := &ornn.ORNN{}
 	ornn.Init(db, config)
-
-	err = ornn.ConfigLoad("./output/gen.json")
-	if err != nil {
-		log.Fatal(err)
-	}
 	/*
-		err = ornn.ConfigSave("./output/gen.json")
+		err = ornn.ConfigLoad("./output/gen.json")
 		if err != nil {
 			log.Fatal(err)
 		}
 	*/
 	config.InitSchema(db)
 	err = config.VendorBySchema()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = ornn.ConfigSave("./output/gen.json")
 	if err != nil {
 		log.Fatal(err)
 	}

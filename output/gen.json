@@ -15,40 +15,36 @@
 		]
 	},
 	"schema": {
+		"name": "test",
 		"tables": [
 			{
-				"table_name": "user",
-				"indexs": [
-					{
-						"name": "",
-						"type": "PRIMARY KEY",
-						"keys": [
-							"seq"
-						]
-					}
-				],
-				"fields": [
+				"name": "user",
+				"columns": [
 					{
 						"name": "seq",
-						"type_db": "bigint(20)",
-						"type_gen": "int64"
+						"type": "bigint(20)"
 					},
 					{
 						"name": "id",
-						"type_db": "varchar(50)",
-						"type_gen": "string"
+						"type": "varchar(50)"
 					},
 					{
 						"name": "name",
-						"type_db": "varchar(50)",
-						"type_gen": "string"
+						"type": "varchar(50)"
 					}
-				]
+				],
+				"primary_key": {
+					"parts": [
+						{
+							"column": "seq"
+						}
+					]
+				}
 			}
 		]
 	},
 	"queries": {
-		"custom": [],
+		"custom": null,
 		"default": {
 			"user": [
 				{
