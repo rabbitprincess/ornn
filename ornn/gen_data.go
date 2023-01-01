@@ -262,7 +262,7 @@ func (t *GenData) Insert(conf *config.Config, query *config.Query, genQuery *Gen
 			return fmt.Errorf("not exist field in schema | field name : %s", field.FieldName)
 		}
 
-		genQuery.arg.setKV(field.FieldName, schemaField.Type.Raw)
+		genQuery.arg.setKV(field.FieldName, t.vendor.ConvType(schemaField.Type.Raw))
 	}
 
 	// multi insert 처리
@@ -323,7 +323,7 @@ func (t *GenData) Update(conf *config.Config, query *config.Query, genQuery *Gen
 			if exist != true {
 				return fmt.Errorf("not exist field | field name - %s", field.FieldName)
 			}
-			genType = string(schemaField.Type.Raw)
+			genType = t.vendor.ConvType(schemaField.Type.Raw)
 		}
 
 		genQuery.arg.setKV(field.FieldName, genType)
