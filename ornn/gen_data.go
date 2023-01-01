@@ -230,13 +230,13 @@ func (t *GenData) Select(conf *config.Config, query *config.Query, genQuery *Gen
 
 func (t *GenData) Insert(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlInsert *parser.Insert) error {
 	// 필드 정보를 얻어온다.
-	schemaTable := query.Schema.GetTable(sqlInsert.TableName)
-	if schemaTable == nil {
+	schemaTable, exist := query.Schema.Table(sqlInsert.TableName)
+	if exist != true {
 		return fmt.Errorf("table name is not exist | table name - %s", sqlInsert.TableName)
 	}
 
 	// 스키마와 파서의 전체 필드 숫자가 다르면 -> 파서에서 모든 필드 이름이 제공되어야 함 -> 하나라도 없으면 에러
-	if len(sqlInsert.Fields) != len(schemaTable.Fields) {
+	if len(sqlInsert.Fields) != len(schemaTable.Columns) {
 		for _, field := range sqlInsert.Fields {
 			if field.FieldName == "" {
 				return fmt.Errorf("field name is empty")
@@ -245,7 +245,7 @@ func (t *GenData) Insert(conf *config.Config, query *config.Query, genQuery *Gen
 	} else {
 		// 스키마와 파서의 전체 필드수가 같으면 -> 파서에서 모든 필드 이름이 없어도 가능 -> 스키마에서 추출하여 모든 필드명을 채움
 		for i, field := range sqlInsert.Fields {
-			field.FieldName = schemaTable.Fields[i].Name
+			field.FieldName = schemaTable.Columns[i].Name
 		}
 	}
 
@@ -257,12 +257,12 @@ func (t *GenData) Insert(conf *config.Config, query *config.Query, genQuery *Gen
 		}
 
 		// 입력값이 ? (arg) 일 때만 필드이름 조사 = func arg 의 name 으로 활용
-		schemaField := schemaTable.GetField(field.FieldName)
-		if schemaField == nil {
+		schemaField, exist := schemaTable.Column(field.FieldName)
+		if exist != true {
 			return fmt.Errorf("not exist field in schema | field name : %s", field.FieldName)
 		}
 
-		genQuery.arg.setKV(field.FieldName, schemaField.TypeGen)
+		genQuery.arg.setKV(field.FieldName, schemaField.Type.Raw)
 	}
 
 	// multi insert 처리
@@ -283,46 +283,47 @@ func (t *GenData) Update(conf *config.Config, query *config.Query, genQuery *Gen
 		tableName := field.TableName
 
 		// 정의된 table name 이 없으면 update 대상 테이블 중 매칭되는 테이블을 찾는다
-		if tableName == "" {
-			tables := sqlUpdate.GetTableNames()
-			tablesMatch, err := query.Schema.GetTableFieldMatched(fieldName, tables)
-			if err != nil {
-				return err
-			}
+		/*
+			if tableName == "" {
+				tables := sqlUpdate.GetTableNames()
+				tablesMatch, err := query.Schema.GetTableFieldMatched(fieldName, tables)
+				if err != nil {
+					return err
+				}
 
-			// parse 에러 처리
-			{
-				// 두개 이상의 테이블이 매칭됨
-				if len(tablesMatch) > 1 {
-					var dup string
-					for _, table := range tablesMatch {
-						dup += fmt.Sprintf("%s, ", table)
+				// parse 에러 처리
+				{
+					// 두개 이상의 테이블이 매칭됨
+					if len(tablesMatch) > 1 {
+						var dup string
+						for _, table := range tablesMatch {
+							dup += fmt.Sprintf("%s, ", table)
+						}
+						dup = dup[:len(dup)-2]
+						return fmt.Errorf("duplicated field name in multiple table | field name - %s | tables name - %s", fieldName, dup)
 					}
-					dup = dup[:len(dup)-2]
-					return fmt.Errorf("duplicated field name in multiple table | field name - %s | tables name - %s", fieldName, dup)
+					// 매칭되는 테이블이 한개도 없음
+					if len(tablesMatch) == 0 {
+						return fmt.Errorf("no tables match the field | field name - %s", fieldName)
+					}
 				}
-				// 매칭되는 테이블이 한개도 없음
-				if len(tablesMatch) == 0 {
-					return fmt.Errorf("no tables match the field | field name - %s", fieldName)
-				}
+
+				// 테이블 이름 설정
+				tableName = tablesMatch[0]
 			}
-
-			// 테이블 이름 설정
-			tableName = tablesMatch[0]
-		}
-
+		*/
 		// 테이블과 필드 이름을 이용해 필드 타입을 찾아낸다
 		var genType string
 		{
-			schemaTable := query.Schema.GetTable(tableName)
-			if schemaTable == nil {
+			schemaTable, exist := query.Schema.Table(tableName)
+			if exist != true {
 				return fmt.Errorf("not exist table | table name - %s", tableName)
 			}
-			schemaField := schemaTable.GetField(fieldName)
-			if schemaField == nil {
+			schemaField, exist := schemaTable.Column(fieldName)
+			if exist != true {
 				return fmt.Errorf("not exist field | field name - %s", field.FieldName)
 			}
-			genType = string(schemaField.TypeGen)
+			genType = string(schemaField.Type.Raw)
 		}
 
 		genQuery.arg.setKV(field.FieldName, genType)

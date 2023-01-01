@@ -31,9 +31,9 @@ type User struct {
 }
 
 func (t *User) Insert(
-	arg_seq *int64,
-	arg_id *string,
-	arg_name *string,
+	arg_seq *bigint(20),
+	arg_id *varchar(50),
+	arg_name *varchar(50),
 ) (
 	lastInsertId int64,
 	err error,

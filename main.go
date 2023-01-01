@@ -16,6 +16,9 @@ func main() {
 
 	config := &config.Config{}
 	config.Global.InitDefault()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	ornn := &ornn.ORNN{}
 	ornn.Init(db, config)
@@ -24,12 +27,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	err = ornn.InitConfigBySchema("")
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = ornn.ConfigSave("./output/gen.json")
+	/*
+		err = ornn.ConfigSave("./output/gen.json")
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
+	config.InitSchema(db)
+	err = config.VendorBySchema()
 	if err != nil {
 		log.Fatal(err)
 	}
