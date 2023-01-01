@@ -9,40 +9,44 @@ import (
 )
 
 type Schema struct {
-	mytesttable MyTestTable
-	custom      Custom
+	user   User
+	custom Custom
 }
 
 func (t *Schema) Init(
 	job *Job,
 ) {
-	t.mytesttable.Init(job)
+	t.user.Init(job)
 	t.custom.Init(job)
 }
 
-func (t *MyTestTable) Init(
+func (t *User) Init(
 	job *Job,
 ) {
 	t.Job = job
 }
 
-type MyTestTable struct {
+type User struct {
 	Job *Job
 }
 
-func (t *MyTestTable) Insert(
-	arg_id *uint32,
+func (t *User) Insert(
+	arg_seq *int64,
+	arg_id *string,
+	arg_name *string,
 ) (
 	lastInsertId int64,
 	err error,
 ) {
-	args := make([]interface{}, 0, 1)
+	args := make([]interface{}, 0, 3)
 	args = append(args, I_to_arri(
+		arg_seq,
 		arg_id,
+		arg_name,
 	)...)
 	
 	sql := fmt.Sprintf(
-		"INSERT INTO myTestTable VALUES (?)",
+		"INSERT INTO user VALUES (?, ?, ?)",
 	)
 	
 	exec, err := t.Job.Exec(
@@ -56,19 +60,21 @@ func (t *MyTestTable) Insert(
 	return exec.LastInsertId()
 }
 
-type MyTestTable_select struct {
-	Id interface{}
+type User_select struct {
+	Seq  int64
+	Id   string
+	Name string
 }
 
-func (t *MyTestTable) Select() (
-	selects []*MyTestTable_select,
+func (t *User) Select() (
+	selects []*User_select,
 	err error,
 ) {
 	args := make([]interface{}, 0, 0)
 	args = append(args, I_to_arri()...)
 	
 	sql := fmt.Sprintf(
-		"SELECT * FROM myTestTable",
+		"SELECT * FROM user",
 	)
 	ret, err := t.Job.Query(
 		sql,
@@ -79,9 +85,9 @@ func (t *MyTestTable) Select() (
 	}
 	defer ret.Close()
 	
-	selects = make([]*MyTestTable_select, 0, 100)
+	selects = make([]*User_select, 0, 100)
 	for ret.Next() {
-		scan := &MyTestTable_select{}
+		scan := &User_select{}
 		err := ret.Scan(scan)
 		if err != nil {
 			return nil, err
@@ -92,7 +98,7 @@ func (t *MyTestTable) Select() (
 	return selects, nil
 }
 
-func (t *MyTestTable) Delete() (
+func (t *User) Delete() (
 	rowAffected int64,
 	err error,
 ) {
@@ -100,7 +106,7 @@ func (t *MyTestTable) Delete() (
 	args = append(args, I_to_arri()...)
 	
 	sql := fmt.Sprintf(
-		"DELETE FROM myTestTable",
+		"DELETE FROM user",
 	)
 			
 	exec, err := t.Job.Exec(

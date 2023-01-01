@@ -18,8 +18,8 @@ if err != nil {
 }
 
 return exec.RowsAffected()
-	`,
-		gen_query__add__func__body__set_args(args),
+`,
+		genQuery_body_setArgs(args),
 		query,
 		genQuery_body_arg(tpls),
 		structName,

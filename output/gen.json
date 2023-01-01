@@ -3,8 +3,6 @@
 		"do_not_edit": "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n",
 		"package_name": "gen",
 		"class_name": "Schema",
-		"tpl_prefix": "tpl_",
-		"arg_prefix": "arg_",
 		"import": [
 			{
 				"alias": "",
@@ -19,21 +17,31 @@
 	"schema": {
 		"tables": [
 			{
-				"table_name": "myTestTable",
+				"table_name": "user",
 				"indexs": [
 					{
 						"name": "",
 						"type": "PRIMARY KEY",
 						"keys": [
-							"id"
+							"seq"
 						]
 					}
 				],
 				"fields": [
 					{
+						"name": "seq",
+						"type_db": "bigint(20)",
+						"type_gen": "int64"
+					},
+					{
 						"name": "id",
-						"type_db": "int(11) UNSIGNED",
-						"type_gen": "uint32"
+						"type_db": "varchar(50)",
+						"type_gen": "string"
+					},
+					{
+						"name": "name",
+						"type_db": "varchar(50)",
+						"type_gen": "string"
 					}
 				]
 			}
@@ -42,21 +50,21 @@
 	"queries": {
 		"custom": [],
 		"default": {
-			"myTestTable": [
+			"user": [
 				{
 					"name": "insert",
 					"comment": "default query - insert all",
-					"sql": "INSERT INTO myTestTable VALUES (?)"
+					"sql": "INSERT INTO user VALUES (?, ?, ?)"
 				},
 				{
 					"name": "select",
 					"comment": "default query - select all",
-					"sql": "SELECT * FROM myTestTable"
+					"sql": "SELECT * FROM user"
 				},
 				{
 					"name": "delete",
 					"comment": "default query - delete all",
-					"sql": "DELETE FROM myTestTable"
+					"sql": "DELETE FROM user"
 				}
 			]
 		}

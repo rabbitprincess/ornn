@@ -1,8 +1,17 @@
 package template
 
-import "fmt"
+import (
+	"fmt"
+)
 
-func Select(args []string, query string, tpls []string, structName string, instanceName string, bodyCodeDeclare, bodyCodeRet, retName, retItemName string) string {
+func Select(args []string, tpls []string, query string, selectSingle bool, structName string, instanceName string, retName, retItemName, retItemType string) string {
+	var bodyRetDeclare, bodyRetSet string
+	if selectSingle == true {
+		bodyRetSet = fmt.Sprintf("%s = scan\n\tbreak", retItemName)
+	} else {
+		bodyRetDeclare = fmt.Sprintf("\n%s = make(%s, 0, 100)", retItemName, retItemType)
+		bodyRetSet = fmt.Sprintf("%s = append(%s, scan)", retItemName, retItemName)
+	}
 	return fmt.Sprintf(`
 %s
 sql := fmt.Sprintf(
@@ -28,27 +37,27 @@ for ret.Next() {
 
 return %s, nil
 `,
-		gen_query__add__func__body__set_args(args),
+		genQuery_body_setArgs(args),
 		query,
 		gen_query__add__func__body__arg(tpls),
 		structName,
 		instanceName,
-		bodyCodeDeclare,
+		bodyRetDeclare,
 		retName,
-		bodyCodeRet,
+		bodyRetSet,
 		retItemName,
 	)
 }
 
-func gen_query__add__func__body__set_args(_arrs_arg []string) (s_gen_arg string) {
+func genQuery_body_setArgs(_arrs_arg []string) (s_gen_arg string) {
 	var s_gen_arg__item string
 	s_gen_arg__item = gen_query__add__func__body__arg(_arrs_arg)
 	if s_gen_arg__item != "" {
 		s_gen_arg__item += "\n"
 	}
 
-	s_gen_arg += fmt.Sprintf(`arri_arg := make([]interface{}, 0, %d)
-arri_arg = append(arri_arg, I_to_arri(%s)...)
+	s_gen_arg += fmt.Sprintf(`args := make([]interface{}, 0, %d)
+args = append(args, I_to_arri(%s)...)
 `,
 		len(_arrs_arg),
 		s_gen_arg__item,
