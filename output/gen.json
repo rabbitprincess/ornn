@@ -17,28 +17,11 @@
 	"queries": {
 		"custom": {},
 		"tables": {
-			"test": [
-				{
-					"name": "insert",
-					"comment": "default query - insert all",
-					"sql": "INSERT INTO test VALUES (?, ?, ?, ?)"
-				},
-				{
-					"name": "select",
-					"comment": "default query - select all",
-					"sql": "SELECT * FROM test"
-				},
-				{
-					"name": "delete",
-					"comment": "default query - delete all",
-					"sql": "DELETE FROM test"
-				}
-			],
 			"user": [
 				{
 					"name": "insert",
 					"comment": "default query - insert all",
-					"sql": "INSERT INTO user VALUES (?, ?, ?, ?)"
+					"sql": "INSERT INTO user VALUES (?, ?, ?)"
 				},
 				{
 					"name": "select",

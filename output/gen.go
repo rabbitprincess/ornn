@@ -9,120 +9,13 @@ import (
 )
 
 type Gen struct {
-	Test   Test
-	User   User
-	Custom Custom
+	User User
 }
 
 func (t *Gen) Init(
 	job *Job,
 ) {
-	t.Test.Init(job)
 	t.User.Init(job)
-	t.Custom.Init(job)
-}
-
-func (t *Test) Init(
-	job *Job,
-) {
-	t.job = job
-}
-
-type Test struct {
-	job *Job
-}
-
-func (t *Test) Insert(
-	arg_seq *uint32,
-	arg_id2 *string,
-	arg_address *[]byte,
-	arg_registered *int8,
-) (
-	lastInsertId int64,
-	err error,
-) {
-	args := make([]interface{}, 0, 4)
-	args = append(args, I_to_arri(
-		arg_seq,
-		arg_id2,
-		arg_address,
-		arg_registered,
-	)...)
-	
-	sql := fmt.Sprintf(
-		"INSERT INTO test VALUES (?, ?, ?, ?)",
-	)
-	
-	exec, err := t.job.Exec(
-		sql,
-		args...,
-	)
-	if err != nil {
-		return 0, err
-	}
-	
-	return exec.LastInsertId()
-}
-
-type Test_select struct {
-	Seq        uint32
-	Id2        string
-	Address    []byte
-	Registered int8
-}
-
-func (t *Test) Select() (
-	selects []*Test_select,
-	err error,
-) {
-	args := make([]interface{}, 0, 0)
-	args = append(args, I_to_arri()...)
-	
-	sql := fmt.Sprintf(
-		"SELECT * FROM test",
-	)
-	ret, err := t.job.Query(
-		sql,
-		args...,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer ret.Close()
-	
-	selects = make([]*Test_select, 0, 100)
-	for ret.Next() {
-		scan := &Test_select{}
-		err := ret.Scan(scan)
-		if err != nil {
-			return nil, err
-		}
-		selects = append(selects, scan)
-	}
-	
-	return selects, nil
-}
-
-func (t *Test) Delete() (
-	rowAffected int64,
-	err error,
-) {
-	args := make([]interface{}, 0, 0)
-	args = append(args, I_to_arri()...)
-	
-	sql := fmt.Sprintf(
-		"DELETE FROM test",
-	)
-			
-	exec, err := t.job.Exec(
-		sql,
-		args...,
-	)
-	if err != nil {
-		return 0, err
-	}
-	
-	return exec.RowsAffected()
 }
 
 func (t *User) Init(
@@ -136,24 +29,22 @@ type User struct {
 }
 
 func (t *User) Insert(
-	arg_seq *uint32,
-	arg_id2 *string,
-	arg_address *[]byte,
-	arg_registered *int8,
+	arg_seq int64,
+	arg_id string,
+	arg_name string,
 ) (
 	lastInsertId int64,
 	err error,
 ) {
-	args := make([]interface{}, 0, 4)
+	args := make([]interface{}, 0, 3)
 	args = append(args, I_to_arri(
 		arg_seq,
-		arg_id2,
-		arg_address,
-		arg_registered,
+		arg_id,
+		arg_name,
 	)...)
 	
 	sql := fmt.Sprintf(
-		"INSERT INTO user VALUES (?, ?, ?, ?)",
+		"INSERT INTO user VALUES (?, ?, ?)",
 	)
 	
 	exec, err := t.job.Exec(
@@ -168,10 +59,9 @@ func (t *User) Insert(
 }
 
 type User_select struct {
-	Seq        uint32
-	Id2        string
-	Address    []byte
-	Registered int8
+	Seq  int64
+	Id   string
+	Name string
 }
 
 func (t *User) Select() (
@@ -226,15 +116,5 @@ func (t *User) Delete() (
 	}
 	
 	return exec.RowsAffected()
-}
-
-func (t *Custom) Init(
-	job *Job,
-) {
-	t.job = job
-}
-
-type Custom struct {
-	job *Job
 }
 

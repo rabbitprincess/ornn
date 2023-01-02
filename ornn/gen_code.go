@@ -203,7 +203,7 @@ func (t *GenCode) genQuery_args(funcQuery *codegen.Function, query *GenDataQuery
 		arg := &codegen.Var{}
 		arg.Name = fmt.Sprintf("arg_%s", pair.Key)
 		if pair.Value != "" { // 형을 특정할 수 있을 때
-			arg.Type = "*" + pair.Value
+			arg.Type = pair.Value
 		} else { // 형을 특정할 수 없을 때
 			arg.Type = "interface{}"
 		}
