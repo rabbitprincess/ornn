@@ -18,8 +18,6 @@ type Atlas struct {
 	marshaler   schemahcl.MarshalerFunc
 	unmarshaler schemahcl.EvalFunc
 	driver      migrate.Driver
-
-	// *schema.Schema
 }
 
 func (t *Atlas) Init(dbType DbType, db *db.Conn) error {
@@ -40,7 +38,6 @@ func (t *Atlas) Init(dbType DbType, db *db.Conn) error {
 		t.unmarshaler = sqlite.EvalHCL
 		t.driver, err = sqlite.Open(db.Db)
 	}
-
 	if err != nil {
 		return err
 	}
