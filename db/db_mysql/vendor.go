@@ -8,10 +8,16 @@ func ConvType(dbType string) (genType string) {
 	var unsigned bool
 
 	opts := strings.Split(string(dbType), " ")
-	for _, opt := range opts {
+	for i, opt := range opts {
 		opt = strings.ToLower(opt)
 		if opt == "unsigned" {
 			unsigned = true
+
+			if i < len(opts)-1 {
+				opts = append(opts[:i], opts[i+1:]...)
+			} else {
+				opts = opts[:i]
+			}
 		}
 	}
 

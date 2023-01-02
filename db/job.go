@@ -1,23 +1,23 @@
 package db
 
-import "database/sql"
+import (
+	"context"
+	"database/sql"
+	"errors"
+)
 
-type Job struct { // db or tx
-	isTx bool
+// db or tx
+func NewJob(db *sql.DB) *Job {
+	return &Job{db: db}
+}
 
+type Job struct {
 	db *sql.DB
 	tx *sql.Tx
 }
 
-func (t *Job) Init(isTx bool, db *sql.DB, tx *sql.Tx) {
-	t.isTx = isTx
-	t.db = db
-	t.tx = tx
-}
-
-// args 제작 예정
 func (t *Job) Exec(query string, args ...interface{}) (res sql.Result, err error) {
-	if t.isTx == false {
+	if t.tx == nil {
 		res, err = t.db.Exec(query, args...)
 	} else {
 		res, err = t.tx.Exec(query, args...)
@@ -26,10 +26,36 @@ func (t *Job) Exec(query string, args ...interface{}) (res sql.Result, err error
 }
 
 func (t *Job) Query(query string, args ...interface{}) (rows *sql.Rows, err error) {
-	if t.isTx == false {
+	if t.tx == nil {
 		rows, err = t.db.Query(query, args...)
 	} else {
 		rows, err = t.tx.Query(query, args...)
 	}
 	return rows, err
+}
+
+func (t *Job) BeginTx(isoLevel sql.IsolationLevel, readonly bool) error {
+	var err error
+	t.tx, err = t.db.BeginTx(context.Background(), &sql.TxOptions{
+		Isolation: isoLevel,
+		ReadOnly:  readonly,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *Job) Commit() error {
+	if t.tx == nil {
+		return errors.New("not transaction job")
+	}
+	return t.tx.Commit()
+}
+
+func (t *Job) Rollback() error {
+	if t.tx == nil {
+		return errors.New("not transaction job")
+	}
+	return t.tx.Rollback()
 }

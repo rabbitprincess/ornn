@@ -65,7 +65,7 @@ func (t *Test) Insert(
 }
 
 type Test_select struct {
-	Seq        interface{}
+	Seq        uint32
 	Id2        string
 	Address    []byte
 	Registered int8
@@ -168,7 +168,7 @@ func (t *User) Insert(
 }
 
 type User_select struct {
-	Seq        interface{}
+	Seq        uint32
 	Id2        string
 	Address    []byte
 	Registered int8

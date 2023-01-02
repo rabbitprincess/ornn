@@ -192,11 +192,7 @@ func (t *GenData) Select(conf *config.Config, query *config.Query, genQuery *Gen
 	sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(sqlWithoutWhere, sql.PrepareStatementDelimeter, sql.PrepareStatementAfter)
 	sqlAfterArgClearTpl := sql.Util_ReplaceInDelimiter(sqlAfterArg, sql.TplDelimiter, sql.TplSplit)
 
-	job, err := t.db.Begin()
-	if err != nil {
-		return err
-	}
-	rows, err := job.Query(sqlAfterArgClearTpl)
+	rows, err := t.db.Job().Query(sqlAfterArgClearTpl)
 	if err != nil {
 		return err
 	}
