@@ -89,20 +89,17 @@ type Query struct {
 	Schema  *Schema `json:"-"` // 쿼리 제작을 위한 전체 스키마 정보
 
 	// options
-	SelectFieldTypes []*SelectFieldType `json:"fields,omitempty"`
+	CustomFieldTypes []*CustomFieldType `json:"custom_field_types,omitempty"`
 	InsertMulti      bool               `json:"insert_multi,omitempty"`
 	UpdateNullIgnore bool               `json:"update_null_ignore,omitempty"`
 	ErrQuery         string             `json:"-"`
 	ErrParser        string             `json:"-"`
 }
 
-// select 만 field type이 있는 이유
-// select query 는 bp.json 의 schema type 을 통해 타입을 지정할 수 없기 때문에
-// 직접 쿼리를 select 를 하고 결과를 추출해 타입에 넣음
-// snum, uint 등의 custom type 은 여기서 처리
-type SelectFieldType struct {
-	Name    string `json:"name"`
-	TypeGen string `json:"type"`
+type CustomFieldType struct {
+	TableName  string `json:"table_name"`
+	FieldName  string `json:"field_name"`
+	CustomType string `json:"type"`
 }
 
 //------------------------------------------------------------------------------------------------//
@@ -111,23 +108,24 @@ type SelectFieldType struct {
 func (t *Query) Init(name, sql string) {
 	t.Name = name
 	t.Sql = sql
-	t.SelectFieldTypes = make([]*SelectFieldType, 0, 10)
+	t.CustomFieldTypes = make([]*CustomFieldType, 0, 10)
 }
 
-func (t *Query) AddFieldType(name string, typeGen string) {
-	if t.SelectFieldTypes == nil {
-		t.SelectFieldTypes = make([]*SelectFieldType, 0, 10)
+func (t *Query) AddCustomType(tableName, fieldName string, customType string) {
+	if t.CustomFieldTypes == nil {
+		t.CustomFieldTypes = make([]*CustomFieldType, 0, 10)
 	}
-	t.SelectFieldTypes = append(t.SelectFieldTypes, &SelectFieldType{
-		Name:    name,
-		TypeGen: typeGen,
+	t.CustomFieldTypes = append(t.CustomFieldTypes, &CustomFieldType{
+		TableName:  tableName,
+		FieldName:  fieldName,
+		CustomType: customType,
 	})
 }
 
-func (t *Query) GetFieldType(name string) (genType string) {
-	for _, pt := range t.SelectFieldTypes {
-		if pt.Name == name {
-			return pt.TypeGen
+func (t *Query) GetCustomType(fieldName string) (genType string) {
+	for _, pt := range t.CustomFieldTypes {
+		if pt.FieldName == fieldName {
+			return pt.CustomType
 		}
 	}
 	return ""

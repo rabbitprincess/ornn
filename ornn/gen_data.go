@@ -205,7 +205,7 @@ func (t *GenData) Select(conf *config.Config, query *config.Query, genQuery *Gen
 	for _, col := range cols {
 		var fieldName, fieldType string
 		fieldName = col.Name()
-		fieldType = query.GetFieldType(fieldName)
+		fieldType = query.GetCustomType(fieldName)
 
 		// if custom type is not defined, get database type
 		if fieldType == "" {
