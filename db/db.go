@@ -9,7 +9,7 @@ type Conn struct {
 	Dsn        string
 	DbName     string
 
-	Db *sql.DB
+	db *sql.DB
 }
 
 func (t *Conn) Connect(driverName, dsn, dbName string) (err error) {
@@ -17,29 +17,33 @@ func (t *Conn) Connect(driverName, dsn, dbName string) (err error) {
 	t.Dsn = dsn
 	t.DbName = dbName
 
-	t.Db, err = sql.Open(t.DriverName, t.Dsn)
+	t.db, err = sql.Open(t.DriverName, t.Dsn)
 	if err != nil {
 		return err
 	}
 
-	err = t.Db.Ping()
+	err = t.db.Ping()
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
+func (t *Conn) Raw() *sql.DB {
+	return t.db
+}
+
 func (t *Conn) SetOpenConns(openConns, idleConns int) {
 	if openConns > 0 {
-		t.Db.SetMaxOpenConns(openConns)
+		t.db.SetMaxOpenConns(openConns)
 	}
 	if idleConns > 0 {
-		t.Db.SetMaxIdleConns(idleConns)
+		t.db.SetMaxIdleConns(idleConns)
 	}
 }
 
 func (t *Conn) Job() *Job {
-	job := NewJob(t.Db)
+	job := NewJob(t.db)
 	return job
 }
 
@@ -53,7 +57,7 @@ func (t *Conn) TxJob(isoLevel sql.IsolationLevel, readonly bool) (job *Job, err 
 }
 
 func (t *Conn) TxJobFunc(isoLevel sql.IsolationLevel, readonly bool, fn func(*Job) error) (err error) {
-	job := NewJob(t.Db)
+	job := NewJob(t.db)
 	err = job.BeginTx(isoLevel, readonly)
 	if err != nil {
 		return err

@@ -42,15 +42,15 @@ func (t *Atlas) Init(dbType DbType, db *db.Conn) error {
 	case DbTypeMySQL, DbTypeMaria, DbTypeTiDB:
 		t.marshaler = mysql.MarshalHCL
 		t.unmarshaler = mysql.EvalHCL
-		t.driver, err = mysql.Open(db.Db)
+		t.driver, err = mysql.Open(db.Raw())
 	case DbTypePostgre, DbTypeCockroachDB:
 		t.marshaler = postgres.MarshalHCL
 		t.unmarshaler = postgres.EvalHCL
-		t.driver, err = postgres.Open(db.Db)
+		t.driver, err = postgres.Open(db.Raw())
 	case DbTypeSQLite:
 		t.marshaler = sqlite.MarshalHCL
 		t.unmarshaler = sqlite.EvalHCL
-		t.driver, err = sqlite.Open(db.Db)
+		t.driver, err = sqlite.Open(db.Raw())
 	}
 	if err != nil {
 		return err
