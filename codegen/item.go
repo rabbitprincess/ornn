@@ -295,7 +295,11 @@ type Const struct {
 }
 
 func (t *Const) Code(w *Writer) {
-	w.W("%s %s = %s\n", t.Name, t.Type, t.Value)
+	if t.Value == "" {
+		w.W("%s %s\n", t.Name, t.Type) // iota
+	} else {
+		w.W("%s %s = %s\n", t.Name, t.Type, t.Value)
+	}
 }
 
 //--------------------------------------------------------------------------------------------------------------//
