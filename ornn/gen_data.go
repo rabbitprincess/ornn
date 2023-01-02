@@ -64,7 +64,7 @@ func (t *GenData) Init(conf *config.Config, db *db.Conn) {
 }
 
 func (t *GenData) SetData() (err error) {
-	// default
+	// schema
 	for _, group := range t.conf.Schema.Tables {
 		Queries, ok := t.conf.Queries.Tables[group.Name]
 		if ok != true {
@@ -79,12 +79,13 @@ func (t *GenData) SetData() (err error) {
 	}
 
 	// custom
-	Queries := t.conf.Queries.Custom
-	genGroup, err := t.SetDataGroup("custom", Queries)
-	if err != nil {
-		return err
+	for groupName, custom := range t.conf.Queries.Custom {
+		genGroup, err := t.SetDataGroup(groupName, custom)
+		if err != nil {
+			return err
+		}
+		t.Add(genGroup)
 	}
-	t.Add(genGroup)
 
 	return nil
 }
