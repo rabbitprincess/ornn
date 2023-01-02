@@ -7,7 +7,7 @@ import (
 )
 
 type Schema struct {
-	*schema.Schema `json:"-"`
+	*schema.Schema
 }
 
 func (t *Schema) Init(sch *schema.Schema) {

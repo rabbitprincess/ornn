@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	// connect db ( mysql only... )
-	db, err := db_mysql.New("127.0.0.1", "3306", "root", "951753ck", "test")
+	// connect db ( current mysql only... )
+	db, err := db_mysql.New("127.0.0.1", "3306", "root", "1234", "test")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -19,17 +19,17 @@ func main() {
 	// set conf
 	conf := &config.Config{}
 	{
-		conf.Global.InitDefault()
-		if err != nil {
-			log.Fatal(err)
-		}
+		// load
 		err = conf.Load("./output/gen.json")
 		if err != nil {
 			log.Fatal(err)
 		}
-		at := &atlas.Atlas{}
-		at.Init(atlas.DbTypeMySQL, db)
-		schema, err := at.InspectSchema()
+		// init
+		conf.Global.InitDefault()
+		if err != nil {
+			log.Fatal(err)
+		}
+		schema, err := atlas.InspectSchema(atlas.DbTypeMySQL, db)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -37,6 +37,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		// save
 		err = conf.Save("./output/gen.json")
 		if err != nil {
 			log.Fatal(err)

@@ -13,6 +13,20 @@ import (
 	"github.com/hashicorp/hcl/v2/hclparse"
 )
 
+// global
+func InspectSchema(dbType DbType, db *db.Conn) (*schema.Schema, error) {
+	at := &Atlas{}
+	err := at.Init(dbType, db)
+	if err != nil {
+		return nil, err
+	}
+	schema, err := at.InspectSchema()
+	if err != nil {
+		return nil, err
+	}
+	return schema, nil
+}
+
 type Atlas struct {
 	Type        DbType
 	marshaler   schemahcl.MarshalerFunc
