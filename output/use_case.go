@@ -16,7 +16,7 @@ type Logic struct {
 	db *db.Conn
 }
 
-func (t *Logic) NoTxExample() error {
+func (t *Logic) ExampleNoTx() error {
 	job := t.db.Job()
 
 	gen := &Gen{}
@@ -30,7 +30,7 @@ func (t *Logic) NoTxExample() error {
 	return nil
 }
 
-func (t *Logic) TxExample() error {
+func (t *Logic) ExampleTx() error {
 	job, err := t.db.TxJob(sql.LevelSerializable, false)
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func (t *Logic) TxExample() error {
 	return nil
 }
 
-func (t *Logic) TxFuncExample() error {
+func (t *Logic) ExampleTxFunc() error {
 	return t.db.TxJobFunc(sql.LevelSerializable, false, func(job *db.Job) error {
 		gen := &Gen{}
 		gen.Init(job)
