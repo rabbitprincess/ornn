@@ -41,10 +41,6 @@ func (t *Atlas) Init(dbType DbType, db *db.Conn) error {
 	if err != nil {
 		return err
 	}
-	t.driver, err = mysql.Open(db.Db)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

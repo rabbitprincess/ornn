@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	"ariga.io/atlas/sql/schema"
-	"github.com/gokch/ornn/atlas"
-	"github.com/gokch/ornn/db"
 )
 
 type Config struct {
@@ -35,13 +33,8 @@ func (t *Config) Load(config string) error {
 	return nil
 }
 
-func (t *Config) InitSchema(db *db.Conn) error {
-	err := t.Schema.Init(atlas.DbTypeMySQL, db)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (t *Config) InitSchema(schema *schema.Schema) {
+	t.Schema.Init(schema)
 }
 
 func (t *Config) Save(config string) error {

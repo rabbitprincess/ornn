@@ -4,27 +4,14 @@ import (
 	"fmt"
 
 	"ariga.io/atlas/sql/schema"
-	"github.com/gokch/ornn/atlas"
-	"github.com/gokch/ornn/db"
 )
 
 type Schema struct {
 	*schema.Schema `json:"-"`
 }
 
-func (t *Schema) Init(dbType atlas.DbType, db *db.Conn) error {
-	var err error
-	atlas := &atlas.Atlas{}
-	err = atlas.Init(dbType, db)
-	if err != nil {
-		return err
-	}
-
-	t.Schema, err = atlas.InspectSchema()
-	if err != nil {
-		return err
-	}
-	return nil
+func (t *Schema) Init(sch *schema.Schema) {
+	t.Schema = sch
 }
 
 func (t *Schema) GetTableFieldMatched(fieldName string, tablesName []string) (matched []string, err error) {
