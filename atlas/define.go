@@ -5,11 +5,9 @@ type DbType int8
 const (
 	DbTypeEmpty DbType = iota
 	DbTypeMySQL
+	DbTypeMaria
 	DbTypePostgre
 	DbTypeSQLite
-
-	// TODO
-	// DbTypeMaria
-	// DbTypeTiDB
-	// DbTypeCockroachDB
+	DbTypeTiDB
+	DbTypeCockroachDB
 )

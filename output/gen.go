@@ -9,44 +9,40 @@ import (
 )
 
 type Schema struct {
-	user   User
+	test   Test
 	custom Custom
 }
 
 func (t *Schema) Init(
 	job *Job,
 ) {
-	t.user.Init(job)
+	t.test.Init(job)
 	t.custom.Init(job)
 }
 
-func (t *User) Init(
+func (t *Test) Init(
 	job *Job,
 ) {
 	t.Job = job
 }
 
-type User struct {
+type Test struct {
 	Job *Job
 }
 
-func (t *User) Insert(
-	arg_seq *int64,
-	arg_id *string,
-	arg_name *string,
+func (t *Test) Insert(
+	arg_id *uint32,
 ) (
 	lastInsertId int64,
 	err error,
 ) {
-	args := make([]interface{}, 0, 3)
+	args := make([]interface{}, 0, 1)
 	args = append(args, I_to_arri(
-		arg_seq,
 		arg_id,
-		arg_name,
 	)...)
 	
 	sql := fmt.Sprintf(
-		"INSERT INTO user VALUES (?, ?, ?)",
+		"INSERT INTO test VALUES (?)",
 	)
 	
 	exec, err := t.Job.Exec(
@@ -60,21 +56,19 @@ func (t *User) Insert(
 	return exec.LastInsertId()
 }
 
-type User_select struct {
-	Seq  int64
-	Id   string
-	Name string
+type Test_select struct {
+	Id interface{}
 }
 
-func (t *User) Select() (
-	selects []*User_select,
+func (t *Test) Select() (
+	selects []*Test_select,
 	err error,
 ) {
 	args := make([]interface{}, 0, 0)
 	args = append(args, I_to_arri()...)
 	
 	sql := fmt.Sprintf(
-		"SELECT * FROM user",
+		"SELECT * FROM test",
 	)
 	ret, err := t.Job.Query(
 		sql,
@@ -85,9 +79,9 @@ func (t *User) Select() (
 	}
 	defer ret.Close()
 	
-	selects = make([]*User_select, 0, 100)
+	selects = make([]*Test_select, 0, 100)
 	for ret.Next() {
-		scan := &User_select{}
+		scan := &Test_select{}
 		err := ret.Scan(scan)
 		if err != nil {
 			return nil, err
@@ -98,7 +92,7 @@ func (t *User) Select() (
 	return selects, nil
 }
 
-func (t *User) Delete() (
+func (t *Test) Delete() (
 	rowAffected int64,
 	err error,
 ) {
@@ -106,7 +100,7 @@ func (t *User) Delete() (
 	args = append(args, I_to_arri()...)
 	
 	sql := fmt.Sprintf(
-		"DELETE FROM user",
+		"DELETE FROM test",
 	)
 			
 	exec, err := t.Job.Exec(

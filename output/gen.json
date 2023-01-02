@@ -14,53 +14,25 @@
 			}
 		]
 	},
-	"schema": {
-		"name": "test",
-		"tables": [
-			{
-				"name": "user",
-				"columns": [
-					{
-						"name": "seq",
-						"type": "bigint(20)"
-					},
-					{
-						"name": "id",
-						"type": "varchar(50)"
-					},
-					{
-						"name": "name",
-						"type": "varchar(50)"
-					}
-				],
-				"primary_key": {
-					"parts": [
-						{
-							"column": "seq"
-						}
-					]
-				}
-			}
-		]
-	},
+	"schema": {},
 	"queries": {
-		"custom": null,
+		"custom": [],
 		"default": {
-			"user": [
+			"test": [
 				{
 					"name": "insert",
 					"comment": "default query - insert all",
-					"sql": "INSERT INTO user VALUES (?, ?, ?)"
+					"sql": "INSERT INTO test VALUES (?)"
 				},
 				{
 					"name": "select",
 					"comment": "default query - select all",
-					"sql": "SELECT * FROM user"
+					"sql": "SELECT * FROM test"
 				},
 				{
 					"name": "delete",
 					"comment": "default query - delete all",
-					"sql": "DELETE FROM user"
+					"sql": "DELETE FROM test"
 				}
 			]
 		}

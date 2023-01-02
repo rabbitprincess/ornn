@@ -2,6 +2,7 @@ package atlas
 
 import (
 	"context"
+	"database/sql"
 
 	"ariga.io/atlas/schemahcl"
 	"ariga.io/atlas/sql/migrate"
@@ -25,11 +26,11 @@ func (t *Atlas) Init(dbType DbType, db *db.Conn) error {
 
 	t.Type = dbType
 	switch dbType {
-	case DbTypeMySQL:
+	case DbTypeMySQL, DbTypeMaria, DbTypeTiDB:
 		t.marshaler = mysql.MarshalHCL
 		t.unmarshaler = mysql.EvalHCL
 		t.driver, err = mysql.Open(db.Db)
-	case DbTypePostgre:
+	case DbTypePostgre, DbTypeCockroachDB:
 		t.marshaler = postgres.MarshalHCL
 		t.unmarshaler = postgres.EvalHCL
 		t.driver, err = postgres.Open(db.Db)
@@ -85,6 +86,10 @@ func (t *Atlas) MigrateSchema(sch *schema.Schema) error {
 	return t.driver.ApplyChanges(context.Background(), diffs)
 }
 
-func (t *Atlas) ExecQuery(sch *schema.Schema) error {
-	return nil
+func (t *Atlas) Query(query string, args ...any) (*sql.Rows, error) {
+	return t.driver.QueryContext(context.Background(), query, args...)
+}
+
+func (t *Atlas) Exec(query string, args ...any) (sql.Result, error) {
+	return t.driver.ExecContext(context.Background(), query, args...)
 }
