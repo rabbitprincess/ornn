@@ -45,25 +45,25 @@ func (t *GenCode) code(config *config.Config, genData *GenData) (genCode string,
 
 	// arg
 	rootFuncInitArg := &codegen.Var{
-		Name: strings.ToLower("Job"),
+		Name: "job",
 		Type: "*Job",
 	}
 	rootFunc.AddArg(rootFuncInitArg)
 
-	for _, genGroup := range genData.groups {
-		group := t.genGroup(genGroup.Name)
-		t.codeGen.AddItem(group)
+	for _, group := range genData.groups {
+		genGroup := t.genGroup(group.Name)
+		t.codeGen.AddItem(genGroup)
 
 		// root 구조체 안에 group 구조체 포인터 선언
 		rootVars := &codegen.Var{
-			Type: group.Name,
-			Name: strings.ToLower(genGroup.Name),
+			Type: genGroup.Name,
+			Name: genGroup.Name,
 		}
 		rootStruct.AddField(rootVars)
 		rootFunc.InlineCode += fmt.Sprintf("%s.%s.%s(%s)\n", "t", rootVars.Name, "Init", rootFunc.Args.Items[0].Name)
 
-		for _, query := range genGroup.Queries {
-			funcQuery := t.genQuery(group.Name, query)
+		for _, query := range group.Queries {
+			funcQuery := t.genQuery(genGroup.Name, query)
 			t.codeGen.AddItem(funcQuery)
 		}
 	}
@@ -80,7 +80,7 @@ func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
 
 	// root 구조체 연결을 위한 구조체 필드 변수 제작
 	groupVar := &codegen.Var{
-		Name: "Job",
+		Name: "job",
 		Type: "*Job",
 	}
 	genGroup.AddField(groupVar)
@@ -95,7 +95,7 @@ func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
 
 	// args
 	groupFuncInitArg := &codegen.Var{
-		Name: strings.ToLower("Job"),
+		Name: "job",
 		Type: "*Job",
 	}
 	groupFuncInit.AddArg(groupFuncInitArg)
@@ -141,7 +141,7 @@ func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *GenDataQuer
 	t.genQuery_ret_error(funcQuery)
 
 	// body
-	funcQuery.InlineCode = template.Select(args, tpls, query.query, query.SelectSingle, "t", "Job", structName, retItemName, retItemType)
+	funcQuery.InlineCode = template.Select(args, tpls, query.query, query.SelectSingle, "t", "job", structName, retItemName, retItemType)
 }
 
 func (t *GenCode) genQueryInsert(funcQuery *codegen.Function, query *GenDataQuery) {
@@ -154,7 +154,7 @@ func (t *GenCode) genQueryInsert(funcQuery *codegen.Function, query *GenDataQuer
 	t.genQuery_ret_error(funcQuery)
 
 	// body
-	funcQuery.InlineCode = template.Insert(args, tpls, query.query, query.InsertMulti, "t", "Job")
+	funcQuery.InlineCode = template.Insert(args, tpls, query.query, query.InsertMulti, "t", "job")
 }
 
 func (t *GenCode) genQueryUpdate(funcQuery *codegen.Function, query *GenDataQuery) {
@@ -167,7 +167,7 @@ func (t *GenCode) genQueryUpdate(funcQuery *codegen.Function, query *GenDataQuer
 	t.genQuery_ret_error(funcQuery)
 
 	// body
-	funcQuery.InlineCode = template.Update(args, tpls, query.query, query.UpdateNullIgnore, "t", "Job")
+	funcQuery.InlineCode = template.Update(args, tpls, query.query, query.UpdateNullIgnore, "t", "job")
 }
 
 func (t *GenCode) genQueryDelete(funcQuery *codegen.Function, query *GenDataQuery) {
@@ -180,7 +180,7 @@ func (t *GenCode) genQueryDelete(funcQuery *codegen.Function, query *GenDataQuer
 	t.genQuery_ret_error(funcQuery)
 
 	// body
-	funcQuery.InlineCode = template.Delete(args, query.query, tpls, "t", "Job")
+	funcQuery.InlineCode = template.Delete(args, query.query, tpls, "t", "job")
 }
 
 func (t *GenCode) genQuery_tpls(funcQuery *codegen.Function, query *GenDataQuery) (tpls []string) {

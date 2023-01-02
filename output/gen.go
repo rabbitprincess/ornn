@@ -9,27 +9,27 @@ import (
 )
 
 type Schema struct {
-	test   Test
-	user   User
-	custom Custom
+	Test   Test
+	User   User
+	Custom Custom
 }
 
 func (t *Schema) Init(
 	job *Job,
 ) {
-	t.test.Init(job)
-	t.user.Init(job)
-	t.custom.Init(job)
+	t.Test.Init(job)
+	t.User.Init(job)
+	t.Custom.Init(job)
 }
 
 func (t *Test) Init(
 	job *Job,
 ) {
-	t.Job = job
+	t.job = job
 }
 
 type Test struct {
-	Job *Job
+	job *Job
 }
 
 func (t *Test) Insert(
@@ -53,7 +53,7 @@ func (t *Test) Insert(
 		"INSERT INTO test VALUES (?, ?, ?, ?)",
 	)
 	
-	exec, err := t.Job.Exec(
+	exec, err := t.job.Exec(
 		sql,
 		args...,
 	)
@@ -81,7 +81,7 @@ func (t *Test) Select() (
 	sql := fmt.Sprintf(
 		"SELECT * FROM test",
 	)
-	ret, err := t.Job.Query(
+	ret, err := t.job.Query(
 		sql,
 		args...,
 	)
@@ -114,7 +114,7 @@ func (t *Test) Delete() (
 		"DELETE FROM test",
 	)
 			
-	exec, err := t.Job.Exec(
+	exec, err := t.job.Exec(
 		sql,
 		args...,
 	)
@@ -128,11 +128,11 @@ func (t *Test) Delete() (
 func (t *User) Init(
 	job *Job,
 ) {
-	t.Job = job
+	t.job = job
 }
 
 type User struct {
-	Job *Job
+	job *Job
 }
 
 func (t *User) Insert(
@@ -156,7 +156,7 @@ func (t *User) Insert(
 		"INSERT INTO user VALUES (?, ?, ?, ?)",
 	)
 	
-	exec, err := t.Job.Exec(
+	exec, err := t.job.Exec(
 		sql,
 		args...,
 	)
@@ -184,7 +184,7 @@ func (t *User) Select() (
 	sql := fmt.Sprintf(
 		"SELECT * FROM user",
 	)
-	ret, err := t.Job.Query(
+	ret, err := t.job.Query(
 		sql,
 		args...,
 	)
@@ -217,7 +217,7 @@ func (t *User) Delete() (
 		"DELETE FROM user",
 	)
 			
-	exec, err := t.Job.Exec(
+	exec, err := t.job.Exec(
 		sql,
 		args...,
 	)
@@ -231,10 +231,10 @@ func (t *User) Delete() (
 func (t *Custom) Init(
 	job *Job,
 ) {
-	t.Job = job
+	t.job = job
 }
 
 type Custom struct {
-	Job *Job
+	job *Job
 }
 
