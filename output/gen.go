@@ -8,13 +8,13 @@ import (
 	. "github.com/gokch/ornn/db"
 )
 
-type Schema struct {
+type Gen struct {
 	Test   Test
 	User   User
 	Custom Custom
 }
 
-func (t *Schema) Init(
+func (t *Gen) Init(
 	job *Job,
 ) {
 	t.Test.Init(job)

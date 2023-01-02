@@ -19,8 +19,8 @@ type Logic struct {
 func (t *Logic) NoTxExample() error {
 	job := t.db.Job()
 
-	schema := &Schema{}
-	schema.Init(job)
+	gen := &Gen{}
+	gen.Init(job)
 
 	//---------------------- start ----------------------//
 	// Execute generated function down here!!
@@ -36,8 +36,8 @@ func (t *Logic) TxExample() error {
 		return err
 	}
 
-	schema := &Schema{}
-	schema.Init(job)
+	gen := &Gen{}
+	gen.Init(job)
 
 	//---------------------- start ----------------------//
 	// Execute generated function down here!!
@@ -57,8 +57,8 @@ func (t *Logic) TxExample() error {
 
 func (t *Logic) TxFuncExample() error {
 	return t.db.TxJobFunc(sql.LevelSerializable, false, func(job *db.Job) error {
-		schema := &Schema{}
-		schema.Init(job)
+		gen := &Gen{}
+		gen.Init(job)
 
 		//---------------------- start ----------------------//
 		// Execute generated function down here!!
