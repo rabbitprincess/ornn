@@ -14,15 +14,14 @@
 			}
 		]
 	},
-	"schema": {},
 	"queries": {
 		"custom": [],
-		"default": {
+		"tables": {
 			"test": [
 				{
 					"name": "insert",
 					"comment": "default query - insert all",
-					"sql": "INSERT INTO test VALUES (?)"
+					"sql": "INSERT INTO test VALUES (?, ?, ?, ?)"
 				},
 				{
 					"name": "select",
@@ -33,6 +32,23 @@
 					"name": "delete",
 					"comment": "default query - delete all",
 					"sql": "DELETE FROM test"
+				}
+			],
+			"user": [
+				{
+					"name": "insert",
+					"comment": "default query - insert all",
+					"sql": "INSERT INTO user VALUES (?, ?, ?, ?)"
+				},
+				{
+					"name": "select",
+					"comment": "default query - select all",
+					"sql": "SELECT * FROM user"
+				},
+				{
+					"name": "delete",
+					"comment": "default query - delete all",
+					"sql": "DELETE FROM user"
 				}
 			]
 		}

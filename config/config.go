@@ -9,7 +9,7 @@ import (
 
 type Config struct {
 	Global  Global  `json:"global"`
-	Schema  Schema  `json:"schema"`
+	Schema  Schema  `json:"-"`
 	Queries Queries `json:"queries"`
 }
 
