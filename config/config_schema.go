@@ -20,7 +20,7 @@ func (t *Schema) Init(dbType atlas.DbType, db *db.Conn) error {
 		return err
 	}
 
-	t.Schema, err = atlas.InspcetSchema()
+	t.Schema, err = atlas.InspectSchema()
 	if err != nil {
 		return err
 	}

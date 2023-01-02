@@ -69,7 +69,7 @@ func (t *Atlas) UnmarshalHCL(bt []byte) (*schema.Schema, error) {
 	return sch, nil
 }
 
-func (t *Atlas) InspcetSchema() (*schema.Schema, error) {
+func (t *Atlas) InspectSchema() (*schema.Schema, error) {
 	sch, err := t.driver.InspectSchema(context.Background(), "", nil)
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (t *Atlas) InspcetSchema() (*schema.Schema, error) {
 }
 
 func (t *Atlas) MigrateSchema(sch *schema.Schema) error {
-	schemaCur, err := t.InspcetSchema()
+	schemaCur, err := t.InspectSchema()
 	if err != nil {
 		return err
 	}
