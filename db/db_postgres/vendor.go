@@ -8,14 +8,12 @@ import (
 
 func ConvType(dbType string) (genType string) {
 	parseType := db.ParseType(dbType)
-	// SETOF -> []T
+
 	if strings.HasPrefix(parseType.Type, "SETOF ") {
 		genType = ConvType(parseType.Type[len("SETOF "):])
 		return "[]" + genType
 	}
-	// If it's an array, the underlying type shouldn't also be set as an array
 	typNullable := parseType.Nullable && !parseType.IsArray
-	// special type handling
 	typ := parseType.Type
 	switch {
 	case typ == `"char"`:

@@ -36,12 +36,13 @@ func ConvType(dbType string) (genType string) {
 		if parseType.Nullable {
 			genType = "*Time"
 		}
-	default:
-		// case "varchar", "character", "varying character", "nchar", "native character", "nvarchar", "text", "clob", "time":
+	case "varchar", "character", "varying character", "nchar", "native character", "nvarchar", "text", "clob", "time":
 		genType = "string"
 		if parseType.Nullable {
 			genType = "sql.NullString"
 		}
+	default:
+		genType = "interface{}"
 	}
 	return genType
 }
