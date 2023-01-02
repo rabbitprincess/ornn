@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"ariga.io/atlas/sql/schema"
+	"github.com/gokch/ornn/atlas"
 	"github.com/gokch/ornn/db"
 )
 
@@ -35,7 +36,7 @@ func (t *Config) Load(config string) error {
 }
 
 func (t *Config) InitSchema(db *db.Conn) error {
-	err := t.Schema.InitDefault(db)
+	err := t.Schema.Init(atlas.DbTypeMySQL, db)
 	if err != nil {
 		return err
 	}
