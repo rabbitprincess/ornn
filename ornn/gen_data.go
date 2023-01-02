@@ -66,7 +66,7 @@ func (t *GenData) Init(conf *config.Config, db *db.Conn) {
 func (t *GenData) SetData() (err error) {
 	// default
 	for _, group := range t.conf.Schema.Tables {
-		Queries, ok := t.conf.Queries.Default[group.Name]
+		Queries, ok := t.conf.Queries.Tables[group.Name]
 		if ok != true {
 			continue
 		}

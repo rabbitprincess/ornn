@@ -2,7 +2,6 @@ package atlas
 
 import (
 	"context"
-	"database/sql"
 
 	"ariga.io/atlas/schemahcl"
 	"ariga.io/atlas/sql/migrate"
@@ -84,12 +83,4 @@ func (t *Atlas) MigrateSchema(sch *schema.Schema) error {
 		return err
 	}
 	return t.driver.ApplyChanges(context.Background(), diffs)
-}
-
-func (t *Atlas) Query(query string, args ...any) (*sql.Rows, error) {
-	return t.driver.QueryContext(context.Background(), query, args...)
-}
-
-func (t *Atlas) Exec(query string, args ...any) (sql.Result, error) {
-	return t.driver.ExecContext(context.Background(), query, args...)
 }

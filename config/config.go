@@ -2,9 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"strings"
 
 	"ariga.io/atlas/sql/schema"
 )
@@ -33,8 +31,14 @@ func (t *Config) Load(config string) error {
 	return nil
 }
 
-func (t *Config) InitSchema(schema *schema.Schema) {
+func (t *Config) InitSchema(schema *schema.Schema) error {
+	// set schema
 	t.Schema.Init(schema)
+
+	// set queries by schema
+	t.Queries.InitQueryTables(schema.Tables)
+
+	return nil
 }
 
 func (t *Config) Save(config string) error {
@@ -48,56 +52,4 @@ func (t *Config) Save(config string) error {
 		return err
 	}
 	return nil
-}
-
-func (t *Config) VendorBySchema() error {
-	t.Queries.Default = make(map[string][]*Query)
-
-	// 뽑아낸 쿼리를 이용해서 table 을 제작
-	for _, table := range t.Schema.Tables {
-		queries, err := t.vendorByTable(table)
-		if err != nil {
-			return err
-		}
-
-		for _, query := range queries {
-			t.Queries.AddQueryTables(table.Name, query)
-		}
-	}
-
-	return nil
-}
-
-func (t *Config) vendorByTable(table *schema.Table) ([]*Query, error) {
-	// make query - TODO : Query Generator 공통화
-	queries := make([]*Query, 0, 100)
-
-	// insert all
-	questionare := strings.Repeat("?, ", len(table.Columns))
-	questionare = questionare[:len(questionare)-2]
-	queries = append(queries, &Query{
-		Name:    "insert",
-		Comment: "default query - insert all",
-		Sql:     fmt.Sprintf("INSERT INTO %s VALUES (%s)", table.Name, questionare),
-	})
-
-	// select all
-	queries = append(queries, &Query{
-		Name:    "select",
-		Comment: "default query - select all",
-		Sql:     fmt.Sprintf("SELECT * FROM %s", table.Name),
-	})
-
-	// TODO: select where by index
-
-	// TODO: update
-
-	// delete
-	queries = append(queries, &Query{
-		Name:    "delete",
-		Comment: "default query - delete all",
-		Sql:     fmt.Sprintf("DELETE FROM %s", table.Name),
-	})
-
-	return queries, nil
 }
