@@ -25,9 +25,6 @@ func (t *Config) Load(config string) error {
 		return err
 	}
 
-	// queries 초기화
-	t.Queries.init(&t.Schema)
-
 	return nil
 }
 
@@ -36,7 +33,8 @@ func (t *Config) InitSchema(schema *schema.Schema) error {
 	t.Schema.Init(schema)
 
 	// set queries by schema
-	t.Queries.InitQueryTables(schema.Tables)
+	t.Queries.init(&t.Schema)
+	t.Queries.InitQueryTables()
 
 	return nil
 }

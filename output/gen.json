@@ -2,7 +2,7 @@
 	"global": {
 		"do_not_edit": "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n",
 		"package_name": "gen",
-		"class_name": "Schema",
+		"class_name": "Gen",
 		"import": [
 			{
 				"alias": "",

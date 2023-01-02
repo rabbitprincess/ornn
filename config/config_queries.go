@@ -19,8 +19,8 @@ func (t *Queries) init(schema *Schema) {
 	t.Tables = make(map[string][]*Query)
 }
 
-func (t *Queries) InitQueryTables(tables []*schema.Table) error {
-	for _, table := range tables {
+func (t *Queries) InitQueryTables() error {
+	for _, table := range t.schema.Tables {
 		err := t.initQueryTable(table)
 		if err != nil {
 			return err
