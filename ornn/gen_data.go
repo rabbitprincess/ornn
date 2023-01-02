@@ -6,7 +6,6 @@ import (
 
 	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/db"
-	"github.com/gokch/ornn/db/db_mysql"
 	"github.com/gokch/ornn/sql"
 	"github.com/gokch/ornn/sql/parser"
 )
@@ -211,8 +210,7 @@ func (t *GenData) Select(conf *config.Config, query *config.Query, genQuery *Gen
 		// if custom type is not defined, get database type
 		if fieldType == "" {
 			colType := col.DatabaseTypeName()
-			// 임시 - 타입 벤더 제작 필요
-			fieldType = db_mysql.ConvType(colType)
+			fieldType = t.conf.Schema.ConvType(colType)
 		}
 		genQuery.ret.setKV(fieldName, fieldType)
 	}
@@ -259,8 +257,7 @@ func (t *GenData) Insert(conf *config.Config, query *config.Query, genQuery *Gen
 			return fmt.Errorf("not exist field in schema | field name : %s", field.FieldName)
 		}
 
-		// 임시 - 타입 벤더 제작 필요
-		genQuery.arg.setKV(field.FieldName, db_mysql.ConvType(schemaField.Type.Raw))
+		genQuery.arg.setKV(field.FieldName, t.conf.Schema.ConvType(schemaField.Type.Raw))
 	}
 
 	// multi insert 처리
@@ -319,8 +316,7 @@ func (t *GenData) Update(conf *config.Config, query *config.Query, genQuery *Gen
 			if exist != true {
 				return fmt.Errorf("not exist field | field name - %s", field.FieldName)
 			}
-			// 임시 - 타입 벤더 제작 필요
-			genType = db_mysql.ConvType(schemaField.Type.Raw)
+			genType = t.conf.Schema.ConvType(schemaField.Type.Raw)
 		}
 
 		genQuery.arg.setKV(field.FieldName, genType)

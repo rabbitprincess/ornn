@@ -4,14 +4,32 @@ import (
 	"fmt"
 
 	"ariga.io/atlas/sql/schema"
+	"github.com/gokch/ornn/atlas"
+	"github.com/gokch/ornn/db/db_mysql"
+	"github.com/gokch/ornn/db/db_postgres"
+	"github.com/gokch/ornn/db/db_sqlite"
 )
 
 type Schema struct {
+	dbType   atlas.DbType        `json:"-"`
+	ConvType func(string) string `json:"-"`
+
 	*schema.Schema `json:"-"`
 }
 
-func (t *Schema) Init(sch *schema.Schema) {
+func (t *Schema) Init(dbType atlas.DbType, sch *schema.Schema) {
+	t.dbType = dbType
 	t.Schema = sch
+
+	switch dbType {
+	case atlas.DbTypeMySQL, atlas.DbTypeMaria, atlas.DbTypeTiDB:
+		t.ConvType = db_mysql.ConvType
+	case atlas.DbTypePostgre, atlas.DbTypeCockroachDB:
+		t.ConvType = db_postgres.ConvType
+	case atlas.DbTypeSQLite:
+		t.ConvType = db_sqlite.ConvType
+	}
+
 }
 
 func (t *Schema) GetTableFieldMatched(fieldName string, tablesName []string) (matched []string, err error) {

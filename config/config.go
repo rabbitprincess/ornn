@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 
 	"ariga.io/atlas/sql/schema"
+	"github.com/gokch/ornn/atlas"
 )
 
 type Config struct {
@@ -28,9 +29,9 @@ func (t *Config) Load(config string) error {
 	return nil
 }
 
-func (t *Config) InitSchema(schema *schema.Schema) error {
+func (t *Config) InitSchema(dbType atlas.DbType, schema *schema.Schema) error {
 	// set schema
-	t.Schema.Init(schema)
+	t.Schema.Init(dbType, schema)
 
 	// set queries by schema
 	t.Queries.init(&t.Schema)

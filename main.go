@@ -33,7 +33,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = conf.InitSchema(schema)
+		err = conf.InitSchema(atlas.DbTypeMySQL, schema)
 		if err != nil {
 			log.Fatal(err)
 		}
