@@ -6,101 +6,101 @@ import (
 	"github.com/gokch/ornn/db"
 )
 
-func ConvType(dbType string) (goType string) {
+func ConvType(dbType string) (genType string) {
 	parseType := db.ParseType(dbType)
 	switch parseType.Type {
 	case "bit":
 		switch {
 		case parseType.Prec == 1 && !parseType.Nullable:
-			goType = "bool"
+			genType = "bool"
 		case parseType.Prec == 1 && parseType.Nullable:
-			goType = "sql.NullBool"
+			genType = "sql.NullBool"
 		case parseType.Prec <= 8 && !parseType.Nullable:
-			goType = "uint8"
+			genType = "uint8"
 		case parseType.Prec <= 16 && !parseType.Nullable:
-			goType = "uint16"
+			genType = "uint16"
 		case parseType.Prec <= 32 && !parseType.Nullable:
-			goType = "uint32"
+			genType = "uint32"
 		case parseType.Nullable:
-			goType = "sql.NullInt64"
+			genType = "sql.NullInt64"
 		default:
-			goType = "uint64"
+			genType = "uint64"
 		}
 	case "bool", "boolean":
-		goType = "bool"
+		genType = "bool"
 		if parseType.Nullable {
-			goType = "sql.NullBool"
+			genType = "sql.NullBool"
 		}
 	case "char", "varchar", "tinytext", "text", "mediumtext", "longtext":
-		goType = "string"
+		genType = "string"
 		if parseType.Nullable {
-			goType = "sql.NullString"
+			genType = "sql.NullString"
 		}
 	case "tinyint":
 		switch {
 		case parseType.Prec == 1 && !parseType.Nullable: // force tinyint(1) as bool
-			goType = "bool"
+			genType = "bool"
 		case parseType.Prec == 1 && parseType.Nullable:
-			goType = "sql.NullBool"
+			genType = "sql.NullBool"
 		case parseType.Nullable:
-			goType = "sql.NullInt64"
+			genType = "sql.NullInt64"
 		default:
-			goType = "int8"
+			genType = "int8"
 			if parseType.Unsigned {
-				goType = "uint8"
+				genType = "uint8"
 			}
 		}
 	case "smallint", "year":
-		goType = "int16"
+		genType = "int16"
 		if parseType.Nullable {
-			goType = "sql.NullInt64"
+			genType = "sql.NullInt64"
 		} else if parseType.Unsigned {
-			goType = "uint16"
+			genType = "uint16"
 		}
 	case "mediumint", "int", "integer":
-		goType = "int32"
+		genType = "int32"
 		if parseType.Nullable {
-			goType = "sql.NullInt64"
+			genType = "sql.NullInt64"
 		} else if parseType.Unsigned {
-			goType = "uint32"
+			genType = "uint32"
 		}
 	case "bigint":
-		goType = "int64"
+		genType = "int64"
 		if parseType.Nullable {
-			goType = "sql.NullInt64"
+			genType = "sql.NullInt64"
 		} else if parseType.Unsigned {
-			goType = "uint64"
+			genType = "uint64"
 		}
 	case "float":
-		goType = "float32"
+		genType = "float32"
 		if parseType.Nullable {
-			goType = "sql.NullFloat64"
+			genType = "sql.NullFloat64"
 		}
 	case "decimal", "double":
-		goType = "float64"
+		genType = "float64"
 		if parseType.Nullable {
-			goType = "sql.NullFloat64"
+			genType = "sql.NullFloat64"
 		}
 	case "binary", "blob", "longblob", "mediumblob", "tinyblob", "varbinary":
-		goType = "[]byte"
+		genType = "[]byte"
 	case "json":
-		goType = "json.RawMessage"
+		genType = "json.RawMessage"
 	case "timestamp", "datetime", "date":
-		goType = "time.Time"
+		genType = "time.Time"
 		if parseType.Nullable {
-			goType = "sql.NullTime"
+			genType = "sql.NullTime"
 		}
 	case "time":
-		goType = "string"
+		genType = "string"
 		if parseType.Nullable {
-			goType = "sql.NullString"
+			genType = "sql.NullString"
 		}
 	default:
-		goType = "interface{}"
+		genType = "interface{}"
 	}
 	if regexp.MustCompile(`(?i)^set\([^)]*\)$`).MatchString(parseType.Type) {
-		goType = "[]byte"
+		genType = "[]byte"
 	}
 
-	return goType
+	return genType
 }

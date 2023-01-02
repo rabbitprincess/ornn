@@ -1,33 +1,47 @@
 package db_sqlite
 
-func ConvType(dbType string) (goType string) {
-	return convType(dbType, false)
-}
+import "github.com/gokch/ornn/db"
 
-func convType(dbType string, unsigned bool) (goType string) {
-	switch dbType {
+func ConvType(dbType string) (genType string) {
+	parseType := db.ParseType(dbType)
+	switch parseType.Type {
 	case "bool", "boolean":
-		goType = "bool"
+		genType = "bool"
+		if parseType.Nullable {
+			genType = "sql.NullBool"
+		}
 	case "int", "integer", "tinyint", "smallint", "mediumint":
-		goType = "int32"
-		if unsigned {
-			goType = "uint32"
+		genType = "int32"
+		if parseType.Nullable {
+			genType = "sql.NullInt32"
+		} else if parseType.Unsigned {
+			genType = "uint32"
 		}
 	case "bigint":
-		goType = "int64"
-		if unsigned {
-			goType = "uint64"
+		genType = "int64"
+		if parseType.Nullable {
+			genType = "sql.NullInt64"
+		} else if parseType.Unsigned {
+			genType = "uint64"
 		}
 	case "numeric", "real", "double", "float", "decimal":
-		goType = "float64"
+		genType = "float64"
+		if parseType.Nullable {
+			genType = "sql.NullFloat64"
+		}
 	case "blob":
-		goType = "[]byte"
+		genType = "[]byte"
 	case "timestamp", "datetime", "date", "timestamp with timezone", "time with timezone", "time without timezone", "timestamp without timezone":
-		goType = "Time"
-	case "varchar", "character", "varying character", "nchar", "native character", "nvarchar", "text", "clob", "time":
-		goType = "string"
+		genType = "Time"
+		if parseType.Nullable {
+			genType = "*Time"
+		}
 	default:
-		goType = "interface{]"
+		// case "varchar", "character", "varying character", "nchar", "native character", "nvarchar", "text", "clob", "time":
+		genType = "string"
+		if parseType.Nullable {
+			genType = "sql.NullString"
+		}
 	}
-	return goType
+	return genType
 }
