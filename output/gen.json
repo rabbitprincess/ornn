@@ -15,7 +15,7 @@
 		]
 	},
 	"queries": {
-		"custom": [],
+		"custom": {},
 		"tables": {
 			"test": [
 				{
