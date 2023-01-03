@@ -47,3 +47,25 @@ func (t *Schema) GetTableFieldMatched(fieldName string, tablesName []string) (ma
 	}
 	return matched, nil
 }
+
+func (t *Schema) GetFieldType(tableName, fieldName string) (fieldType string, err error) {
+	if tableName == "" {
+		for _, tbl := range t.Tables {
+			fld, exist := tbl.Column(fieldName)
+			if exist == true {
+				return fld.Type.Raw, nil
+			}
+		}
+	} else {
+		tbl, exist := t.Schema.Table(tableName)
+		if exist != true {
+			return "", fmt.Errorf("not exist table | table name : %s", tableName)
+		}
+		fld, exist := tbl.Column(fieldName)
+		if exist != true {
+			return "", fmt.Errorf("not exist field | table name : %s | field name : %s", tableName, fieldName)
+		}
+		return fld.Type.Raw, nil
+	}
+	return "", fmt.Errorf("not exist field | field name : %s", fieldName)
+}

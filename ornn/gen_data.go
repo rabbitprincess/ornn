@@ -209,7 +209,7 @@ func (t *GenData) Select(conf *config.Config, query *config.Query, genQuery *Gen
 
 		// if custom type is not defined, get database type
 		if fieldType == "" {
-			colType := col.DatabaseTypeName()
+			colType, _ := t.conf.Schema.GetFieldType("", fieldName)
 			fieldType = t.conf.Schema.ConvType(colType)
 		}
 		genQuery.ret.setKV(fieldName, fieldType)
@@ -278,7 +278,6 @@ func (t *GenData) Update(conf *config.Config, query *config.Query, genQuery *Gen
 		tableName := field.TableName
 
 		// 정의된 table name 이 없으면 update 대상 테이블 중 매칭되는 테이블을 찾는다
-
 		if tableName == "" {
 			tables := sqlUpdate.GetTableNames()
 			tablesMatch, err := query.Schema.GetTableFieldMatched(fieldName, tables)

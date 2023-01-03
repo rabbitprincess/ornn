@@ -32,8 +32,17 @@ func New(query string) (parser Parser, err error) {
 		query := &Delete{}
 		err = query.parse(data)
 		parser = query
+	case *sqlparser.Union,
+		*sqlparser.Set,
+		*sqlparser.DDL,
+		*sqlparser.Show,
+		*sqlparser.Use,
+		*sqlparser.OtherRead,
+		*sqlparser.OtherAdmin,
+		*sqlparser.TruncateTable:
+		log.Fatalf("parser error | not support query statement %T", data)
 	default:
-		log.Fatal("parser error")
+		log.Fatalf("parser error | unknown query statement %T", data)
 	}
 	return parser, err
 }

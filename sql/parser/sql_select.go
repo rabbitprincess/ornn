@@ -101,7 +101,7 @@ func (t *Select) parse(psr *sqlparser.Select) error {
 	return nil
 }
 
-func (t *Select) getTableNames() []string {
+func (t *Select) GetTableNames() []string {
 	tables := make([]string, len(t.TableAs))
 
 	for i, table := range t.TableAs {

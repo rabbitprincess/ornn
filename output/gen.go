@@ -57,8 +57,8 @@ func (t *Newtable) Insert(
 }
 
 type Newtable_select struct {
-	A interface{}
-	B interface{}
+	A string
+	B string
 }
 
 func (t *Newtable) Select() (

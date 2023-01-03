@@ -10,19 +10,21 @@ import (
 )
 
 func main() {
+	var err error
+
 	// connect db
 	dbType := atlas.DbTypePostgre
 	db, err := db_postgres.New("127.0.0.1", "5432", "postgres", "", "postgres")
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// dbType := atlas.DbTypeMySQL
-	// db, err := db_mysql.New("127.0.0.1", "3306", "root", "1234", "mysql")
-	// if err != nil {
-	// log.Fatal(err)
-	// }
-
+	/*
+		dbType := atlas.DbTypeMySQL
+		db, err := db_mysql.New("127.0.0.1", "3306", "root", "951753ck", "test")
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
 	// set conf
 	conf := &config.Config{}
 	{
