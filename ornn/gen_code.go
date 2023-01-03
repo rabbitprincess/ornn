@@ -8,6 +8,7 @@ import (
 
 	"github.com/gokch/ornn/codegen"
 	"github.com/gokch/ornn/config"
+	"github.com/gokch/ornn/db"
 	"github.com/gokch/ornn/sql"
 	"github.com/gokch/ornn/sql/template"
 )
@@ -113,13 +114,13 @@ func (t *GenCode) genFunc(groupName string, query *GenQuery) (funcQuery *codegen
 	}
 
 	switch query.queryType {
-	case QueryTypeSelect:
+	case db.QueryTypeSelect:
 		t.genQuerySelect(funcQuery, query)
-	case QueryTypeInsert:
+	case db.QueryTypeInsert:
 		t.genQueryInsert(funcQuery, query)
-	case QueryTypeUpdate:
+	case db.QueryTypeUpdate:
 		t.genQueryUpdate(funcQuery, query)
-	case QueryTypeDelete:
+	case db.QueryTypeDelete:
 		t.genQueryDelete(funcQuery, query)
 	default:
 		log.Fatalf("need more programming | invalid query type | query type : %v", query.queryType)

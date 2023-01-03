@@ -17,15 +17,6 @@ type GenQueries struct {
 	class map[string][]*GenQuery
 }
 
-type QueryType int8
-
-const (
-	QueryTypeSelect QueryType = iota + 1
-	QueryTypeInsert
-	QueryTypeUpdate
-	QueryTypeDelete
-)
-
 func (t *GenQueries) Init(conf *config.Config, db *db.Conn) {
 	t.conf = conf
 	t.db = db
@@ -125,17 +116,17 @@ func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQue
 
 	switch data := psr.(type) {
 	case *parser.Select:
-		genQuery.queryType = QueryTypeSelect
-		err = t.Select(t.conf, query, genQuery, data)
+		genQuery.queryType = db.QueryTypeSelect
+		err = Select(t.db, t.conf, query, genQuery, data)
 	case *parser.Insert:
-		genQuery.queryType = QueryTypeInsert
-		err = t.Insert(t.conf, query, genQuery, data)
+		genQuery.queryType = db.QueryTypeInsert
+		err = Insert(t.conf, query, genQuery, data)
 	case *parser.Update:
-		genQuery.queryType = QueryTypeUpdate
-		err = t.Update(t.conf, query, genQuery, data)
+		genQuery.queryType = db.QueryTypeUpdate
+		err = Update(t.conf, query, genQuery, data)
 	case *parser.Delete:
-		genQuery.queryType = QueryTypeDelete
-		err = t.Delete(t.conf, query, genQuery, data)
+		genQuery.queryType = db.QueryTypeDelete
+		err = Delete(t.conf, query, genQuery, data)
 	}
 
 	if err != nil {
@@ -159,13 +150,13 @@ func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQue
 	return genQuery, nil
 }
 
-func (t *GenQueries) Select(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlSelect *parser.Select) error {
+func Select(db *db.Conn, conf *config.Config, query *config.Query, genQuery *GenQuery, sqlSelect *parser.Select) error {
 	// 필드 정보를 얻어온다.
 	sqlWithoutWhere, _ := sql.Util_SplitByDelimiter(query.Sql, "where")
 	sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(sqlWithoutWhere, sql.PrepareStatementDelimeter, sql.PrepareStatementAfter)
 	sqlAfterArgClearTpl := sql.Util_ReplaceInDelimiter(sqlAfterArg, sql.TplDelimiter, sql.TplSplit)
 
-	rows, err := t.db.Job().Query(sqlAfterArgClearTpl)
+	rows, err := db.Job().Query(sqlAfterArgClearTpl)
 	if err != nil {
 		return err
 	}
@@ -182,8 +173,8 @@ func (t *GenQueries) Select(conf *config.Config, query *config.Query, genQuery *
 
 		// if custom type is not defined, get database type
 		if fieldType == "" {
-			colType, _ := t.conf.Schema.GetFieldType("", fieldName)
-			fieldType = t.conf.Schema.ConvType(colType)
+			colType, _ := conf.Schema.GetFieldType("", fieldName)
+			fieldType = conf.Schema.ConvType(colType)
 		}
 		genQuery.ret[fieldName] = fieldType
 	}
@@ -196,7 +187,7 @@ func (t *GenQueries) Select(conf *config.Config, query *config.Query, genQuery *
 	return nil
 }
 
-func (t *GenQueries) Insert(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlInsert *parser.Insert) error {
+func Insert(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlInsert *parser.Insert) error {
 	// 필드 정보를 얻어온다.
 	schemaTable, exist := query.Schema.Table(sqlInsert.TableName)
 	if exist != true {
@@ -230,7 +221,7 @@ func (t *GenQueries) Insert(conf *config.Config, query *config.Query, genQuery *
 			return fmt.Errorf("not exist field in schema | field name : %s", field.FieldName)
 		}
 
-		genQuery.arg[field.FieldName] = t.conf.Schema.ConvType(schemaField.Type.Raw)
+		genQuery.arg[field.FieldName] = conf.Schema.ConvType(schemaField.Type.Raw)
 	}
 
 	// multi insert 처리
@@ -239,7 +230,7 @@ func (t *GenQueries) Insert(conf *config.Config, query *config.Query, genQuery *
 	return nil
 }
 
-func (t *GenQueries) Update(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlUpdate *parser.Update) error {
+func Update(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlUpdate *parser.Update) error {
 	// set
 	for _, field := range sqlUpdate.Field {
 		// 입력값이 ? (arg) 형식이 아니면 func arg 를 만들 필요가 없음으로 continue
@@ -288,7 +279,7 @@ func (t *GenQueries) Update(conf *config.Config, query *config.Query, genQuery *
 			if exist != true {
 				return fmt.Errorf("not exist field | field name - %s", field.FieldName)
 			}
-			genType = t.conf.Schema.ConvType(schemaField.Type.Raw)
+			genType = conf.Schema.ConvType(schemaField.Type.Raw)
 		}
 
 		genQuery.arg[field.FieldName] = genType
@@ -299,12 +290,12 @@ func (t *GenQueries) Update(conf *config.Config, query *config.Query, genQuery *
 	return nil
 }
 
-func (t *GenQueries) Delete(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlDelete *parser.Delete) error {
+func Delete(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlDelete *parser.Delete) error {
 	return nil
 }
 
 type GenQuery struct {
-	queryType QueryType
+	queryType db.QueryType
 	groupName string
 	queryName string
 	query     string
