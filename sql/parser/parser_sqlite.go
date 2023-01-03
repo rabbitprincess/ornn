@@ -2,14 +2,13 @@ package parser
 
 import (
 	"github.com/CovenantSQL/sqlparser"
-	"github.com/gokch/ornn/db"
 )
 
 // TODO
 type ParserSqlite struct {
 }
 
-func (t *ParserSqlite) Parse(sql string) (*db.ParseQuery, error) {
+func (t *ParserSqlite) Parse(sql string) (*ParseQuery, error) {
 	stmt, err := sqlparser.Parse(sql)
 	if err != nil {
 		return nil, err
@@ -19,6 +18,6 @@ func (t *ParserSqlite) Parse(sql string) (*db.ParseQuery, error) {
 		_ = stmt
 	case *sqlparser.Insert:
 	}
-	parseQuery := &db.ParseQuery{}
+	parseQuery := &ParseQuery{}
 	return parseQuery, nil
 }

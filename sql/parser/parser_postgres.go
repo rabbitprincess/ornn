@@ -3,14 +3,13 @@ package parser
 import (
 	"github.com/auxten/postgresql-parser/pkg/sql/parser"
 	"github.com/auxten/postgresql-parser/pkg/walk"
-	"github.com/gokch/ornn/db"
 )
 
 // TODO
 type ParserPostgres struct {
 }
 
-func (p *ParserPostgres) Parse(sql string) (*db.ParseQuery, error) {
+func (p *ParserPostgres) Parse(sql string) (*ParseQuery, error) {
 	w := &walk.AstWalker{
 		// Fn: p.walker,
 	}
@@ -25,7 +24,7 @@ func (p *ParserPostgres) Parse(sql string) (*db.ParseQuery, error) {
 		return nil, err
 	}
 
-	parseQuery := &db.ParseQuery{}
+	parseQuery := &ParseQuery{}
 
 	return parseQuery, nil
 }

@@ -30,4 +30,3 @@ func (t *ParseQuery) Init() {
 	t.Arg = make(map[string]string)
 	t.Ret = make(map[string]string)
 }
-
