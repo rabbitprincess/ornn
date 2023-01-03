@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUtil_ClearStrInQuota(t *testing.T) {
+func TestUtil_ClearInQuot(t *testing.T) {
 	require.Equal(t, fmt.Sprintf("%s", strings.Repeat(" ", len("'will delete'"))), Util_ClearInQuot("'will delete'"))
 	require.Equal(t, fmt.Sprintf("%s", strings.Repeat(" ", len(`"will delete"`))), Util_ClearInQuot(`"will delete"`))
 	require.Equal(t, fmt.Sprintf("%s", strings.Repeat(" ", len("`will delete`"))), Util_ClearInQuot("`will delete`"))
