@@ -8,13 +8,13 @@ import (
 )
 
 type Gen struct {
-	data *GenData
+	data *GenQueries
 	code *GenCode
 }
 
 func (t *Gen) Gen(conn *db.Conn, conf *config.Config, path string) (code string, err error) {
 	// 코드 생성을 위한 gen 데이터 준비
-	t.data = &GenData{}
+	t.data = &GenQueries{}
 	t.data.Init(conf, conn)
 	err = t.data.SetData()
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 	"github.com/gokch/ornn/sql/parser"
 )
 
-type GenData struct {
+type GenQueries struct {
 	conf *config.Config
 	db   *db.Conn
 
@@ -56,13 +56,13 @@ type Pair struct {
 	Value string
 }
 
-func (t *GenData) Init(conf *config.Config, db *db.Conn) {
+func (t *GenQueries) Init(conf *config.Config, db *db.Conn) {
 	t.conf = conf
 	t.db = db
 	t.groups = make([]*GenDataGroup, 0, 10)
 }
 
-func (t *GenData) SetData() (err error) {
+func (t *GenQueries) SetData() (err error) {
 	// schema
 	for _, group := range t.conf.Schema.Tables {
 		Queries, ok := t.conf.Queries.Tables[group.Name]
@@ -89,7 +89,7 @@ func (t *GenData) SetData() (err error) {
 	return nil
 }
 
-func (t *GenData) SetDataGroup(groupName string, queries []*config.Query) (genGroup *GenDataGroup, err error) {
+func (t *GenQueries) SetDataGroup(groupName string, queries []*config.Query) (genGroup *GenDataGroup, err error) {
 	genGroup = &GenDataGroup{}
 	genGroup.Init(groupName)
 
@@ -103,7 +103,7 @@ func (t *GenData) SetDataGroup(groupName string, queries []*config.Query) (genGr
 	return genGroup, nil
 }
 
-func (t *GenData) SetDataQuery(groupName string, query *config.Query) (genQuery *GenDataQuery, err error) {
+func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQuery *GenDataQuery, err error) {
 	genQuery = &GenDataQuery{}
 
 	// set args
@@ -186,7 +186,7 @@ func (t *GenData) SetDataQuery(groupName string, query *config.Query) (genQuery 
 	return genQuery, nil
 }
 
-func (t *GenData) Select(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlSelect *parser.Select) error {
+func (t *GenQueries) Select(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlSelect *parser.Select) error {
 	// 필드 정보를 얻어온다.
 	sqlWithoutWhere, _ := sql.Util_SplitByDelimiter(query.Sql, "where")
 	sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(sqlWithoutWhere, sql.PrepareStatementDelimeter, sql.PrepareStatementAfter)
@@ -223,7 +223,7 @@ func (t *GenData) Select(conf *config.Config, query *config.Query, genQuery *Gen
 	return nil
 }
 
-func (t *GenData) Insert(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlInsert *parser.Insert) error {
+func (t *GenQueries) Insert(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlInsert *parser.Insert) error {
 	// 필드 정보를 얻어온다.
 	schemaTable, exist := query.Schema.Table(sqlInsert.TableName)
 	if exist != true {
@@ -266,7 +266,7 @@ func (t *GenData) Insert(conf *config.Config, query *config.Query, genQuery *Gen
 	return nil
 }
 
-func (t *GenData) Update(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlUpdate *parser.Update) error {
+func (t *GenQueries) Update(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlUpdate *parser.Update) error {
 	// set
 	for _, field := range sqlUpdate.Field {
 		// 입력값이 ? (arg) 형식이 아니면 func arg 를 만들 필요가 없음으로 continue
@@ -326,11 +326,11 @@ func (t *GenData) Update(conf *config.Config, query *config.Query, genQuery *Gen
 	return nil
 }
 
-func (t *GenData) Delete(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlDelete *parser.Delete) error {
+func (t *GenQueries) Delete(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlDelete *parser.Delete) error {
 	return nil
 }
 
-func (t *GenData) Add(group *GenDataGroup) {
+func (t *GenQueries) Add(group *GenDataGroup) {
 	if t.groups == nil {
 		t.groups = make([]*GenDataGroup, 0, 10)
 	}

@@ -17,7 +17,7 @@ type GenCode struct {
 	codeGen *codegen.CodeGen
 }
 
-func (t *GenCode) code(config *config.Config, genData *GenData) (genCode string, err error) {
+func (t *GenCode) code(config *config.Config, genQueries *GenQueries) (genCode string, err error) {
 	t.config = config
 	t.codeGen = &codegen.CodeGen{}
 	t.codeGen.DoNotEdit = t.config.Global.DoNotEdit
@@ -50,21 +50,20 @@ func (t *GenCode) code(config *config.Config, genData *GenData) (genCode string,
 	}
 	rootFunc.AddArg(rootFuncInitArg)
 
-	for _, group := range genData.groups {
-		genGroup := t.genGroup(group.Name)
-		t.codeGen.AddItem(genGroup)
+	for _, queryGroup := range genQueries.groups {
+		genClass := t.genClass(queryGroup.Name)
+		t.codeGen.AddItem(genClass)
 
-		// root 구조체 안에 group 구조체 포인터 선언
-		rootVars := &codegen.Var{
-			Type: genGroup.Name,
-			Name: genGroup.Name,
-		}
-		rootStruct.AddField(rootVars)
-		rootFunc.InlineCode += fmt.Sprintf("%s.%s.%s(%s)\n", "t", rootVars.Name, "Init", rootFunc.Args.Items[0].Name)
+		// root 구조체 안에 queries 구조체 포인터 선언
+		rootStruct.AddField(&codegen.Var{
+			Type: genClass.Name,
+			Name: genClass.Name,
+		})
+		rootFunc.InlineCode += fmt.Sprintf("%s.%s.%s(%s)\n", "t", genClass.Name, "Init", rootFunc.Args.Items[0].Name)
 
-		for _, query := range group.Queries {
-			funcQuery := t.genQuery(genGroup.Name, query)
-			t.codeGen.AddItem(funcQuery)
+		for _, query := range queryGroup.Queries {
+			genFunc := t.genFunc(genClass.Name, query)
+			t.codeGen.AddItem(genFunc)
 		}
 	}
 
@@ -73,7 +72,7 @@ func (t *GenCode) code(config *config.Config, genData *GenData) (genCode string,
 	return genCode, nil
 }
 
-func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
+func (t *GenCode) genClass(group string) (genGroup *codegen.Struct) {
 	genGroup = &codegen.Struct{
 		Name: sql.Util_ConvFirstToUpper(group),
 	}
@@ -106,7 +105,7 @@ func (t *GenCode) genGroup(group string) (genGroup *codegen.Struct) {
 	return genGroup
 }
 
-func (t *GenCode) genQuery(groupName string, query *GenDataQuery) (funcQuery *codegen.Function) {
+func (t *GenCode) genFunc(groupName string, query *GenDataQuery) (funcQuery *codegen.Function) {
 	funcQuery = &codegen.Function{
 		StructName: "t",
 		StructType: "*" + groupName,
