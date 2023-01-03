@@ -50,8 +50,8 @@ func (t *GenCode) code(config *config.Config, genQueries *GenQueries) (genCode s
 	}
 	rootFunc.AddArg(rootFuncInitArg)
 
-	for _, queryGroup := range genQueries.groups {
-		genClass := t.genClass(queryGroup.Name)
+	for groupName, queryGroup := range genQueries.groups {
+		genClass := t.genClass(groupName)
 		t.codeGen.AddItem(genClass)
 
 		// root 구조체 안에 queries 구조체 포인터 선언
@@ -61,7 +61,7 @@ func (t *GenCode) code(config *config.Config, genQueries *GenQueries) (genCode s
 		})
 		rootFunc.InlineCode += fmt.Sprintf("%s.%s.%s(%s)\n", "t", genClass.Name, "Init", rootFunc.Args.Items[0].Name)
 
-		for _, query := range queryGroup.Queries {
+		for _, query := range queryGroup {
 			genFunc := t.genFunc(genClass.Name, query)
 			t.codeGen.AddItem(genFunc)
 		}
@@ -72,9 +72,9 @@ func (t *GenCode) code(config *config.Config, genQueries *GenQueries) (genCode s
 	return genCode, nil
 }
 
-func (t *GenCode) genClass(group string) (genGroup *codegen.Struct) {
+func (t *GenCode) genClass(name string) (genGroup *codegen.Struct) {
 	genGroup = &codegen.Struct{
-		Name: sql.Util_ConvFirstToUpper(group),
+		Name: sql.Util_ConvFirstToUpper(name),
 	}
 
 	// root 구조체 연결을 위한 구조체 필드 변수 제작
@@ -105,7 +105,7 @@ func (t *GenCode) genClass(group string) (genGroup *codegen.Struct) {
 	return genGroup
 }
 
-func (t *GenCode) genFunc(groupName string, query *GenDataQuery) (funcQuery *codegen.Function) {
+func (t *GenCode) genFunc(groupName string, query *GenQuery) (funcQuery *codegen.Function) {
 	funcQuery = &codegen.Function{
 		StructName: "t",
 		StructType: "*" + groupName,
@@ -127,7 +127,7 @@ func (t *GenCode) genFunc(groupName string, query *GenDataQuery) (funcQuery *cod
 	return funcQuery
 }
 
-func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *GenDataQuery) {
+func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *GenQuery) {
 	// struct for select
 	structName := t.genQuery_struct_select(funcQuery, query)
 
@@ -143,7 +143,7 @@ func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *GenDataQuer
 	funcQuery.InlineCode = template.Select(args, tpls, query.query, query.SelectSingle, "t", "job", structName, retItemName, retItemType)
 }
 
-func (t *GenCode) genQueryInsert(funcQuery *codegen.Function, query *GenDataQuery) {
+func (t *GenCode) genQueryInsert(funcQuery *codegen.Function, query *GenQuery) {
 	// args
 	args := t.genQuery_args(funcQuery, query)
 	tpls := t.genQuery_tpls(funcQuery, query)
@@ -156,7 +156,7 @@ func (t *GenCode) genQueryInsert(funcQuery *codegen.Function, query *GenDataQuer
 	funcQuery.InlineCode = template.Insert(args, tpls, query.query, query.InsertMulti, "t", "job")
 }
 
-func (t *GenCode) genQueryUpdate(funcQuery *codegen.Function, query *GenDataQuery) {
+func (t *GenCode) genQueryUpdate(funcQuery *codegen.Function, query *GenQuery) {
 	// args
 	args := t.genQuery_args(funcQuery, query)
 	tpls := t.genQuery_tpls(funcQuery, query)
@@ -169,7 +169,7 @@ func (t *GenCode) genQueryUpdate(funcQuery *codegen.Function, query *GenDataQuer
 	funcQuery.InlineCode = template.Update(args, tpls, query.query, query.UpdateNullIgnore, "t", "job")
 }
 
-func (t *GenCode) genQueryDelete(funcQuery *codegen.Function, query *GenDataQuery) {
+func (t *GenCode) genQueryDelete(funcQuery *codegen.Function, query *GenQuery) {
 	// args
 	tpls := t.genQuery_tpls(funcQuery, query)
 	args := t.genQuery_args(funcQuery, query)
@@ -182,7 +182,7 @@ func (t *GenCode) genQueryDelete(funcQuery *codegen.Function, query *GenDataQuer
 	funcQuery.InlineCode = template.Delete(args, query.query, tpls, "t", "job")
 }
 
-func (t *GenCode) genQuery_tpls(funcQuery *codegen.Function, query *GenDataQuery) (tpls []string) {
+func (t *GenCode) genQuery_tpls(funcQuery *codegen.Function, query *GenQuery) (tpls []string) {
 	tpls = make([]string, 0, len(query.tpl.pairs))
 	for _, tpl := range query.tpl.pairs {
 		arg := &codegen.Var{
@@ -195,7 +195,7 @@ func (t *GenCode) genQuery_tpls(funcQuery *codegen.Function, query *GenDataQuery
 	return tpls
 }
 
-func (t *GenCode) genQuery_args(funcQuery *codegen.Function, query *GenDataQuery) (args []string) {
+func (t *GenCode) genQuery_args(funcQuery *codegen.Function, query *GenQuery) (args []string) {
 	args = make([]string, 0, len(query.tpl.pairs))
 
 	for _, pair := range query.arg.pairs {
@@ -222,7 +222,7 @@ func (t *GenCode) genQuery_ret_error(funcQuery *codegen.Function) {
 	})
 }
 
-func (t *GenCode) genQuery_struct_select(funcQuery *codegen.Function, query *GenDataQuery) (retStructName string) {
+func (t *GenCode) genQuery_struct_select(funcQuery *codegen.Function, query *GenQuery) (retStructName string) {
 	retStruct := &codegen.Struct{
 		Name: fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(query.groupName), strings.ToLower(funcQuery.FuncName)),
 	}

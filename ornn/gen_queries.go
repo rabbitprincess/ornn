@@ -14,15 +14,10 @@ type GenQueries struct {
 	conf *config.Config
 	db   *db.Conn
 
-	groups []*GenDataGroup
+	groups map[string][]*GenQuery
 }
 
-type GenDataGroup struct {
-	Name    string
-	Queries []*GenDataQuery
-}
-
-type GenDataQuery struct {
+type GenQuery struct {
 	queryType QueryType
 	groupName string
 	queryName string
@@ -59,7 +54,7 @@ type Pair struct {
 func (t *GenQueries) Init(conf *config.Config, db *db.Conn) {
 	t.conf = conf
 	t.db = db
-	t.groups = make([]*GenDataGroup, 0, 10)
+	t.groups = make(map[string][]*GenQuery)
 }
 
 func (t *GenQueries) SetData() (err error) {
@@ -69,42 +64,41 @@ func (t *GenQueries) SetData() (err error) {
 		if ok != true {
 			continue
 		}
-
-		genGroup, err := t.SetDataGroup(group.Name, Queries)
+		err := t.SetDataGroup(group.Name, Queries)
 		if err != nil {
 			return err
 		}
-		t.Add(genGroup)
 	}
 
 	// custom
 	for groupName, custom := range t.conf.Queries.Custom {
-		genGroup, err := t.SetDataGroup(groupName, custom)
+		err := t.SetDataGroup(groupName, custom)
 		if err != nil {
 			return err
 		}
-		t.Add(genGroup)
 	}
-
 	return nil
 }
 
-func (t *GenQueries) SetDataGroup(groupName string, queries []*config.Query) (genGroup *GenDataGroup, err error) {
-	genGroup = &GenDataGroup{}
-	genGroup.Init(groupName)
+func (t *GenQueries) SetDataGroup(groupName string, queries []*config.Query) (err error) {
+	if t.groups == nil {
+		t.groups = make(map[string][]*GenQuery)
+	} else if t.groups[groupName] == nil {
+		t.groups[groupName] = make([]*GenQuery, 0, len(queries))
+	}
 
 	for _, query := range queries {
 		genQuery, err := t.SetDataQuery(groupName, query)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		genGroup.AddQuery(genQuery)
+		t.groups[groupName] = append(t.groups[groupName], genQuery)
 	}
-	return genGroup, nil
+	return nil
 }
 
-func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQuery *GenDataQuery, err error) {
-	genQuery = &GenDataQuery{}
+func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQuery *GenQuery, err error) {
+	genQuery = &GenQuery{}
 
 	// set args
 	// tpl args ( # name # )를 배열로 추출
@@ -186,7 +180,7 @@ func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQue
 	return genQuery, nil
 }
 
-func (t *GenQueries) Select(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlSelect *parser.Select) error {
+func (t *GenQueries) Select(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlSelect *parser.Select) error {
 	// 필드 정보를 얻어온다.
 	sqlWithoutWhere, _ := sql.Util_SplitByDelimiter(query.Sql, "where")
 	sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(sqlWithoutWhere, sql.PrepareStatementDelimeter, sql.PrepareStatementAfter)
@@ -223,7 +217,7 @@ func (t *GenQueries) Select(conf *config.Config, query *config.Query, genQuery *
 	return nil
 }
 
-func (t *GenQueries) Insert(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlInsert *parser.Insert) error {
+func (t *GenQueries) Insert(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlInsert *parser.Insert) error {
 	// 필드 정보를 얻어온다.
 	schemaTable, exist := query.Schema.Table(sqlInsert.TableName)
 	if exist != true {
@@ -266,7 +260,7 @@ func (t *GenQueries) Insert(conf *config.Config, query *config.Query, genQuery *
 	return nil
 }
 
-func (t *GenQueries) Update(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlUpdate *parser.Update) error {
+func (t *GenQueries) Update(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlUpdate *parser.Update) error {
 	// set
 	for _, field := range sqlUpdate.Field {
 		// 입력값이 ? (arg) 형식이 아니면 func arg 를 만들 필요가 없음으로 continue
@@ -326,26 +320,8 @@ func (t *GenQueries) Update(conf *config.Config, query *config.Query, genQuery *
 	return nil
 }
 
-func (t *GenQueries) Delete(conf *config.Config, query *config.Query, genQuery *GenDataQuery, sqlDelete *parser.Delete) error {
+func (t *GenQueries) Delete(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlDelete *parser.Delete) error {
 	return nil
-}
-
-func (t *GenQueries) Add(group *GenDataGroup) {
-	if t.groups == nil {
-		t.groups = make([]*GenDataGroup, 0, 10)
-	}
-	t.groups = append(t.groups, group)
-}
-
-func (t *GenDataGroup) Init(Name string) {
-	t.Name = Name
-}
-
-func (t *GenDataGroup) AddQuery(query *GenDataQuery) {
-	if t.Queries == nil {
-		t.Queries = make([]*GenDataQuery, 0, 10)
-	}
-	t.Queries = append(t.Queries, query)
 }
 
 func (t *Pairs) setKs(Keys []string) {
