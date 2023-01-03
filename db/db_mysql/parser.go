@@ -1,15 +1,14 @@
 package db_mysql
 
 import (
-	tiparser "github.com/pingcap/parser"
-	"github.com/pingcap/parser/ast"
+	tiparser "github.com/pingcap/tidb/parser"
+	"github.com/pingcap/tidb/parser/ast"
 )
 
 // TODO
 type Parser struct {
 }
 
-// ParserMysql ...
 func (p *Parser) Parse(sql string) error {
 	ps := tiparser.New()
 	stmtNodes, _, err := ps.Parse(sql, "", "")
