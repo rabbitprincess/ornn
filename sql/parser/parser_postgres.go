@@ -1,4 +1,4 @@
-package db_postgres
+package parser
 
 import (
 	"github.com/auxten/postgresql-parser/pkg/sql/parser"
@@ -7,10 +7,10 @@ import (
 )
 
 // TODO
-type Parser struct {
+type ParserPostgres struct {
 }
 
-func (p *Parser) Parse(sql string) (*db.ParseQuery, error) {
+func (p *ParserPostgres) Parse(sql string) (*db.ParseQuery, error) {
 	w := &walk.AstWalker{
 		// Fn: p.walker,
 	}

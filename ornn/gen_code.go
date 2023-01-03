@@ -8,8 +8,8 @@ import (
 
 	"github.com/gokch/ornn/codegen"
 	"github.com/gokch/ornn/config"
-	"github.com/gokch/ornn/db"
 	"github.com/gokch/ornn/sql"
+	"github.com/gokch/ornn/sql/parser"
 	"github.com/gokch/ornn/sql/template"
 )
 
@@ -106,29 +106,29 @@ func (t *GenCode) genClass(name string) (genGroup *codegen.Struct) {
 	return genGroup
 }
 
-func (t *GenCode) genFunc(groupName string, query *GenQuery) (funcQuery *codegen.Function) {
+func (t *GenCode) genFunc(groupName string, query *parser.ParseQuery) (funcQuery *codegen.Function) {
 	funcQuery = &codegen.Function{
 		StructName: "t",
 		StructType: "*" + groupName,
-		FuncName:   sql.Util_ConvFirstToUpper(query.queryName),
+		FuncName:   sql.Util_ConvFirstToUpper(query.QueryName),
 	}
 
-	switch query.queryType {
-	case db.QueryTypeSelect:
+	switch query.QueryType {
+	case parser.QueryTypeSelect:
 		t.genQuerySelect(funcQuery, query)
-	case db.QueryTypeInsert:
+	case parser.QueryTypeInsert:
 		t.genQueryInsert(funcQuery, query)
-	case db.QueryTypeUpdate:
+	case parser.QueryTypeUpdate:
 		t.genQueryUpdate(funcQuery, query)
-	case db.QueryTypeDelete:
+	case parser.QueryTypeDelete:
 		t.genQueryDelete(funcQuery, query)
 	default:
-		log.Fatalf("need more programming | invalid query type | query type : %v", query.queryType)
+		log.Fatalf("need more programming | invalid query type | query type : %v", query.QueryType)
 	}
 	return funcQuery
 }
 
-func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *GenQuery) {
+func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *parser.ParseQuery) {
 	// struct for select
 	structName := t.genQuery_struct_select(funcQuery, query)
 
@@ -141,10 +141,10 @@ func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *GenQuery) {
 	t.genQuery_ret_error(funcQuery)
 
 	// body
-	funcQuery.InlineCode = template.Select(args, tpls, query.query, query.SelectSingle, "t", "job", structName, retItemName, retItemType)
+	funcQuery.InlineCode = template.Select(args, tpls, query.Query, query.SelectSingle, "t", "job", structName, retItemName, retItemType)
 }
 
-func (t *GenCode) genQueryInsert(funcQuery *codegen.Function, query *GenQuery) {
+func (t *GenCode) genQueryInsert(funcQuery *codegen.Function, query *parser.ParseQuery) {
 	// args
 	args := t.genQuery_args(funcQuery, query)
 	tpls := t.genQuery_tpls(funcQuery, query)
@@ -154,10 +154,10 @@ func (t *GenCode) genQueryInsert(funcQuery *codegen.Function, query *GenQuery) {
 	t.genQuery_ret_error(funcQuery)
 
 	// body
-	funcQuery.InlineCode = template.Insert(args, tpls, query.query, query.InsertMulti, "t", "job")
+	funcQuery.InlineCode = template.Insert(args, tpls, query.Query, query.InsertMulti, "t", "job")
 }
 
-func (t *GenCode) genQueryUpdate(funcQuery *codegen.Function, query *GenQuery) {
+func (t *GenCode) genQueryUpdate(funcQuery *codegen.Function, query *parser.ParseQuery) {
 	// args
 	args := t.genQuery_args(funcQuery, query)
 	tpls := t.genQuery_tpls(funcQuery, query)
@@ -167,10 +167,10 @@ func (t *GenCode) genQueryUpdate(funcQuery *codegen.Function, query *GenQuery) {
 	t.genQuery_ret_error(funcQuery)
 
 	// body
-	funcQuery.InlineCode = template.Update(args, tpls, query.query, query.UpdateNullIgnore, "t", "job")
+	funcQuery.InlineCode = template.Update(args, tpls, query.Query, query.UpdateNullIgnore, "t", "job")
 }
 
-func (t *GenCode) genQueryDelete(funcQuery *codegen.Function, query *GenQuery) {
+func (t *GenCode) genQueryDelete(funcQuery *codegen.Function, query *parser.ParseQuery) {
 	// args
 	tpls := t.genQuery_tpls(funcQuery, query)
 	args := t.genQuery_args(funcQuery, query)
@@ -180,12 +180,12 @@ func (t *GenCode) genQueryDelete(funcQuery *codegen.Function, query *GenQuery) {
 	t.genQuery_ret_error(funcQuery)
 
 	// body
-	funcQuery.InlineCode = template.Delete(args, query.query, tpls, "t", "job")
+	funcQuery.InlineCode = template.Delete(args, query.Query, tpls, "t", "job")
 }
 
-func (t *GenCode) genQuery_tpls(funcQuery *codegen.Function, query *GenQuery) (tpls []string) {
-	tpls = make([]string, 0, len(query.tpl))
-	for name, typ := range query.tpl {
+func (t *GenCode) genQuery_tpls(funcQuery *codegen.Function, query *parser.ParseQuery) (tpls []string) {
+	tpls = make([]string, 0, len(query.Tpl))
+	for name, typ := range query.Tpl {
 		arg := &codegen.Var{
 			Name: fmt.Sprintf("tpl_%s", name),
 			Type: typ,
@@ -196,10 +196,10 @@ func (t *GenCode) genQuery_tpls(funcQuery *codegen.Function, query *GenQuery) (t
 	return tpls
 }
 
-func (t *GenCode) genQuery_args(funcQuery *codegen.Function, query *GenQuery) (args []string) {
-	args = make([]string, 0, len(query.arg))
+func (t *GenCode) genQuery_args(funcQuery *codegen.Function, query *parser.ParseQuery) (args []string) {
+	args = make([]string, 0, len(query.Arg))
 
-	for name, typ := range query.arg {
+	for name, typ := range query.Arg {
 		arg := &codegen.Var{}
 		arg.Name = fmt.Sprintf("arg_%s", name)
 		arg.Type = typ
@@ -222,11 +222,11 @@ func (t *GenCode) genQuery_ret_error(funcQuery *codegen.Function) {
 	})
 }
 
-func (t *GenCode) genQuery_struct_select(funcQuery *codegen.Function, query *GenQuery) (retStructName string) {
+func (t *GenCode) genQuery_struct_select(funcQuery *codegen.Function, query *parser.ParseQuery) (retStructName string) {
 	retStruct := &codegen.Struct{
-		Name: fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(query.groupName), strings.ToLower(funcQuery.FuncName)),
+		Name: fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(query.GroupName), strings.ToLower(funcQuery.FuncName)),
 	}
-	for name, typ := range query.ret {
+	for name, typ := range query.Ret {
 		item := &codegen.Var{
 			Name: sql.Util_ConvFirstToUpper(name),
 			Type: typ,

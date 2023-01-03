@@ -1,4 +1,4 @@
-package db_mysql
+package parser
 
 import (
 	"github.com/gokch/ornn/db"
@@ -7,10 +7,10 @@ import (
 )
 
 // TODO
-type Parser struct {
+type ParserMysql struct {
 }
 
-func (p *Parser) Parse(sql string) (*db.ParseQuery, error) {
+func (p *ParserMysql) Parse(sql string) (*db.ParseQuery, error) {
 	ps := tiparser.New()
 	stmtNodes, _, err := ps.Parse(sql, "", "")
 	if err != nil {

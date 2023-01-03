@@ -14,13 +14,13 @@ type GenQueries struct {
 	conf *config.Config
 	db   *db.Conn
 
-	class map[string][]*GenQuery
+	class map[string][]*parser.ParseQuery
 }
 
 func (t *GenQueries) Init(conf *config.Config, db *db.Conn) {
 	t.conf = conf
 	t.db = db
-	t.class = make(map[string][]*GenQuery)
+	t.class = make(map[string][]*parser.ParseQuery)
 
 }
 
@@ -49,24 +49,24 @@ func (t *GenQueries) SetData() (err error) {
 
 func (t *GenQueries) SetDataGroup(groupName string, queries []*config.Query) (err error) {
 	if t.class == nil {
-		t.class = make(map[string][]*GenQuery)
+		t.class = make(map[string][]*parser.ParseQuery)
 	} else if t.class[groupName] == nil {
-		t.class[groupName] = make([]*GenQuery, 0, len(queries))
+		t.class[groupName] = make([]*parser.ParseQuery, 0, len(queries))
 	}
 
 	for _, query := range queries {
-		genQuery, err := t.SetDataQuery(groupName, query)
+		parseQuery, err := t.SetDataQuery(groupName, query)
 		if err != nil {
 			return err
 		}
-		t.class[groupName] = append(t.class[groupName], genQuery)
+		t.class[groupName] = append(t.class[groupName], parseQuery)
 	}
 	return nil
 }
 
-func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQuery *GenQuery, err error) {
-	genQuery = &GenQuery{}
-	genQuery.Init()
+func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (parseQuery *parser.ParseQuery, err error) {
+	parseQuery = &parser.ParseQuery{}
+	parseQuery.Init()
 
 	// set args
 	// tpl args ( # name # )를 배열로 추출
@@ -89,7 +89,7 @@ func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQue
 			return nil, fmt.Errorf("tpl format is wrong - %s", tpl)
 		}
 
-		genQuery.tpl[argName] = argData
+		parseQuery.Tpl[argName] = argData
 	}
 
 	// args ( % name % )를 배열로 추출
@@ -98,7 +98,7 @@ func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQue
 		return nil, err
 	}
 	for _, arg := range args {
-		genQuery.arg[arg] = "" // default
+		parseQuery.Arg[arg] = "" // default
 	}
 
 	// %arg% -> ? # # +  /
@@ -116,17 +116,17 @@ func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQue
 
 	switch data := psr.(type) {
 	case *parser.Select:
-		genQuery.queryType = db.QueryTypeSelect
-		err = Select(t.db, t.conf, query, genQuery, data)
+		parseQuery.QueryType = parser.QueryTypeSelect
+		err = Select(t.db, t.conf, query, parseQuery, data)
 	case *parser.Insert:
-		genQuery.queryType = db.QueryTypeInsert
-		err = Insert(t.conf, query, genQuery, data)
+		parseQuery.QueryType = parser.QueryTypeInsert
+		err = Insert(t.conf, query, parseQuery, data)
 	case *parser.Update:
-		genQuery.queryType = db.QueryTypeUpdate
-		err = Update(t.conf, query, genQuery, data)
+		parseQuery.QueryType = parser.QueryTypeUpdate
+		err = Update(t.conf, query, parseQuery, data)
 	case *parser.Delete:
-		genQuery.queryType = db.QueryTypeDelete
-		err = Delete(t.conf, query, genQuery, data)
+		parseQuery.QueryType = parser.QueryTypeDelete
+		err = Delete(t.conf, query, parseQuery, data)
 	}
 
 	if err != nil {
@@ -137,20 +137,20 @@ func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQue
 	// query 데이터 구성 후처리
 	{
 		// 그룹 이름 복사
-		genQuery.groupName = groupName
+		parseQuery.GroupName = groupName
 
 		// 쿼리 이름 복사
-		genQuery.queryName = query.Name
+		parseQuery.QueryName = query.Name
 
 		// sql 문 복사 ( #이름# -> %s 로 변경 )
 		sqlAfterArgTpl := sql.Util_ReplaceBetweenDelimiter(sqlAfterArg, sql.TplDelimiter, sql.TplAfter)
-		genQuery.query = sqlAfterArgTpl
+		parseQuery.Query = sqlAfterArgTpl
 
 	}
-	return genQuery, nil
+	return parseQuery, nil
 }
 
-func Select(db *db.Conn, conf *config.Config, query *config.Query, genQuery *GenQuery, sqlSelect *parser.Select) error {
+func Select(db *db.Conn, conf *config.Config, query *config.Query, parseQuery *parser.ParseQuery, sqlSelect *parser.Select) error {
 	// 필드 정보를 얻어온다.
 	sqlWithoutWhere, _ := sql.Util_SplitByDelimiter(query.Sql, "where")
 	sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(sqlWithoutWhere, sql.PrepareStatementDelimeter, sql.PrepareStatementAfter)
@@ -176,18 +176,18 @@ func Select(db *db.Conn, conf *config.Config, query *config.Query, genQuery *Gen
 			colType, _ := conf.Schema.GetFieldType("", fieldName)
 			fieldType = conf.Schema.ConvType(colType)
 		}
-		genQuery.ret[fieldName] = fieldType
+		parseQuery.Ret[fieldName] = fieldType
 	}
 
 	// single select 처리
 	// 코드 생성 시 단일 구조체 반환 목적
 	if sqlSelect.Limit != nil && *(sqlSelect.Limit) == 1 {
-		genQuery.SelectSingle = true
+		parseQuery.SelectSingle = true
 	}
 	return nil
 }
 
-func Insert(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlInsert *parser.Insert) error {
+func Insert(conf *config.Config, query *config.Query, parseQuery *parser.ParseQuery, sqlInsert *parser.Insert) error {
 	// 필드 정보를 얻어온다.
 	schemaTable, exist := query.Schema.Table(sqlInsert.TableName)
 	if exist != true {
@@ -221,16 +221,16 @@ func Insert(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlIns
 			return fmt.Errorf("not exist field in schema | field name : %s", field.FieldName)
 		}
 
-		genQuery.arg[field.FieldName] = conf.Schema.ConvType(schemaField.Type.Raw)
+		parseQuery.Arg[field.FieldName] = conf.Schema.ConvType(schemaField.Type.Raw)
 	}
 
 	// multi insert 처리
-	genQuery.InsertMulti = query.InsertMulti
+	parseQuery.InsertMulti = query.InsertMulti
 
 	return nil
 }
 
-func Update(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlUpdate *parser.Update) error {
+func Update(conf *config.Config, query *config.Query, parseQuery *parser.ParseQuery, sqlUpdate *parser.Update) error {
 	// set
 	for _, field := range sqlUpdate.Field {
 		// 입력값이 ? (arg) 형식이 아니면 func arg 를 만들 필요가 없음으로 continue
@@ -282,36 +282,14 @@ func Update(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlUpd
 			genType = conf.Schema.ConvType(schemaField.Type.Raw)
 		}
 
-		genQuery.arg[field.FieldName] = genType
+		parseQuery.Arg[field.FieldName] = genType
 	}
 	// update 시 null 값 ignore 처리
-	genQuery.UpdateNullIgnore = query.UpdateNullIgnore
+	parseQuery.UpdateNullIgnore = query.UpdateNullIgnore
 
 	return nil
 }
 
-func Delete(conf *config.Config, query *config.Query, genQuery *GenQuery, sqlDelete *parser.Delete) error {
+func Delete(conf *config.Config, query *config.Query, parseQuery *parser.ParseQuery, sqlDelete *parser.Delete) error {
 	return nil
-}
-
-type GenQuery struct {
-	queryType db.QueryType
-	groupName string
-	queryName string
-	query     string
-
-	tpl map[string]string // name:type
-	arg map[string]string // name:type
-	ret map[string]string // name:type
-
-	// options
-	SelectSingle     bool
-	InsertMulti      bool
-	UpdateNullIgnore bool
-}
-
-func (t *GenQuery) Init() {
-	t.tpl = make(map[string]string)
-	t.arg = make(map[string]string)
-	t.ret = make(map[string]string)
 }

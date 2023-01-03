@@ -1,4 +1,4 @@
-package db_sqlite
+package parser
 
 import (
 	"github.com/CovenantSQL/sqlparser"
@@ -6,10 +6,10 @@ import (
 )
 
 // TODO
-type Parser struct {
+type ParserSqlite struct {
 }
 
-func (t *Parser) Parse(sql string) (*db.ParseQuery, error) {
+func (t *ParserSqlite) Parse(sql string) (*db.ParseQuery, error) {
 	stmt, err := sqlparser.Parse(sql)
 	if err != nil {
 		return nil, err
