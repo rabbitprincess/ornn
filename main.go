@@ -5,16 +5,23 @@ import (
 
 	"github.com/gokch/ornn/atlas"
 	"github.com/gokch/ornn/config"
-	"github.com/gokch/ornn/db/db_mysql"
+	"github.com/gokch/ornn/db/db_postgres"
 	"github.com/gokch/ornn/ornn"
 )
 
 func main() {
-	// connect db ( current mysql only... )
-	db, err := db_mysql.New("127.0.0.1", "3306", "root", "1234", "test")
+	// connect db
+	dbType := atlas.DbTypePostgre
+	db, err := db_postgres.New("127.0.0.1", "5432", "postgres", "", "postgres")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// dbType := atlas.DbTypeMySQL
+	// db, err := db_mysql.New("127.0.0.1", "3306", "root", "1234", "mysql")
+	// if err != nil {
+	// log.Fatal(err)
+	// }
 
 	// set conf
 	conf := &config.Config{}
@@ -29,11 +36,11 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		schema, err := atlas.InspectSchema(atlas.DbTypeMySQL, db)
+		schema, err := atlas.InspectSchema(dbType, db)
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = conf.InitSchema(atlas.DbTypeMySQL, schema)
+		err = conf.InitSchema(dbType, schema)
 		if err != nil {
 			log.Fatal(err)
 		}

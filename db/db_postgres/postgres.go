@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gokch/ornn/db"
+	_ "github.com/lib/pq"
 )
 
 func Dsn(host, port, id, pw, dbName string) string {

@@ -7,7 +7,7 @@ import (
 )
 
 func TestConn(t *testing.T) {
-	conn, err := New("localhost", "5432", "root", "1234", "postgres")
+	conn, err := New("localhost", "5432", "postgres", "", "postgres")
 	require.NoError(t, err)
 
 	err = conn.Raw().Ping()

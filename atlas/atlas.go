@@ -28,7 +28,8 @@ func InspectSchema(dbType DbType, db *db.Conn) (*schema.Schema, error) {
 }
 
 type Atlas struct {
-	Type        DbType
+	DbName      string
+	DbType      DbType
 	marshaler   schemahcl.MarshalerFunc
 	unmarshaler schemahcl.EvalFunc
 	driver      migrate.Driver
@@ -36,8 +37,8 @@ type Atlas struct {
 
 func (t *Atlas) Init(dbType DbType, db *db.Conn) error {
 	var err error
-
-	t.Type = dbType
+	t.DbName = db.DbName
+	t.DbType = dbType
 	switch dbType {
 	case DbTypeMySQL, DbTypeMaria, DbTypeTiDB:
 		t.marshaler = mysql.MarshalHCL

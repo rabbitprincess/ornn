@@ -17,21 +17,21 @@
 	"queries": {
 		"custom": {},
 		"tables": {
-			"user": [
+			"newtable": [
 				{
 					"name": "insert",
 					"comment": "default query - insert all",
-					"sql": "INSERT INTO user VALUES (?, ?, ?)"
+					"sql": "INSERT INTO newtable VALUES (?, ?)"
 				},
 				{
 					"name": "select",
 					"comment": "default query - select all",
-					"sql": "SELECT * FROM user"
+					"sql": "SELECT * FROM newtable"
 				},
 				{
 					"name": "delete",
 					"comment": "default query - delete all",
-					"sql": "DELETE FROM user"
+					"sql": "DELETE FROM newtable"
 				}
 			]
 		}

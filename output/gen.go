@@ -9,42 +9,40 @@ import (
 )
 
 type Gen struct {
-	User User
+	Newtable Newtable
 }
 
 func (t *Gen) Init(
 	job *Job,
 ) {
-	t.User.Init(job)
+	t.Newtable.Init(job)
 }
 
-func (t *User) Init(
+func (t *Newtable) Init(
 	job *Job,
 ) {
 	t.job = job
 }
 
-type User struct {
+type Newtable struct {
 	job *Job
 }
 
-func (t *User) Insert(
-	arg_seq int64,
-	arg_id string,
-	arg_name string,
+func (t *Newtable) Insert(
+	arg_a string,
+	arg_b string,
 ) (
 	lastInsertId int64,
 	err error,
 ) {
-	args := make([]interface{}, 0, 3)
+	args := make([]interface{}, 0, 2)
 	args = append(args, I_to_arri(
-		arg_seq,
-		arg_id,
-		arg_name,
+		arg_a,
+		arg_b,
 	)...)
 	
 	sql := fmt.Sprintf(
-		"INSERT INTO user VALUES (?, ?, ?)",
+		"INSERT INTO newtable VALUES (?, ?)",
 	)
 	
 	exec, err := t.job.Exec(
@@ -58,21 +56,20 @@ func (t *User) Insert(
 	return exec.LastInsertId()
 }
 
-type User_select struct {
-	Seq  int64
-	Id   string
-	Name string
+type Newtable_select struct {
+	A interface{}
+	B interface{}
 }
 
-func (t *User) Select() (
-	selects []*User_select,
+func (t *Newtable) Select() (
+	selects []*Newtable_select,
 	err error,
 ) {
 	args := make([]interface{}, 0, 0)
 	args = append(args, I_to_arri()...)
 	
 	sql := fmt.Sprintf(
-		"SELECT * FROM user",
+		"SELECT * FROM newtable",
 	)
 	ret, err := t.job.Query(
 		sql,
@@ -83,9 +80,9 @@ func (t *User) Select() (
 	}
 	defer ret.Close()
 	
-	selects = make([]*User_select, 0, 100)
+	selects = make([]*Newtable_select, 0, 100)
 	for ret.Next() {
-		scan := &User_select{}
+		scan := &Newtable_select{}
 		err := ret.Scan(scan)
 		if err != nil {
 			return nil, err
@@ -96,7 +93,7 @@ func (t *User) Select() (
 	return selects, nil
 }
 
-func (t *User) Delete() (
+func (t *Newtable) Delete() (
 	rowAffected int64,
 	err error,
 ) {
@@ -104,7 +101,7 @@ func (t *User) Delete() (
 	args = append(args, I_to_arri()...)
 	
 	sql := fmt.Sprintf(
-		"DELETE FROM user",
+		"DELETE FROM newtable",
 	)
 			
 	exec, err := t.job.Exec(
