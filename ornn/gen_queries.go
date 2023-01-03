@@ -17,22 +17,6 @@ type GenQueries struct {
 	groups map[string][]*GenQuery
 }
 
-type GenQuery struct {
-	queryType QueryType
-	groupName string
-	queryName string
-	query     string
-
-	tpl Pairs
-	arg Pairs
-	ret Pairs
-
-	// options
-	SelectSingle     bool
-	InsertMulti      bool
-	UpdateNullIgnore bool
-}
-
 type QueryType int8
 
 const (
@@ -42,19 +26,11 @@ const (
 	QueryTypeDelete
 )
 
-type Pairs struct {
-	pairs []*Pair
-}
-
-type Pair struct {
-	Key   string
-	Value string
-}
-
 func (t *GenQueries) Init(conf *config.Config, db *db.Conn) {
 	t.conf = conf
 	t.db = db
 	t.groups = make(map[string][]*GenQuery)
+
 }
 
 func (t *GenQueries) SetData() (err error) {
@@ -99,6 +75,7 @@ func (t *GenQueries) SetDataGroup(groupName string, queries []*config.Query) (er
 
 func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQuery *GenQuery, err error) {
 	genQuery = &GenQuery{}
+	genQuery.Init()
 
 	// set args
 	// tpl args ( # name # )를 배열로 추출
@@ -121,7 +98,7 @@ func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQue
 			return nil, fmt.Errorf("tpl format is wrong - %s", tpl)
 		}
 
-		genQuery.tpl.setKV(argName, argData)
+		genQuery.tpl[argName] = argData
 	}
 
 	// args ( % name % )를 배열로 추출
@@ -129,7 +106,9 @@ func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (genQue
 	if err != nil {
 		return nil, err
 	}
-	genQuery.arg.setKs(args)
+	for _, arg := range args {
+		genQuery.arg[arg] = "" // default
+	}
 
 	// %arg% -> ? # # +  /
 	sqlAfterArg := sql.Util_ReplaceBetweenDelimiter(query.Sql, sql.PrepareStatementDelimeter, sql.PrepareStatementAfter)
@@ -206,7 +185,7 @@ func (t *GenQueries) Select(conf *config.Config, query *config.Query, genQuery *
 			colType, _ := t.conf.Schema.GetFieldType("", fieldName)
 			fieldType = t.conf.Schema.ConvType(colType)
 		}
-		genQuery.ret.setKV(fieldName, fieldType)
+		genQuery.ret[fieldName] = fieldType
 	}
 
 	// single select 처리
@@ -251,7 +230,7 @@ func (t *GenQueries) Insert(conf *config.Config, query *config.Query, genQuery *
 			return fmt.Errorf("not exist field in schema | field name : %s", field.FieldName)
 		}
 
-		genQuery.arg.setKV(field.FieldName, t.conf.Schema.ConvType(schemaField.Type.Raw))
+		genQuery.arg[field.FieldName] = t.conf.Schema.ConvType(schemaField.Type.Raw)
 	}
 
 	// multi insert 처리
@@ -312,7 +291,7 @@ func (t *GenQueries) Update(conf *config.Config, query *config.Query, genQuery *
 			genType = t.conf.Schema.ConvType(schemaField.Type.Raw)
 		}
 
-		genQuery.arg.setKV(field.FieldName, genType)
+		genQuery.arg[field.FieldName] = genType
 	}
 	// update 시 null 값 ignore 처리
 	genQuery.UpdateNullIgnore = query.UpdateNullIgnore
@@ -324,26 +303,24 @@ func (t *GenQueries) Delete(conf *config.Config, query *config.Query, genQuery *
 	return nil
 }
 
-func (t *Pairs) setKs(Keys []string) {
-	for _, key := range Keys {
-		t.setKV(key, "")
-	}
+type GenQuery struct {
+	queryType QueryType
+	groupName string
+	queryName string
+	query     string
+
+	tpl map[string]string // name:type
+	arg map[string]string // name:type
+	ret map[string]string // name:type
+
+	// options
+	SelectSingle     bool
+	InsertMulti      bool
+	UpdateNullIgnore bool
 }
 
-func (t *Pairs) setKV(key string, valueNew string) {
-	if t.pairs == nil {
-		t.pairs = make([]*Pair, 0, 10)
-	}
-
-	for _, field := range t.pairs {
-		if field.Key == key {
-			field.Value = valueNew
-			return
-		}
-	}
-
-	t.pairs = append(t.pairs, &Pair{
-		Key:   key,
-		Value: valueNew,
-	})
+func (t *GenQuery) Init() {
+	t.tpl = make(map[string]string)
+	t.arg = make(map[string]string)
+	t.ret = make(map[string]string)
 }
