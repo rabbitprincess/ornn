@@ -14,7 +14,7 @@ type GenQueries struct {
 	conf *config.Config
 	db   *db.Conn
 
-	groups map[string][]*GenQuery
+	class map[string][]*GenQuery
 }
 
 type QueryType int8
@@ -29,7 +29,7 @@ const (
 func (t *GenQueries) Init(conf *config.Config, db *db.Conn) {
 	t.conf = conf
 	t.db = db
-	t.groups = make(map[string][]*GenQuery)
+	t.class = make(map[string][]*GenQuery)
 
 }
 
@@ -57,10 +57,10 @@ func (t *GenQueries) SetData() (err error) {
 }
 
 func (t *GenQueries) SetDataGroup(groupName string, queries []*config.Query) (err error) {
-	if t.groups == nil {
-		t.groups = make(map[string][]*GenQuery)
-	} else if t.groups[groupName] == nil {
-		t.groups[groupName] = make([]*GenQuery, 0, len(queries))
+	if t.class == nil {
+		t.class = make(map[string][]*GenQuery)
+	} else if t.class[groupName] == nil {
+		t.class[groupName] = make([]*GenQuery, 0, len(queries))
 	}
 
 	for _, query := range queries {
@@ -68,7 +68,7 @@ func (t *GenQueries) SetDataGroup(groupName string, queries []*config.Query) (er
 		if err != nil {
 			return err
 		}
-		t.groups[groupName] = append(t.groups[groupName], genQuery)
+		t.class[groupName] = append(t.class[groupName], genQuery)
 	}
 	return nil
 }

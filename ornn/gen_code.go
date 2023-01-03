@@ -13,15 +13,15 @@ import (
 )
 
 type GenCode struct {
-	config  *config.Config
+	conf    *config.Config
 	codeGen *codegen.CodeGen
 }
 
 func (t *GenCode) code(config *config.Config, genQueries *GenQueries) (genCode string, err error) {
-	t.config = config
+	t.conf = config
 	t.codeGen = &codegen.CodeGen{}
-	t.codeGen.DoNotEdit = t.config.Global.DoNotEdit
-	t.codeGen.Package = t.config.Global.PackageName
+	t.codeGen.DoNotEdit = t.conf.Global.DoNotEdit
+	t.codeGen.Package = t.conf.Global.PackageName
 	for _, imp := range config.Global.Import {
 		t.codeGen.AddImport(&codegen.Import{
 			Path:  imp.Path,
@@ -31,7 +31,7 @@ func (t *GenCode) code(config *config.Config, genQueries *GenQueries) (genCode s
 
 	// root struct
 	rootStruct := &codegen.Struct{
-		Name: t.config.Global.ClassName,
+		Name: t.conf.Global.ClassName,
 	}
 	t.codeGen.AddItem(rootStruct)
 
@@ -50,7 +50,7 @@ func (t *GenCode) code(config *config.Config, genQueries *GenQueries) (genCode s
 	}
 	rootFunc.AddArg(rootFuncInitArg)
 
-	for groupName, queryGroup := range genQueries.groups {
+	for groupName, queryGroup := range genQueries.class {
 		genClass := t.genClass(groupName)
 		t.codeGen.AddItem(genClass)
 
