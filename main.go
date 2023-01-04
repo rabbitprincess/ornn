@@ -129,11 +129,11 @@ func rootRun(cmd *cobra.Command, args []string) {
 	var psr parser.Parser
 	switch dbType {
 	case atlas.DbTypeMySQL, atlas.DbTypeMaria, atlas.DbTypeTiDB:
-		psr = parser_mysql.New(sch)
+		psr = parser_mysql.New(&conf.Schema)
 	case atlas.DbTypePostgre, atlas.DbTypeCockroachDB:
-		psr = parser_postgres.New(sch)
+		psr = parser_postgres.New(&conf.Schema)
 	case atlas.DbTypeSQLite:
-		psr = parser_sqlite.New(sch)
+		psr = parser_sqlite.New(&conf.Schema)
 	default:
 		logger.Fatal().Msgf("invalid db type: %s", DbType)
 	}
