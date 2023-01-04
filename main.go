@@ -54,9 +54,9 @@ func init() {
 	fs.StringVar(&Id, "id", "root", "database server id")
 	fs.StringVar(&Pw, "pw", "", "database server password")
 	fs.StringVar(&DbName, "db_name", "test", "database name")
+
 	fs.StringVar(&ConfigFilePath, "config", "./output/config.json", "config json file path")
 	fs.StringVar(&GenFilePath, "gen_file", "./output/gen.go", "generate golang file path")
-
 	fs.StringVar(&PackageName, "package_name", "gen", "package name")
 	fs.StringVar(&ClassName, "class_name", "Gen", "class name")
 	fs.StringVar(&DoNotEdit, "do_not_edit", "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n", "do not edit comment")
