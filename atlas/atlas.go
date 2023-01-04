@@ -13,18 +13,10 @@ import (
 	"github.com/hashicorp/hcl/v2/hclparse"
 )
 
-// global
-func InspectSchema(dbType DbType, conn *db.Conn) (*schema.Schema, error) {
-	at := &Atlas{}
-	err := at.Init(dbType, conn)
-	if err != nil {
-		return nil, err
-	}
-	schema, err := at.InspectSchema()
-	if err != nil {
-		return nil, err
-	}
-	return schema, nil
+func New(dbType DbType, conn *db.Conn) *Atlas {
+	atl := &Atlas{}
+	atl.Init(dbType, conn)
+	return atl
 }
 
 type Atlas struct {

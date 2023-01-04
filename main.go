@@ -94,8 +94,7 @@ func rootRun(cmd *cobra.Command, args []string) {
 	// 2. init schema from atl ( TODO : Migrate schema from atl )
 	var sch *schema.Schema
 	{
-		atl := &atlas.Atlas{}
-		atl.Init(dbType, conn)
+		atl := atlas.New(dbType, conn)
 		sch, err = atl.InspectSchema()
 		if err != nil {
 			logger.Fatal().Err(err).Msg("atlas inspect error")
