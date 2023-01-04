@@ -13,7 +13,7 @@ type Gen struct {
 }
 
 func (t *Gen) Gen(conf *config.Config, psr parser.Parser, path string) (code string, err error) {
-	// 코드 생성을 위한 gen 데이터 준비
+	// set query data for generate code
 	t.data = &GenQueries{}
 	t.data.Init(conf, psr)
 	err = t.data.SetData()
@@ -21,7 +21,7 @@ func (t *Gen) Gen(conf *config.Config, psr parser.Parser, path string) (code str
 		return "", err
 	}
 
-	// check error
+	// check query error
 	for tableName, def := range conf.Queries.Tables {
 		for _, query := range def {
 			if query.ErrParser != "" {

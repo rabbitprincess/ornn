@@ -15,8 +15,8 @@ type Config struct {
 }
 
 // TODO - 추후 config 형식 변경 예정
-func (t *Config) Load(config string) error {
-	data, err := ioutil.ReadFile(config)
+func (t *Config) Load(path string) error {
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
 	}
@@ -50,13 +50,13 @@ func (t *Config) Init(dbType atlas.DbType, schema *schema.Schema, packageName, c
 	return nil
 }
 
-func (t *Config) Save(config string) error {
+func (t *Config) Save(path string) error {
 	data, err := json.MarshalIndent(&t, "", "\t")
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(config, data, 0700)
+	err = ioutil.WriteFile(path, data, 0700)
 	if err != nil {
 		return err
 	}

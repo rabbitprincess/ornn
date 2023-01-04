@@ -1,8 +1,8 @@
 {
 	"global": {
-		"do_not_edit": "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n",
-		"package_name": "gen",
-		"class_name": "Gen",
+		"do_not_edit": "Gen",
+		"package_name": "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n",
+		"class_name": "gen",
 		"import": [
 			{
 				"alias": "",
@@ -17,21 +17,21 @@
 	"queries": {
 		"custom": {},
 		"tables": {
-			"newtable": [
+			"user": [
 				{
 					"name": "insert",
 					"comment": "default query - insert all",
-					"sql": "INSERT INTO newtable VALUES (?, ?)"
+					"sql": "INSERT INTO user VALUES (?, ?, ?)"
 				},
 				{
 					"name": "select",
 					"comment": "default query - select all",
-					"sql": "SELECT * FROM newtable"
+					"sql": "SELECT * FROM user"
 				},
 				{
 					"name": "delete",
 					"comment": "default query - delete all",
-					"sql": "DELETE FROM newtable"
+					"sql": "DELETE FROM user"
 				}
 			]
 		}

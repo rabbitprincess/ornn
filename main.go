@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"os"
 
 	"ariga.io/atlas/sql/schema"
@@ -37,7 +38,7 @@ var (
 	Pw     string
 	DbName string
 
-	// gen config
+	SchemaFilePath string
 	ConfigFilePath string
 	GenFilePath    string
 	PackageName    string
@@ -52,10 +53,11 @@ func init() {
 	fs.StringVar(&Addr, "address", "127.0.0.1", "database server address")
 	fs.StringVar(&Port, "port", "3306", "database server port")
 	fs.StringVar(&Id, "id", "root", "database server id")
-	fs.StringVar(&Pw, "pw", "", "database server password")
+	fs.StringVar(&Pw, "pw", "1234", "database server password")
 	fs.StringVar(&DbName, "db_name", "test", "database name")
 
-	fs.StringVar(&ConfigFilePath, "config", "./output/config.json", "config json file path")
+	fs.StringVar(&SchemaFilePath, "schema_path", "./output/schema.hcl", "schema hcl file path")
+	fs.StringVar(&ConfigFilePath, "config_path", "./output/config.json", "config json file path")
 	fs.StringVar(&GenFilePath, "gen_file", "./output/gen.go", "generate golang file path")
 	fs.StringVar(&PackageName, "package_name", "gen", "package name")
 	fs.StringVar(&ClassName, "class_name", "Gen", "class name")
@@ -97,6 +99,16 @@ func rootRun(cmd *cobra.Command, args []string) {
 		sch, err = atl.InspectSchema()
 		if err != nil {
 			logger.Fatal().Err(err).Msg("atlas inspect error")
+		}
+		if SchemaFilePath != "" {
+			bt, err := atl.MarshalHCL(sch)
+			if err != nil {
+				logger.Fatal().Err(err).Msg("schema save error")
+			}
+			err = ioutil.WriteFile(SchemaFilePath, bt, 0700)
+			if err != nil {
+				logger.Fatal().Err(err).Msg("schema save error")
+			}
 		}
 	}
 

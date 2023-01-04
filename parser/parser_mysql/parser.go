@@ -34,8 +34,10 @@ func (p *Parser) Parse(sql string) (*parser.ParsedQuery, error) {
 	for _, stmtNode := range stmtNodes {
 		switch stmt := stmtNode.(type) {
 		case *ast.SelectStmt:
-			p.parseSelect(stmt, parseQuery)
+
+			// p.parseSelect(stmt, parseQuery)
 		case *ast.InsertStmt:
+			parseQuery.QueryType = parser.QueryTypeInsert
 			_ = stmt
 		case *ast.UpdateStmt:
 			_ = stmt
@@ -50,12 +52,14 @@ func (p *Parser) Parse(sql string) (*parser.ParsedQuery, error) {
 }
 
 func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuery) {
+	parseQuery.QueryType = parser.QueryTypeSelect
+
 	// select
 	for _, field := range stmt.Fields.Fields {
 		var fieldName, fieldType string
 		fieldName = field.AsName.O
-		fmt.Println(field.AsName.O)
-		fmt.Println(field.Expr.GetType().String())
+		// fmt.Println(field.AsName.O)
+		// fmt.Println(field.Expr.GetType().String())
 
 		parseQuery.Ret[fieldName] = fieldType
 	}
@@ -67,5 +71,6 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 	if stmt.Limit.Count.Text() == "1" {
 		parseQuery.SelectSingle = true
 	}
+
 	return
 }

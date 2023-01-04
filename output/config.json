@@ -1,0 +1,39 @@
+{
+	"global": {
+		"do_not_edit": "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n",
+		"package_name": "gen",
+		"class_name": "Gen",
+		"import": [
+			{
+				"alias": "",
+				"path": "fmt"
+			},
+			{
+				"alias": ".",
+				"path": "github.com/gokch/ornn/db"
+			}
+		]
+	},
+	"queries": {
+		"custom": {},
+		"tables": {
+			"newtable": [
+				{
+					"name": "insert",
+					"comment": "default query - insert all",
+					"sql": "INSERT INTO newtable VALUES (?, ?)"
+				},
+				{
+					"name": "select",
+					"comment": "default query - select all",
+					"sql": "SELECT * FROM newtable"
+				},
+				{
+					"name": "delete",
+					"comment": "default query - delete all",
+					"sql": "DELETE FROM newtable"
+				}
+			]
+		}
+	}
+}
