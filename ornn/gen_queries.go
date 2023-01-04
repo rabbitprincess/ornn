@@ -3,33 +3,21 @@ package ornn
 import (
 	"fmt"
 
-	"github.com/gokch/ornn/atlas"
 	"github.com/gokch/ornn/config"
-	"github.com/gokch/ornn/db"
 	"github.com/gokch/ornn/sql/parser"
 )
 
 type GenQueries struct {
-	conf   *config.Config
-	db     *db.Conn
-	parser parser.Parser
+	conf *config.Config
+	psr  parser.Parser
 
 	class map[string]map[string]*parser.ParseQuery
 }
 
-func (t *GenQueries) Init(conf *config.Config, db *db.Conn) {
+func (t *GenQueries) Init(conf *config.Config, psr parser.Parser) {
 	t.conf = conf
-	t.db = db
+	t.psr = psr
 	t.class = make(map[string]map[string]*parser.ParseQuery)
-	switch t.conf.Schema.DbType {
-	case atlas.DbTypeMySQL, atlas.DbTypeMaria, atlas.DbTypeTiDB:
-		t.parser = &parser.ParserMysql{}
-	case atlas.DbTypePostgre, atlas.DbTypeCockroachDB:
-		t.parser = &parser.ParserPostgres{}
-	case atlas.DbTypeSQLite:
-		t.parser = &parser.ParserSqlite{}
-	}
-
 }
 
 func (t *GenQueries) SetData() (err error) {
@@ -73,7 +61,7 @@ func (t *GenQueries) SetDataGroup(groupName string, queries []*config.Query) (er
 }
 
 func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (parseQuery *parser.ParseQuery, err error) {
-	parseQuery, err = t.parser.Parse(query.Sql)
+	parseQuery, err = t.psr.Parse(query.Sql)
 	if err != nil {
 		query.ErrParser = fmt.Sprintf("%v", err)
 		return nil, nil

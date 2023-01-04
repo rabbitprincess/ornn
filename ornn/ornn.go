@@ -5,17 +5,17 @@ import (
 	"os"
 
 	"github.com/gokch/ornn/config"
-	"github.com/gokch/ornn/db"
+	"github.com/gokch/ornn/sql/parser"
 )
 
 type ORNN struct {
-	db   *db.Conn
 	conf *config.Config
+	psr  parser.Parser
 }
 
-func (t *ORNN) Init(db *db.Conn, conf *config.Config) {
-	t.db = db
+func (t *ORNN) Init(conf *config.Config, psr parser.Parser) {
 	t.conf = conf
+	t.psr = psr
 }
 
 func (t *ORNN) GenCode(path string) (err error) {
@@ -25,7 +25,7 @@ func (t *ORNN) GenCode(path string) (err error) {
 
 	// gen code
 	gen := &Gen{}
-	code, err := gen.Gen(t.db, t.conf, path)
+	code, err := gen.Gen(t.conf, t.psr, path)
 	if err != nil {
 		return err
 	}

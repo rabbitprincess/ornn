@@ -7,6 +7,7 @@ import (
 	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/db/db_postgres"
 	"github.com/gokch/ornn/ornn"
+	"github.com/gokch/ornn/sql/parser"
 )
 
 func main() {
@@ -18,14 +19,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	/*
-		dbType := atlas.DbTypeMySQL
-		db, err := db_mysql.New("127.0.0.1", "3306", "root", "951753ck", "test")
-		if err != nil {
-			log.Fatal(err)
-		}
-	*/
-	// set conf
+
+	// dbType := atlas.DbTypeMySQL
+	// db, err := db_mysql.New("127.0.0.1", "3306", "root", "951753ck", "test")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// set config
 	conf := &config.Config{}
 	{
 		// load
@@ -53,9 +54,17 @@ func main() {
 		}
 	}
 
+	// set parser
+	var psr parser.Parser
+	{
+		psrPostgre := &parser.ParserPostgres{}
+		psrPostgre.Init(&conf.Schema)
+		psr = psrPostgre
+	}
+
 	// init ornn
 	ornn := &ornn.ORNN{}
-	ornn.Init(db, conf)
+	ornn.Init(conf, psr)
 
 	// code generate
 	err = ornn.GenCode("./output/gen.go")

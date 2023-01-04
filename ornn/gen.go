@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gokch/ornn/config"
-	"github.com/gokch/ornn/db"
+	"github.com/gokch/ornn/sql/parser"
 )
 
 type Gen struct {
@@ -12,10 +12,10 @@ type Gen struct {
 	code *GenCode
 }
 
-func (t *Gen) Gen(conn *db.Conn, conf *config.Config, path string) (code string, err error) {
+func (t *Gen) Gen(conf *config.Config, psr parser.Parser, path string) (code string, err error) {
 	// 코드 생성을 위한 gen 데이터 준비
 	t.data = &GenQueries{}
-	t.data.Init(conf, conn)
+	t.data.Init(conf, psr)
 	err = t.data.SetData()
 	if err != nil {
 		return "", err

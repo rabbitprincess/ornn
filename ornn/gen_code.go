@@ -227,11 +227,10 @@ func (t *GenCode) genQuery_struct_select(groupName string, funcQuery *codegen.Fu
 		Name: fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(groupName), strings.ToLower(funcQuery.FuncName)),
 	}
 	for name, typ := range query.Ret {
-		item := &codegen.Var{
+		retStruct.AddField(&codegen.Var{
 			Name: sql.Util_ConvFirstToUpper(name),
 			Type: typ,
-		}
-		retStruct.AddField(item)
+		})
 	}
 	t.codeGen.AddItem(retStruct)
 	return retStruct.Name
