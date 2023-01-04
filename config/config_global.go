@@ -8,17 +8,6 @@ type Global struct {
 	Import []*Import `json:"import"`
 }
 
-func (t *Global) InitDefault() {
-	t.DoNotEdit = "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n"
-	t.PackageName = "gen"
-	t.ClassName = "Gen"
-
-	t.Import = []*Import{
-		{Alias: "", Path: "fmt"},
-		{Alias: ".", Path: "github.com/gokch/ornn/db"},
-	}
-}
-
 type Import struct {
 	Alias string `json:"alias"`
 	Path  string `json:"path"`
