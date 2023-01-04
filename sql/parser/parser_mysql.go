@@ -12,7 +12,11 @@ import (
 
 // TODO
 type ParserMysql struct {
-	conf *config.Schema
+	sch *config.Schema
+}
+
+func (p *ParserMysql) Init(sch *config.Schema) {
+	p.sch = sch
 }
 
 func (p *ParserMysql) Parse(sql string) (*ParseQuery, error) {

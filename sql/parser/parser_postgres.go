@@ -5,10 +5,16 @@ import (
 
 	"github.com/auxten/postgresql-parser/pkg/sql/parser"
 	"github.com/auxten/postgresql-parser/pkg/walk"
+	"github.com/gokch/ornn/config"
 )
 
 // TODO
 type ParserPostgres struct {
+	sch *config.Schema
+}
+
+func (p *ParserPostgres) Init(sch *config.Schema) {
+	p.sch = sch
 }
 
 func (p *ParserPostgres) Parse(sql string) (*ParseQuery, error) {
@@ -27,7 +33,6 @@ func (p *ParserPostgres) Parse(sql string) (*ParseQuery, error) {
 	}
 
 	parseQuery := &ParseQuery{}
-
 	return parseQuery, nil
 }
 
