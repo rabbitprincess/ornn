@@ -109,12 +109,6 @@ type CustomFieldType struct {
 //------------------------------------------------------------------------------------------------//
 // query
 
-func (t *Query) Init(name, sql string) {
-	t.Name = name
-	t.Sql = sql
-	t.CustomFieldTypes = make([]*CustomFieldType, 0, 10)
-}
-
 func (t *Query) AddCustomType(tableName, fieldName string, customType string) {
 	if t.CustomFieldTypes == nil {
 		t.CustomFieldTypes = make([]*CustomFieldType, 0, 10)
