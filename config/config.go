@@ -29,11 +29,21 @@ func (t *Config) Load(config string) error {
 	return nil
 }
 
-func (t *Config) InitSchema(dbType atlas.DbType, schema *schema.Schema) error {
-	// set schema
+func (t *Config) Init(dbType atlas.DbType, schema *schema.Schema, packageName, className, doNotEdit string) error {
+	// init global config
+	t.Global.PackageName = packageName
+	t.Global.ClassName = className
+	t.Global.DoNotEdit = doNotEdit
+
+	t.Global.Import = []*Import{ // TODO
+		{Alias: "", Path: "fmt"},
+		{Alias: ".", Path: "github.com/gokch/ornn/db"},
+	}
+
+	// init schema
 	t.Schema.Init(dbType, schema)
 
-	// set queries by schema
+	// init queries by schema
 	t.Queries.init(&t.Schema)
 	t.Queries.InitQueryTables()
 

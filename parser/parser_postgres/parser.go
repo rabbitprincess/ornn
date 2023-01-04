@@ -1,19 +1,21 @@
 package parser_postgres
 
 import (
+	"ariga.io/atlas/sql/schema"
 	sqlparser "github.com/auxten/postgresql-parser/pkg/sql/parser"
 	"github.com/auxten/postgresql-parser/pkg/walk"
-	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/parser"
 )
 
-// TODO
-type Parser struct {
-	sch *config.Schema
+func New(sch *schema.Schema) parser.Parser {
+	return &Parser{
+		sch: sch,
+	}
 }
 
-func (p *Parser) Init(sch *config.Schema) {
-	p.sch = sch
+// TODO
+type Parser struct {
+	sch *schema.Schema
 }
 
 func (p *Parser) Parse(sql string) (*parser.ParsedQuery, error) {

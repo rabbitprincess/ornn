@@ -14,9 +14,9 @@ import (
 )
 
 // global
-func InspectSchema(dbType DbType, db *db.Conn) (*schema.Schema, error) {
+func InspectSchema(dbType DbType, conn *db.Conn) (*schema.Schema, error) {
 	at := &Atlas{}
-	err := at.Init(dbType, db)
+	err := at.Init(dbType, conn)
 	if err != nil {
 		return nil, err
 	}
@@ -35,23 +35,23 @@ type Atlas struct {
 	driver      migrate.Driver
 }
 
-func (t *Atlas) Init(dbType DbType, db *db.Conn) error {
+func (t *Atlas) Init(dbType DbType, conn *db.Conn) error {
 	var err error
-	t.DbName = db.DbName
+	t.DbName = conn.DbName
 	t.DbType = dbType
 	switch dbType {
 	case DbTypeMySQL, DbTypeMaria, DbTypeTiDB:
 		t.marshaler = mysql.MarshalHCL
 		t.unmarshaler = mysql.EvalHCL
-		t.driver, err = mysql.Open(db.Raw())
+		t.driver, err = mysql.Open(conn.Raw())
 	case DbTypePostgre, DbTypeCockroachDB:
 		t.marshaler = postgres.MarshalHCL
 		t.unmarshaler = postgres.EvalHCL
-		t.driver, err = postgres.Open(db.Raw())
+		t.driver, err = postgres.Open(conn.Raw())
 	case DbTypeSQLite:
 		t.marshaler = sqlite.MarshalHCL
 		t.unmarshaler = sqlite.EvalHCL
-		t.driver, err = sqlite.Open(db.Raw())
+		t.driver, err = sqlite.Open(conn.Raw())
 	}
 	if err != nil {
 		return err

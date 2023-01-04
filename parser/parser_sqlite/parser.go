@@ -3,18 +3,19 @@ package parser_sqlite
 import (
 	"fmt"
 
+	"ariga.io/atlas/sql/schema"
 	"github.com/CovenantSQL/sqlparser"
-	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/parser"
 )
 
-// TODO
-type Parser struct {
-	sch *config.Schema
+func New(sch *schema.Schema) parser.Parser {
+	return &Parser{
+		sch: sch,
+	}
 }
 
-func (p *Parser) Init(sch *config.Schema) {
-	p.sch = sch
+type Parser struct {
+	sch *schema.Schema
 }
 
 func (t *Parser) Parse(sql string) (*parser.ParsedQuery, error) {

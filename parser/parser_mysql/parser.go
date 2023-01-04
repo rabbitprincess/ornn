@@ -3,22 +3,24 @@ package parser_mysql
 import (
 	"fmt"
 
-	"github.com/gokch/ornn/config"
+	"ariga.io/atlas/sql/schema"
 	"github.com/gokch/ornn/parser"
 	sqlparser "github.com/pingcap/tidb/parser"
 	"github.com/pingcap/tidb/parser/ast"
 	_ "github.com/pingcap/tidb/parser/test_driver"
 )
 
-// TODO
+func New(sch *schema.Schema) parser.Parser {
+	return &Parser{
+		sch: sch,
+	}
+}
+
 type Parser struct {
-	sch *config.Schema
+	sch *schema.Schema
 }
 
-func (p *Parser) Init(sch *config.Schema) {
-	p.sch = sch
-}
-
+// TODO
 func (p *Parser) Parse(sql string) (*parser.ParsedQuery, error) {
 	sqlParser := sqlparser.New()
 	stmtNodes, _, err := sqlParser.Parse(sql, "", "")
