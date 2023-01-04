@@ -11,15 +11,15 @@ import (
 )
 
 // TODO
-type ParserMysql struct {
+type Parser struct {
 	sch *config.Schema
 }
 
-func (p *ParserMysql) Init(sch *config.Schema) {
+func (p *Parser) Init(sch *config.Schema) {
 	p.sch = sch
 }
 
-func (p *ParserMysql) Parse(sql string) (*parser.ParsedQuery, error) {
+func (p *Parser) Parse(sql string) (*parser.ParsedQuery, error) {
 	sqlParser := sqlparser.New()
 	stmtNodes, _, err := sqlParser.Parse(sql, "", "")
 	if err != nil {
@@ -47,7 +47,7 @@ func (p *ParserMysql) Parse(sql string) (*parser.ParsedQuery, error) {
 	return parseQuery, nil
 }
 
-func (p *ParserMysql) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuery) {
+func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuery) {
 	// select
 	for _, field := range stmt.Fields.Fields {
 		var fieldName, fieldType string

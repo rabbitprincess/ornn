@@ -8,6 +8,7 @@ import (
 	"github.com/gokch/ornn/db/db_postgres"
 	"github.com/gokch/ornn/ornn"
 	"github.com/gokch/ornn/parser"
+	"github.com/gokch/ornn/parser/parser_postgres"
 )
 
 func main() {
@@ -57,7 +58,7 @@ func main() {
 	// set parser
 	var psr parser.Parser
 	{
-		psrPostgre := &parser.ParserPostgres{}
+		psrPostgre := &parser_postgres.Parser{}
 		psrPostgre.Init(&conf.Schema)
 		psr = psrPostgre
 	}

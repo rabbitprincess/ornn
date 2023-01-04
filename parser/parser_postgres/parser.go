@@ -8,15 +8,15 @@ import (
 )
 
 // TODO
-type ParserPostgres struct {
+type Parser struct {
 	sch *config.Schema
 }
 
-func (p *ParserPostgres) Init(sch *config.Schema) {
+func (p *Parser) Init(sch *config.Schema) {
 	p.sch = sch
 }
 
-func (p *ParserPostgres) Parse(sql string) (*parser.ParsedQuery, error) {
+func (p *Parser) Parse(sql string) (*parser.ParsedQuery, error) {
 	stmtNodes, err := sqlparser.Parse(sql)
 	if err != nil {
 		return nil, err

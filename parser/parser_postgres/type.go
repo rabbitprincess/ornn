@@ -6,7 +6,7 @@ import (
 	"github.com/gokch/ornn/parser"
 )
 
-func (p *ParserPostgres) ConvType(dbType string) (genType string) {
+func (p *Parser) ConvType(dbType string) (genType string) {
 	parseType := parser.ParseType(dbType)
 
 	if strings.HasPrefix(parseType.Type, "SETOF ") {

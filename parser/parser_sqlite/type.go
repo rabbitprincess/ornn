@@ -2,7 +2,7 @@ package parser_sqlite
 
 import "github.com/gokch/ornn/parser"
 
-func (t *ParserSqlite) ConvType(dbType string) (genType string) {
+func (t *Parser) ConvType(dbType string) (genType string) {
 	parseType := parser.ParseType(dbType)
 	switch parseType.Type {
 	case "bool", "boolean":
