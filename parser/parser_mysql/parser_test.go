@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"testing"
 
+	"ariga.io/atlas/sql/schema"
 	"github.com/gokch/ornn/atlas"
 	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/db/db_mysql"
 	tiparser "github.com/pingcap/tidb/parser"
 	"github.com/pingcap/tidb/parser/ast"
-	"github.com/pingcap/tidb/parser/test_driver"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,7 +28,7 @@ func TestParseMysql(t *testing.T) {
 	myps := New(&sch)
 
 	// parse
-	stmtNodes, _, err := tiparser.New().Parse("select seq, id from user where id = a limit 123 offset 456;", "", "")
+	stmtNodes, _, err := tiparser.New().Parse("select seq, id from user where id = ? and seq = b limit 123 offset 456;", "", "")
 	// stmtNodes, _, err := tiparser.New().Parse("select * from user where id = ?", "", "")
 
 	require.NoError(t, err)
@@ -36,6 +36,7 @@ func TestParseMysql(t *testing.T) {
 		selectStmt := stmtNode.(*ast.SelectStmt)
 		// from
 		tableName := selectStmt.From.TableRefs.Left.(*ast.TableSource).Source.(*ast.TableName).Name.O
+		table, _ := sch.Table(tableName)
 		fmt.Println("table name :", tableName)
 		// select
 		// select * 일 경우 schema 의 모든 필드 추출
@@ -60,32 +61,42 @@ func TestParseMysql(t *testing.T) {
 			}
 		}
 
-		// where 필드 추출
-		// fmt.Printf("%+v\n", selectStmt.Where)
-		switch whereExpr := selectStmt.Where.(type) {
-		case *ast.BinaryOperationExpr:
-			binOpExpr := whereExpr
-			switch leftExpr := binOpExpr.L.(type) {
-			case *ast.ColumnNameExpr:
-				col := leftExpr
-				var colName, colType string
-				colName = col.Name.Name.O
-				colType, _ = sch.GetFieldType(tableName, colName)
-				fmt.Printf("where | name : %s | db type : %s | golang Type : %s\n", colName, colType, myps.ConvType(colType))
+		// visit 하면서 재귀적으로 where 필드 추출
+		parseSelectWhere(selectStmt.Where, table)
+
+	}
+}
+
+// set parseQuery rets recursive where expr
+func parseSelectWhere(whereExpr ast.ExprNode, table *schema.Table) {
+	switch whereExpr := whereExpr.(type) {
+	case *ast.BinaryOperationExpr:
+		// left
+		switch leftExpr := whereExpr.L.(type) {
+		case *ast.ColumnNameExpr:
+			col := leftExpr
+			var colName, colType string
+			colName = col.Name.Name.O
+			colTable, _ := table.Column(colName)
+			if colTable != nil {
+				colType = colTable.Type.Raw
 			}
-			/*
-				switch rightExpr := binOpExpr.R.(type) {
-				case *ast.ValuesExpr:
-					valExpr := rightExpr
-					fmt.Printf("where | value : %s | golang Type : %s\n", valExpr.Type.String(), myps.ConvType(valExpr.GetType()))
-				}
-			*/
+			fmt.Printf("where name : %s | db type : %s\n", colName, colType)
 		}
-		// limit, offset 출력
-
-		// 와.. 개에반데? ㅋㅋㅋ
-		fmt.Printf(" ( %v ) : limit\n", selectStmt.Limit.Count.(*test_driver.ValueExpr).Datum.GetInt64())
-		fmt.Printf(" ( %v ) : offset\n", selectStmt.Limit.Offset.(*test_driver.ValueExpr).Datum.GetInt64())
-
+		// right
+		switch rightExpr := whereExpr.R.(type) {
+		case *ast.ColumnNameExpr:
+			col := rightExpr
+			var colName, colType string
+			colName = col.Name.Name.O
+			colTable, _ := table.Column(colName)
+			if colTable != nil {
+				colType = colTable.Type.Raw
+			}
+			fmt.Printf("where name : %s | db type : %s\n", colName, colType)
+		}
+		// recursive
+		parseSelectWhere(whereExpr.L, table)
+		parseSelectWhere(whereExpr.R, table)
 	}
 }
