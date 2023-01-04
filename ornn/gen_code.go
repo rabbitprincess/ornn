@@ -8,9 +8,9 @@ import (
 
 	"github.com/gokch/ornn/codegen"
 	"github.com/gokch/ornn/config"
-	"github.com/gokch/ornn/sql"
-	"github.com/gokch/ornn/sql/parser"
-	"github.com/gokch/ornn/sql/template"
+	"github.com/gokch/ornn/ornn/sql"
+	"github.com/gokch/ornn/ornn/template"
+	"github.com/gokch/ornn/parser"
 )
 
 type GenCode struct {

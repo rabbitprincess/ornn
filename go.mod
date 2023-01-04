@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/CovenantSQL/sqlparser v0.0.0-20190618091803-c4a6cf6cebb6
-	github.com/blastrain/vitess-sqlparser v0.0.0-20201030050434-a139afbb1aba
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/hashicorp/hcl/v2 v2.10.0
 	github.com/lib/pq v1.10.7
@@ -58,7 +57,6 @@ require (
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/auxten/postgresql-parser v1.0.1
 	github.com/google/go-cmp v0.5.8 // indirect
-	github.com/juju/errors v0.0.0-20181118221551-089d3ea4e4d5 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	golang.org/x/text v0.3.7 // indirect

@@ -7,7 +7,7 @@ import (
 	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/db/db_postgres"
 	"github.com/gokch/ornn/ornn"
-	"github.com/gokch/ornn/sql/parser"
+	"github.com/gokch/ornn/parser"
 )
 
 func main() {

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/gokch/ornn/config"
-	"github.com/gokch/ornn/sql/parser"
+	"github.com/gokch/ornn/parser"
 )
 
 type ORNN struct {
