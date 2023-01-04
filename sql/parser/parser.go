@@ -1,5 +1,10 @@
 package parser
 
+type Parser interface {
+	Parse(sql string) (*ParseQuery, error)
+	ConvType(dbType string) (genType string)
+}
+
 type QueryType int8
 
 const (
@@ -11,8 +16,6 @@ const (
 
 type ParseQuery struct {
 	QueryType QueryType
-	GroupName string
-	QueryName string
 	Query     string
 
 	Tpl map[string]string // name:type

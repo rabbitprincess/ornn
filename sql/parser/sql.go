@@ -1,14 +1,6 @@
 package parser
 
-import (
-	"log"
-
-	"github.com/blastrain/vitess-sqlparser/sqlparser"
-)
-
-type Parser interface {
-}
-
+/*
 func New(query string) (parser Parser, err error) {
 	stmt, err := sqlparser.Parse(query)
 	if err != nil {
@@ -46,7 +38,7 @@ func New(query string) (parser Parser, err error) {
 	}
 	return parser, err
 }
-
+*/
 type Field struct {
 	FieldName string
 	TableName string

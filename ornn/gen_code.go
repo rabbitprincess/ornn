@@ -62,8 +62,8 @@ func (t *GenCode) code(config *config.Config, genQueries *GenQueries) (genCode s
 		})
 		rootFunc.InlineCode += fmt.Sprintf("%s.%s.%s(%s)\n", "t", genClass.Name, "Init", rootFunc.Args.Items[0].Name)
 
-		for _, query := range queryGroup {
-			genFunc := t.genFunc(genClass.Name, query)
+		for funcName, query := range queryGroup {
+			genFunc := t.genFunc(genClass.Name, funcName, query)
 			t.codeGen.AddItem(genFunc)
 		}
 	}
@@ -106,16 +106,16 @@ func (t *GenCode) genClass(name string) (genGroup *codegen.Struct) {
 	return genGroup
 }
 
-func (t *GenCode) genFunc(groupName string, query *parser.ParseQuery) (funcQuery *codegen.Function) {
+func (t *GenCode) genFunc(groupName, queryName string, query *parser.ParseQuery) (funcQuery *codegen.Function) {
 	funcQuery = &codegen.Function{
 		StructName: "t",
 		StructType: "*" + groupName,
-		FuncName:   sql.Util_ConvFirstToUpper(query.QueryName),
+		FuncName:   sql.Util_ConvFirstToUpper(queryName),
 	}
 
 	switch query.QueryType {
 	case parser.QueryTypeSelect:
-		t.genQuerySelect(funcQuery, query)
+		t.genQuerySelect(groupName, funcQuery, query)
 	case parser.QueryTypeInsert:
 		t.genQueryInsert(funcQuery, query)
 	case parser.QueryTypeUpdate:
@@ -128,9 +128,9 @@ func (t *GenCode) genFunc(groupName string, query *parser.ParseQuery) (funcQuery
 	return funcQuery
 }
 
-func (t *GenCode) genQuerySelect(funcQuery *codegen.Function, query *parser.ParseQuery) {
+func (t *GenCode) genQuerySelect(groupName string, funcQuery *codegen.Function, query *parser.ParseQuery) {
 	// struct for select
-	structName := t.genQuery_struct_select(funcQuery, query)
+	structName := t.genQuery_struct_select(groupName, funcQuery, query)
 
 	// args
 	tpls := t.genQuery_tpls(funcQuery, query)
@@ -222,9 +222,9 @@ func (t *GenCode) genQuery_ret_error(funcQuery *codegen.Function) {
 	})
 }
 
-func (t *GenCode) genQuery_struct_select(funcQuery *codegen.Function, query *parser.ParseQuery) (retStructName string) {
+func (t *GenCode) genQuery_struct_select(groupName string, funcQuery *codegen.Function, query *parser.ParseQuery) (retStructName string) {
 	retStruct := &codegen.Struct{
-		Name: fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(query.GroupName), strings.ToLower(funcQuery.FuncName)),
+		Name: fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(groupName), strings.ToLower(funcQuery.FuncName)),
 	}
 	for name, typ := range query.Ret {
 		item := &codegen.Var{
