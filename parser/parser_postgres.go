@@ -17,7 +17,7 @@ func (p *ParserPostgres) Init(sch *config.Schema) {
 	p.sch = sch
 }
 
-func (p *ParserPostgres) Parse(sql string) (*ParseQuery, error) {
+func (p *ParserPostgres) Parse(sql string) (*ParsedQuery, error) {
 	w := &walk.AstWalker{
 		// Fn: p.walker,
 	}
@@ -32,7 +32,7 @@ func (p *ParserPostgres) Parse(sql string) (*ParseQuery, error) {
 		return nil, err
 	}
 
-	parseQuery := &ParseQuery{}
+	parseQuery := &ParsedQuery{}
 	return parseQuery, nil
 }
 

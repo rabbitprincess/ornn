@@ -1,7 +1,7 @@
 package parser
 
 type Parser interface {
-	Parse(sql string) (*ParseQuery, error)
+	Parse(sql string) (*ParsedQuery, error)
 	ConvType(dbType string) (genType string)
 }
 
@@ -14,7 +14,7 @@ const (
 	QueryTypeDelete
 )
 
-type ParseQuery struct {
+type ParsedQuery struct {
 	QueryType QueryType
 	Query     string
 
@@ -28,7 +28,7 @@ type ParseQuery struct {
 	UpdateNullIgnore bool
 }
 
-func (t *ParseQuery) Init() {
+func (t *ParsedQuery) Init() {
 	t.Tpl = make(map[string]string)
 	t.Arg = make(map[string]string)
 	t.Ret = make(map[string]string)

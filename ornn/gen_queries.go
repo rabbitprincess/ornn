@@ -11,13 +11,13 @@ type GenQueries struct {
 	conf *config.Config
 	psr  parser.Parser
 
-	class map[string]map[string]*parser.ParseQuery
+	class map[string]map[string]*parser.ParsedQuery
 }
 
 func (t *GenQueries) Init(conf *config.Config, psr parser.Parser) {
 	t.conf = conf
 	t.psr = psr
-	t.class = make(map[string]map[string]*parser.ParseQuery)
+	t.class = make(map[string]map[string]*parser.ParsedQuery)
 }
 
 func (t *GenQueries) SetData() (err error) {
@@ -45,9 +45,9 @@ func (t *GenQueries) SetData() (err error) {
 
 func (t *GenQueries) SetDataGroup(groupName string, queries []*config.Query) (err error) {
 	if t.class == nil {
-		t.class = make(map[string]map[string]*parser.ParseQuery)
+		t.class = make(map[string]map[string]*parser.ParsedQuery)
 	} else if t.class[groupName] == nil {
-		t.class[groupName] = make(map[string]*parser.ParseQuery)
+		t.class[groupName] = make(map[string]*parser.ParsedQuery)
 	}
 
 	for _, query := range queries {
@@ -60,7 +60,7 @@ func (t *GenQueries) SetDataGroup(groupName string, queries []*config.Query) (er
 	return nil
 }
 
-func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (parseQuery *parser.ParseQuery, err error) {
+func (t *GenQueries) SetDataQuery(groupName string, query *config.Query) (parseQuery *parser.ParsedQuery, err error) {
 	parseQuery, err = t.psr.Parse(query.Sql)
 	if err != nil {
 		query.ErrParser = fmt.Sprintf("%v", err)
