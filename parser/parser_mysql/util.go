@@ -55,7 +55,7 @@ func ParseWhereToFields(where ast.ExprNode) map[ast.ExprNode]ast.ExprNode {
 	switch data := where.(type) {
 	case *ast.BinaryOperationExpr:
 		switch data.Op {
-		case opcode.LogicAnd:
+		case opcode.LogicAnd, opcode.LogicOr, opcode.LogicXor:
 			left := ParseWhereToFields(data.L)
 			right := ParseWhereToFields(data.R)
 			for k, v := range left {
