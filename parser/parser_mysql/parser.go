@@ -3,7 +3,6 @@ package parser_mysql
 import (
 	"fmt"
 
-	"ariga.io/atlas/sql/schema"
 	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/parser"
 	sqlparser "github.com/pingcap/tidb/parser"
@@ -21,7 +20,6 @@ type Parser struct {
 	sch *config.Schema
 }
 
-// TODO
 func (p *Parser) Parse(sql string) (*parser.ParsedQuery, error) {
 	sqlParser := sqlparser.New()
 	stmtNodes, _, err := sqlParser.Parse(sql, "", "")
@@ -37,8 +35,7 @@ func (p *Parser) Parse(sql string) (*parser.ParsedQuery, error) {
 		case *ast.SelectStmt:
 			p.parseSelect(stmt, parseQuery)
 		case *ast.InsertStmt:
-			parseQuery.QueryType = parser.QueryTypeInsert
-			_ = stmt
+			p.parseInsert(stmt, parseQuery)
 		case *ast.UpdateStmt:
 			_ = stmt
 		case *ast.DeleteStmt:
@@ -56,15 +53,15 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 	parseQuery.QueryType = parser.QueryTypeSelect
 
 	// from ( TODO : join )
-	var table *schema.Table
-	if tbl, ok := stmt.From.TableRefs.Left.(*ast.TableSource); ok {
-		if tblName, ok := tbl.Source.(*ast.TableName); ok {
-			table, ok = p.sch.Table(tblName.Name.O)
-			if ok != true {
-				// need more programming
-				return fmt.Errorf("parser error | not found table %s", tblName.Name.O)
-			}
-		}
+	tableSources := ParseJoinToTables(stmt.From.TableRefs)
+	if len(tableSources) != 1 {
+		// todo - select join
+		panic("need more programming")
+	}
+	tableName := ParseTableName(tableSources[0])
+	table, ok := p.sch.Table(tableName)
+	if ok != true {
+		return fmt.Errorf("parser error | not found table %s", tableName)
 	}
 
 	// select
@@ -87,33 +84,73 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 		}
 	}
 	// where
-	p.parseSelectWhere(stmt.Where, table, parseQuery)
+	ParseWhereToFields(stmt.Where)
 
 	return nil
 }
 
-// set parseQuery rets recursive where expr
-func (p *Parser) parseSelectWhere(whereExpr ast.ExprNode, table *schema.Table, parseQuery *parser.ParsedQuery) {
-	switch whereExpr := whereExpr.(type) {
-	case *ast.BinaryOperationExpr:
-		// left
-		switch leftExpr := whereExpr.L.(type) {
-		case *ast.ColumnNameExpr:
-			col := leftExpr
-			colName := col.Name.Name.O
-			colType, _ := p.sch.GetFieldType(table.Name, colName)
-			parseQuery.Arg[colName] = p.ConvType(colType)
-		}
-		// right
-		switch rightExpr := whereExpr.R.(type) {
-		case *ast.ColumnNameExpr:
-			col := rightExpr
-			colName := col.Name.Name.O
-			colType, _ := p.sch.GetFieldType(table.Name, colName)
-			parseQuery.Arg[colName] = p.ConvType(colType)
-		}
-		// recursive
-		p.parseSelectWhere(whereExpr.L, table, parseQuery)
-		p.parseSelectWhere(whereExpr.R, table, parseQuery)
+// parseQuery 를 stmt 를 이용해 초기화, p.sch 를 이용해 타입 설정
+func (p *Parser) parseInsert(stmt *ast.InsertStmt, parseQuery *parser.ParsedQuery) error {
+	parseQuery.QueryType = parser.QueryTypeInsert
+
+	// from
+	tableSources := ParseJoinToTables(stmt.Table.TableRefs)
+	if len(tableSources) != 1 {
+		// todo - insert join
+		panic("need more programming")
 	}
+	tableName := ParseTableName(tableSources[0])
+	table, ok := p.sch.Table(tableName)
+	if ok != true {
+		return fmt.Errorf("parser error | not found table %s", tableName)
+	}
+
+	// insert fields
+	if len(stmt.Lists) != 1 {
+		panic("bulk query is invalid, use bulk options")
+	}
+	colNames := make([]string, len(table.Columns))
+	if len(stmt.Columns) == 0 { // insert all fields
+		for i, col := range table.Columns {
+			colNames[i] = col.Name
+		}
+		if len(table.Columns) != len(stmt.Lists[0]) {
+			panic("not same column and value count")
+		}
+
+		for i, list := range stmt.Lists[0] {
+			if _, paramMarkerExpr, ok := ParseDriverValue(list); !ok {
+				panic("need more programming")
+			} else if paramMarkerExpr != nil {
+				parseQuery.Arg[table.Columns[i].Name] = p.ConvType(table.Columns[i].Type.Raw)
+			}
+		}
+	} else { // insert specific fields
+		if len(stmt.Columns) != len(stmt.Lists[0]) {
+			panic("not same column and value count")
+		}
+		for i, list := range stmt.Lists[0] {
+			if _, paramMarkerExpr, ok := ParseDriverValue(list); !ok {
+				panic("need more programming")
+			} else if paramMarkerExpr != nil {
+				colName := stmt.Columns[i].Name.O
+				col, exist := table.Column(colName)
+				if exist != true {
+					panic("not found column")
+				}
+				parseQuery.Arg[colName] = p.ConvType(col.Type.Raw)
+			}
+		}
+	}
+
+	if stmt.Select != nil {
+		// todo - insert select
+		panic("need more programming")
+	}
+
+	if stmt.OnDuplicate != nil {
+		// todo - on duplicate
+		panic("need more programming")
+	}
+	return nil
 }
