@@ -22,7 +22,7 @@ func (t *Gen) Gen(conf *config.Config, psr parser.Parser, path string) (code str
 	}
 
 	// check query error
-	for tableName, def := range conf.Queries.Tables {
+	for tableName, def := range conf.Queries.Class {
 		for _, query := range def {
 			if query.ErrParser != "" {
 				fmt.Printf("parser err - table : %s | query : %s | err : %s\n", tableName, query.Name, query.ErrParser)

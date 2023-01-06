@@ -45,7 +45,7 @@ func (t *Config) Init(dbType atlas.DbType, schema *schema.Schema, packageName, c
 
 	// init queries by schema
 	t.Queries.init(&t.Schema)
-	t.Queries.InitQueryTables()
+	t.Queries.InitDefaultQueryTables()
 
 	return nil
 }

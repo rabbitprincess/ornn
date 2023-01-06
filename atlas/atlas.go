@@ -2,6 +2,7 @@ package atlas
 
 import (
 	"context"
+	"os"
 
 	"ariga.io/atlas/schemahcl"
 	"ariga.io/atlas/sql/migrate"
@@ -49,6 +50,22 @@ func (t *Atlas) Init(dbType DbType, conn *db.Conn) error {
 		return err
 	}
 	return nil
+}
+
+func (t *Atlas) Save(path string, sch *schema.Schema) error {
+	bt, err := t.MarshalHCL(sch)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, bt, 0700)
+}
+
+func (t *Atlas) Load(path string) (*schema.Schema, error) {
+	bt, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return t.UnmarshalHCL(bt)
 }
 
 func (t *Atlas) MarshalHCL(sch *schema.Schema) ([]byte, error) {

@@ -23,19 +23,11 @@ func (t *GenQueries) Init(conf *config.Config, psr parser.Parser) {
 func (t *GenQueries) SetData() (err error) {
 	// schema
 	for _, group := range t.conf.Schema.Tables {
-		Queries, ok := t.conf.Queries.Tables[group.Name]
+		Queries, ok := t.conf.Queries.Class[group.Name]
 		if ok != true {
 			continue
 		}
 		err := t.SetDataGroup(group.Name, Queries)
-		if err != nil {
-			return err
-		}
-	}
-
-	// custom
-	for groupName, custom := range t.conf.Queries.Custom {
-		err := t.SetDataGroup(groupName, custom)
 		if err != nil {
 			return err
 		}
