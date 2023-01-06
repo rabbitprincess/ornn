@@ -95,9 +95,10 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 				colName := data.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
-					parseQuery.Arg[col.Name] = "interface{}"
+					parseQuery.Arg[colName] = "interface{}"
+				} else {
+					parseQuery.Arg[colName] = p.ConvType(col.Type.Raw)
 				}
-				parseQuery.Arg[col.Name] = p.ConvType(col.Type.Raw)
 			}
 		}
 
@@ -108,8 +109,9 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 				col, ok := table.Column(colName)
 				if ok != true {
 					parseQuery.Arg[col.Name] = "interface{}"
+				} else {
+					parseQuery.Arg[col.Name] = p.ConvType(col.Type.Raw)
 				}
-				parseQuery.Arg[col.Name] = p.ConvType(col.Type.Raw)
 			}
 		}
 	}

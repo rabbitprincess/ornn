@@ -3,11 +3,11 @@ package db_mysql
 import (
 	"regexp"
 
-	"github.com/gokch/ornn/db"
+	"github.com/gokch/ornn/parser"
 )
 
 func ConvType(dbType string) (genType string) {
-	parseType := db.ParseType(dbType)
+	parseType := parser.ParseType(dbType)
 	switch parseType.Type {
 	case "bit":
 		switch {

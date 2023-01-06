@@ -26,12 +26,12 @@
 				{
 					"name": "select",
 					"comment": "default query - select all",
-					"sql": "SELECT * FROM tbltest WHERE seq = ?"
+					"sql": "SELECT * FROM tbltest WHERE PRI = ?"
 				},
 				{
 					"name": "update",
 					"comment": "default query - update",
-					"sql": "UPDATE tbltest SET seq = ?, id2 = ? WHERE seq = ?"
+					"sql": "UPDATE seq = ?, id2 = ?, address = ?, registered = ? SET tbltest WHERE seq = ?"
 				},
 				{
 					"name": "delete",
@@ -48,12 +48,12 @@
 				{
 					"name": "select",
 					"comment": "default query - select all",
-					"sql": "SELECT * FROM user WHERE seq = ?"
+					"sql": "SELECT * FROM user WHERE PRI = ?"
 				},
 				{
 					"name": "update",
 					"comment": "default query - update",
-					"sql": "UPDATE user SET seq = ?, id2 = ? WHERE seq = ?"
+					"sql": "UPDATE seq = ?, id2 = ?, address = ?, registered = ? SET user WHERE seq = ?"
 				},
 				{
 					"name": "delete",

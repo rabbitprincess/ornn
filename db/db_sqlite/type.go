@@ -1,9 +1,9 @@
 package db_sqlite
 
-import "github.com/gokch/ornn/db"
+import "github.com/gokch/ornn/parser"
 
 func ConvType(dbType string) (genType string) {
-	parseType := db.ParseType(dbType)
+	parseType := parser.ParseType(dbType)
 	switch parseType.Type {
 	case "bool", "boolean":
 		genType = "bool"

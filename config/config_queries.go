@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"strings"
 
 	"ariga.io/atlas/sql/schema"
 )
@@ -31,28 +30,43 @@ func (t *Queries) InitQueryTables() error {
 
 func (t *Queries) initQueryTable(table *schema.Table) error {
 	// insert all
-	questionare := strings.Repeat("?, ", len(table.Columns))
-	questionare = questionare[:len(questionare)-2]
+	var insertQuestionare string
+	for _, col := range table.Columns {
+		if col.Name == table.PrimaryKey.Name {
+			insertQuestionare += "NULL, "
+		} else {
+			insertQuestionare += "?, "
+		}
+	}
+	insertQuestionare = insertQuestionare[:len(insertQuestionare)-2]
 	t.AddQueryTables(table.Name, &Query{
 		Name:    "insert",
 		Comment: "default query - insert all",
-		Sql:     fmt.Sprintf("INSERT INTO %s VALUES (%s)", table.Name, questionare),
+		Sql:     fmt.Sprintf("INSERT INTO %s VALUES (%s)", table.Name, insertQuestionare),
 	})
 
 	// select
 	t.AddQueryTables(table.Name, &Query{
 		Name:    "select",
 		Comment: "default query - select all",
-		Sql:     fmt.Sprintf("SELECT * FROM %s WHERE seq = ?", table.Name),
+		Sql:     fmt.Sprintf("SELECT * FROM %s WHERE %s = ?", table.Name, table.PrimaryKey.Name),
 	})
 
 	// TODO: select where by index
 
 	// TODO: update
+	setQuestionaire := ""
+	for _, col := range table.Columns {
+		if col.Name == table.PrimaryKey.Name {
+			continue
+		}
+		setQuestionaire += fmt.Sprintf("%s = ?, ", col.Name)
+	}
+	setQuestionaire = setQuestionaire[:len(setQuestionaire)-2]
 	t.AddQueryTables(table.Name, &Query{
 		Name:    "update",
 		Comment: "default query - update",
-		Sql:     fmt.Sprintf("UPDATE %s SET seq = ?, id2 = ? WHERE seq = ?", table.Name),
+		Sql:     fmt.Sprintf("UPDATE %s SET %s WHERE seq = ?", setQuestionaire, table.Name),
 	})
 
 	// delete

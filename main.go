@@ -49,7 +49,7 @@ var (
 func init() {
 	fs := rootCmd.PersistentFlags()
 	fs.StringVar(&DbType, "db_type", "mysql", "database type ( mysql, mariadb, postgres, sqlite, tidb, cockroachdb )")
-	fs.StringVar(&DbPath, "path", "./", "path for save db files. sqlite only")
+	fs.StringVar(&DbPath, "path", "./output", "path for save db files. sqlite only")
 	fs.StringVar(&Addr, "address", "127.0.0.1", "database server address")
 	fs.StringVar(&Port, "port", "3306", "database server port")
 	fs.StringVar(&Id, "id", "root", "database server id")

@@ -3,11 +3,11 @@ package db_postgres
 import (
 	"strings"
 
-	"github.com/gokch/ornn/db"
+	"github.com/gokch/ornn/parser"
 )
 
 func ConvType(dbType string) (genType string) {
-	parseType := db.ParseType(dbType)
+	parseType := parser.ParseType(dbType)
 
 	if strings.HasPrefix(parseType.Type, "SETOF ") {
 		genType = ConvType(parseType.Type[len("SETOF "):])
