@@ -5,6 +5,7 @@ package gen
 
 import (
 	"fmt"
+	"database/sql"
 	. "github.com/gokch/ornn/db"
 )
 
@@ -28,11 +29,44 @@ type User struct {
 	job *Job
 }
 
+func (t *User) Insert(
+	arg_seq uint64,
+	arg_id string,
+	arg_ord sql.NullInt64,
+	arg_name sql.NullString,
+	arg_pw []byte,
+) (
+	lastInsertId int64,
+	err error,
+) {
+	args := []interface{}{
+		arg_seq,
+		arg_id,
+		arg_ord,
+		arg_name,
+		arg_pw,
+	}
+	
+	sql := fmt.Sprintf(
+		"INSERT INTO user VALUES (?, ?, ?, ?, ?)",
+	)
+	
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.LastInsertId()
+}
+
 type User_select struct {
 	Seq  uint64
 	Id   string
-	Ord  int64
-	Name string
+	Ord  sql.NullInt64
+	Name sql.NullString
 	Pw   []byte
 }
 
@@ -74,8 +108,8 @@ func (t *User) Select(
 func (t *User) Update(
 	arg_seq uint64,
 	arg_id string,
-	arg_ord int64,
-	arg_name string,
+	arg_ord sql.NullInt64,
+	arg_name sql.NullString,
 	arg_pw []byte,
 	arg_where_seq uint64,
 ) (
@@ -128,38 +162,5 @@ func (t *User) Delete(
 	}
 	
 	return exec.RowsAffected()
-}
-
-func (t *User) Insert(
-	arg_seq uint64,
-	arg_id string,
-	arg_ord int64,
-	arg_name string,
-	arg_pw []byte,
-) (
-	lastInsertId int64,
-	err error,
-) {
-	args := []interface{}{
-		arg_seq,
-		arg_id,
-		arg_ord,
-		arg_name,
-		arg_pw,
-	}
-	
-	sql := fmt.Sprintf(
-		"INSERT INTO user VALUES (?, ?, ?, ?, ?)",
-	)
-	
-	exec, err := t.job.Exec(
-		sql,
-		args...,
-	)
-	if err != nil {
-		return 0, err
-	}
-	
-	return exec.LastInsertId()
 }
 

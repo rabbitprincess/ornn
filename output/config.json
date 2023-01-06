@@ -9,6 +9,10 @@
 				"path": "fmt"
 			},
 			{
+				"alias": "",
+				"path": "database/sql"
+			},
+			{
 				"alias": ".",
 				"path": "github.com/gokch/ornn/db"
 			}

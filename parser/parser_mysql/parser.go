@@ -71,7 +71,7 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 	fields := stmt.Fields.Fields
 	if len(fields) == 1 && fields[0].WildCard != nil { // select * 일 경우 schema 의 모든 필드 추출
 		for _, col := range table.Columns {
-			parseQuery.Ret = append(parseQuery.Ret, parser.NewField(col.Name, p.ConvType(col.Type.Raw)))
+			parseQuery.Ret = append(parseQuery.Ret, parser.NewField(col.Name, p.ConvType(col.Type)))
 		}
 	} else {
 		for _, field := range stmt.Fields.Fields {
@@ -82,7 +82,7 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 				if ok != true {
 					parseQuery.Ret = append(parseQuery.Ret, parser.NewField(colName, "interface{}"))
 				} else {
-					parseQuery.Ret = append(parseQuery.Ret, parser.NewField(colName, p.ConvType(col.Type.Raw)))
+					parseQuery.Ret = append(parseQuery.Ret, parser.NewField(colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -98,7 +98,7 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 				if ok != true {
 					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type.Raw)))
+					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -111,7 +111,7 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 				if ok != true {
 					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type.Raw)))
+					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -153,7 +153,7 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parseQuery *parser.ParsedQuer
 			if _, paramMarkerExpr, ok := ParseDriverValue(list); !ok {
 				panic("need more programming")
 			} else if paramMarkerExpr != nil {
-				parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colNames[i], p.ConvType(table.Columns[i].Type.Raw)))
+				parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colNames[i], p.ConvType(table.Columns[i].Type)))
 			}
 		}
 	} else { // insert specific fields
@@ -169,7 +169,7 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parseQuery *parser.ParsedQuer
 				if ok != true {
 					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type.Raw)))
+					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -208,7 +208,7 @@ func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parseQuery *parser.ParsedQuer
 		if ok != true {
 			parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, "interface{}"))
 		} else {
-			parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type.Raw)))
+			parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
 		}
 	}
 
@@ -223,7 +223,7 @@ func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parseQuery *parser.ParsedQuer
 				if ok != true {
 					parseQuery.Arg = append(parseQuery.Arg, parser.NewField("where_"+colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField("where_"+colName, p.ConvType(col.Type.Raw)))
+					parseQuery.Arg = append(parseQuery.Arg, parser.NewField("where_"+colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -236,7 +236,7 @@ func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parseQuery *parser.ParsedQuer
 				if ok != true {
 					parseQuery.Arg = append(parseQuery.Arg, parser.NewField("where_"+colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField("where_"+colName, p.ConvType(col.Type.Raw)))
+					parseQuery.Arg = append(parseQuery.Arg, parser.NewField("where_"+colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -271,7 +271,7 @@ func (p *Parser) parseDelete(stmt *ast.DeleteStmt, parseQuery *parser.ParsedQuer
 				if ok != true {
 					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type.Raw)))
+					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -284,7 +284,7 @@ func (p *Parser) parseDelete(stmt *ast.DeleteStmt, parseQuery *parser.ParsedQuer
 				if ok != true {
 					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type.Raw)))
+					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
 				}
 			}
 		}

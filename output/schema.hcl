@@ -7,7 +7,7 @@ table "user" {
     auto_increment = true
   }
   column "id" {
-    null    = true
+    null    = false
     type    = varchar(50)
     default = ""
   }

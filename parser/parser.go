@@ -2,7 +2,6 @@ package parser
 
 type Parser interface {
 	Parse(sql string) (*ParsedQuery, error)
-	ConvType(dbType string) (genType string)
 }
 
 type QueryType int8

@@ -3,11 +3,13 @@ package parser_mysql
 import (
 	"regexp"
 
+	"ariga.io/atlas/sql/schema"
 	"github.com/gokch/ornn/parser"
 )
 
-func (p *Parser) ConvType(dbType string) (genType string) {
-	parseType := parser.ParseType(dbType)
+func (p *Parser) ConvType(colType *schema.ColumnType) (genType string) {
+	parseType := parser.ParseType(colType.Raw)
+	parseType.Nullable = colType.Null
 	switch parseType.Type {
 	case "bit":
 		switch {

@@ -24,7 +24,7 @@ func TestParseMysqlSelect(t *testing.T) {
 		Schema: sc,
 	}
 
-	myps := New(&sch)
+	myps := New(&sch).(*Parser)
 
 	// parse
 	// stmtNodes, _, err := tiparser.New().Parse("select seq, id from user where id = ? and seq = b limit 123 offset 456;", "", "")
@@ -52,21 +52,11 @@ func TestParseMysqlSelect(t *testing.T) {
 			tbl, ok := sch.Table(tableName)
 			if ok == true {
 				for _, col := range tbl.Columns {
-					fmt.Printf("name : %s | db type : %s | golang Type : %s\n", col.Name, col.Type.Raw, myps.ConvType(col.Type.Raw))
+					fmt.Printf("name : %s | db type : %s | golang Type : %s\n", col.Name, col.Type.Raw, myps.ConvType(col.Type))
 				}
 			}
 		} else {
 			// select * 외의 경우
-			for i, field := range selectStmt.Fields.Fields {
-				switch fieldExpr := field.Expr.(type) {
-				case *ast.ColumnNameExpr:
-					col := fieldExpr
-					var colName, colType string
-					colName = col.Name.Name.O
-					colType, _ = sch.GetFieldType(tableName, colName)
-					fmt.Printf("select %d | name : %s | db type : %s | golang Type : %s\n", i, colName, colType, myps.ConvType(colType))
-				}
-			}
 		}
 
 		// visit 하면서 재귀적으로 where 필드 추출
