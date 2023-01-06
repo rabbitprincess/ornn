@@ -39,7 +39,7 @@ func (t *Queries) initQueryTable(table *schema.Table) error {
 		Sql:     fmt.Sprintf("INSERT INTO %s VALUES (%s)", table.Name, questionare),
 	})
 
-	// select all
+	// select
 	t.AddQueryTables(table.Name, &Query{
 		Name:    "select",
 		Comment: "default query - select all",
@@ -49,14 +49,19 @@ func (t *Queries) initQueryTable(table *schema.Table) error {
 	// TODO: select where by index
 
 	// TODO: update
-	/*
-		// delete
-		t.AddQueryTables(table.Name, &Query{
-			Name:    "delete",
-			Comment: "default query - delete all",
-			Sql:     fmt.Sprintf("DELETE FROM %s", table.Name),
-		})
-	*/
+	t.AddQueryTables(table.Name, &Query{
+		Name:    "update",
+		Comment: "default query - update",
+		Sql:     fmt.Sprintf("UPDATE %s SET seq = ?, id2 = ? WHERE seq = ?", table.Name),
+	})
+
+	// delete
+	t.AddQueryTables(table.Name, &Query{
+		Name:    "delete",
+		Comment: "default query - delete all",
+		Sql:     fmt.Sprintf("DELETE FROM %s WHERE seq = ?", table.Name),
+	})
+
 	return nil
 }
 

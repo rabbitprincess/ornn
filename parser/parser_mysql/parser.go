@@ -33,15 +33,18 @@ func (p *Parser) Parse(sql string) (*parser.ParsedQuery, error) {
 	for _, stmtNode := range stmtNodes {
 		switch stmt := stmtNode.(type) {
 		case *ast.SelectStmt:
-			p.parseSelect(stmt, parseQuery)
+			err = p.parseSelect(stmt, parseQuery)
 		case *ast.InsertStmt:
-			p.parseInsert(stmt, parseQuery)
+			err = p.parseInsert(stmt, parseQuery)
 		case *ast.UpdateStmt:
-			_ = stmt
+			err = p.parseUpdate(stmt, parseQuery)
 		case *ast.DeleteStmt:
-			_ = stmt
+			err = p.parseDelete(stmt, parseQuery)
 		default:
-			return nil, fmt.Errorf("parser error | not support query statement %T", stmt)
+			err = fmt.Errorf("parser error | not support query statement %T", stmt)
+		}
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -177,5 +180,109 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parseQuery *parser.ParsedQuer
 		// todo - on duplicate
 		panic("need more programming")
 	}
+	return nil
+}
+
+func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parseQuery *parser.ParsedQuery) error {
+	parseQuery.QueryType = parser.QueryTypeUpdate
+	// update ( TODO : join )
+	tableSources := ParseJoinToTables(stmt.TableRefs.TableRefs)
+	if len(tableSources) != 1 {
+		// todo - update join
+		panic("need more programming")
+	}
+	tableName := ParseTableName(tableSources[0])
+	table, ok := p.sch.Table(tableName)
+	if ok != true {
+		return fmt.Errorf("parser error | not found table %s", tableName)
+	}
+
+	// set
+	for _, set := range stmt.List {
+		colName := set.Column.Name.O
+		col, ok := table.Column(colName)
+		if ok != true {
+			parseQuery.Arg[colName] = "interface{}"
+		} else {
+			parseQuery.Arg[colName] = p.ConvType(col.Type.Raw)
+		}
+	}
+
+	// where
+	whereFields := ParseWhereToFields(stmt.Where)
+	for left, right := range whereFields {
+		// left 의 column 을 인자로 추출
+		if _, paramMarkerExpr, _ := ParseDriverValue(right); paramMarkerExpr != nil {
+			if data, ok := left.(*ast.ColumnNameExpr); ok == true {
+				colName := data.Name.Name.O
+				col, ok := table.Column(colName)
+				if ok != true {
+					parseQuery.Arg["where_"+col.Name] = "interface{}"
+				} else {
+					parseQuery.Arg["where_"+col.Name] = p.ConvType(col.Type.Raw)
+				}
+			}
+		}
+
+		// right 의 column 을 인자로 추출
+		if _, paramMarkerExpr, _ := ParseDriverValue(left); paramMarkerExpr != nil {
+			if data, ok := right.(*ast.ColumnNameExpr); ok == true {
+				colName := data.Name.Name.O
+				col, ok := table.Column(colName)
+				if ok != true {
+					parseQuery.Arg["where_"+col.Name] = "interface{}"
+				} else {
+					parseQuery.Arg["where_"+col.Name] = p.ConvType(col.Type.Raw)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (p *Parser) parseDelete(stmt *ast.DeleteStmt, parseQuery *parser.ParsedQuery) error {
+	parseQuery.QueryType = parser.QueryTypeDelete
+
+	// from ( TODO : join )
+	tableSources := ParseJoinToTables(stmt.TableRefs.TableRefs)
+	if len(tableSources) != 1 {
+		// todo - delete join
+		panic("need more programming")
+	}
+	tableName := ParseTableName(tableSources[0])
+	table, ok := p.sch.Table(tableName)
+	if ok != true {
+		return fmt.Errorf("parser error | not found table %s", tableName)
+	}
+
+	// where
+	whereFields := ParseWhereToFields(stmt.Where)
+	for left, right := range whereFields {
+		// left 의 column 을 인자로 추출
+		if _, paramMarkerExpr, _ := ParseDriverValue(right); paramMarkerExpr != nil {
+			if data, ok := left.(*ast.ColumnNameExpr); ok == true {
+				colName := data.Name.Name.O
+				col, ok := table.Column(colName)
+				if ok != true {
+					parseQuery.Arg[col.Name] = "interface{}"
+				}
+				parseQuery.Arg[col.Name] = p.ConvType(col.Type.Raw)
+			}
+		}
+
+		// right 의 column 을 인자로 추출
+		if _, paramMarkerExpr, _ := ParseDriverValue(left); paramMarkerExpr != nil {
+			if data, ok := right.(*ast.ColumnNameExpr); ok == true {
+				colName := data.Name.Name.O
+				col, ok := table.Column(colName)
+				if ok != true {
+					parseQuery.Arg[col.Name] = "interface{}"
+				}
+				parseQuery.Arg[col.Name] = p.ConvType(col.Type.Raw)
+			}
+		}
+	}
+
 	return nil
 }

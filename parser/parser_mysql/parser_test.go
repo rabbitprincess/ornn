@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"ariga.io/atlas/sql/schema"
 	"github.com/gokch/ornn/atlas"
 	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/db/db_mysql"
@@ -79,40 +78,6 @@ func TestParseMysqlSelect(t *testing.T) {
 	}
 }
 
-// set parseQuery rets recursive where expr
-func parseSelectWhere(whereExpr ast.ExprNode, table *schema.Table) {
-	switch whereExpr := whereExpr.(type) {
-	case *ast.BinaryOperationExpr:
-		// left
-		switch leftExpr := whereExpr.L.(type) {
-		case *ast.ColumnNameExpr:
-			col := leftExpr
-			var colName, colType string
-			colName = col.Name.Name.O
-			colTable, _ := table.Column(colName)
-			if colTable != nil {
-				colType = colTable.Type.Raw
-			}
-			fmt.Printf("where name : %s | db type : %s\n", colName, colType)
-		}
-		// right
-		switch rightExpr := whereExpr.R.(type) {
-		case *ast.ColumnNameExpr:
-			col := rightExpr
-			var colName, colType string
-			colName = col.Name.Name.O
-			colTable, _ := table.Column(colName)
-			if colTable != nil {
-				colType = colTable.Type.Raw
-			}
-			fmt.Printf("where name : %s | db type : %s\n", colName, colType)
-		}
-		// recursive
-		parseSelectWhere(whereExpr.L, table)
-		parseSelectWhere(whereExpr.R, table)
-	}
-}
-
 func TestParseMysqlInsert(t *testing.T) {
 	db, err := db_mysql.New("127.0.0.1", "3306", "root", "951753ck", "test")
 	require.NoError(t, err)
@@ -128,4 +93,20 @@ func TestParseMysqlInsert(t *testing.T) {
 	parsedQuery, err := myps.Parse("insert into user VALUES(1, ?, ?, ?);")
 	require.NoError(t, err)
 	fmt.Println(parsedQuery)
+}
+
+func TestParseMysqlUpdate(t *testing.T) {
+	db, err := db_mysql.New("127.0.0.1", "3306", "root", "951753ck", "test")
+	require.NoError(t, err)
+	atlas := atlas.New(atlas.DbTypeMaria, db)
+	sc, err := atlas.InspectSchema()
+	require.NoError(t, err)
+
+	myps := New(&config.Schema{
+		DbType: atlas.DbType,
+		Schema: sc,
+	})
+	parsedQuery, err := myps.Parse("update user set seq = ?, id = ? where id = ?;")
+	require.NoError(t, err)
+	_ = parsedQuery
 }

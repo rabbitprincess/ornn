@@ -27,6 +27,16 @@
 					"name": "select",
 					"comment": "default query - select all",
 					"sql": "SELECT * FROM tbltest WHERE seq = ?"
+				},
+				{
+					"name": "update",
+					"comment": "default query - update",
+					"sql": "UPDATE tbltest SET seq = ?, id2 = ? WHERE seq = ?"
+				},
+				{
+					"name": "delete",
+					"comment": "default query - delete all",
+					"sql": "DELETE FROM tbltest WHERE seq = ?"
 				}
 			],
 			"user": [
@@ -39,6 +49,16 @@
 					"name": "select",
 					"comment": "default query - select all",
 					"sql": "SELECT * FROM user WHERE seq = ?"
+				},
+				{
+					"name": "update",
+					"comment": "default query - update",
+					"sql": "UPDATE user SET seq = ?, id2 = ? WHERE seq = ?"
+				},
+				{
+					"name": "delete",
+					"comment": "default query - delete all",
+					"sql": "DELETE FROM user WHERE seq = ?"
 				}
 			]
 		}

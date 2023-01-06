@@ -105,6 +105,61 @@ func (t *Tbltest) Select(
 	return selects, nil
 }
 
+func (t *Tbltest) Update(
+	arg_seq uint32,
+	arg_id2 string,
+	arg_where_seq uint32,
+) (
+	rowAffected int64,
+	err error,
+) {
+	sql := fmt.Sprintf(
+		"UPDATE tbltest SET seq = ?, id2 = ? WHERE seq = ?",
+	)
+	args := make([]interface{}, 0, 3)
+	args = append(args, I_to_arri(
+		arg_seq,
+		arg_id2,
+		arg_where_seq,
+	)...)
+	
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.RowsAffected()
+}
+
+func (t *Tbltest) Delete(
+	arg_seq uint32,
+) (
+	rowAffected int64,
+	err error,
+) {
+	args := make([]interface{}, 0, 1)
+	args = append(args, I_to_arri(
+		arg_seq,
+	)...)
+	
+	sql := fmt.Sprintf(
+		"DELETE FROM tbltest WHERE seq = ?",
+	)
+			
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.RowsAffected()
+}
+
 func (t *User) Init(
 	job *Job,
 ) {
@@ -113,6 +168,32 @@ func (t *User) Init(
 
 type User struct {
 	job *Job
+}
+
+func (t *User) Delete(
+	arg_seq uint32,
+) (
+	rowAffected int64,
+	err error,
+) {
+	args := make([]interface{}, 0, 1)
+	args = append(args, I_to_arri(
+		arg_seq,
+	)...)
+	
+	sql := fmt.Sprintf(
+		"DELETE FROM user WHERE seq = ?",
+	)
+			
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.RowsAffected()
 }
 
 func (t *User) Insert(
@@ -148,10 +229,10 @@ func (t *User) Insert(
 }
 
 type User_select struct {
-	Seq        uint32
-	Id2        string
 	Address    []byte
 	Registered bool
+	Seq        uint32
+	Id2        string
 }
 
 func (t *User) Select(
@@ -188,5 +269,34 @@ func (t *User) Select(
 	}
 	
 	return selects, nil
+}
+
+func (t *User) Update(
+	arg_seq uint32,
+	arg_id2 string,
+	arg_where_seq uint32,
+) (
+	rowAffected int64,
+	err error,
+) {
+	sql := fmt.Sprintf(
+		"UPDATE user SET seq = ?, id2 = ? WHERE seq = ?",
+	)
+	args := make([]interface{}, 0, 3)
+	args = append(args, I_to_arri(
+		arg_seq,
+		arg_id2,
+		arg_where_seq,
+	)...)
+	
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.RowsAffected()
 }
 
