@@ -50,8 +50,8 @@ var (
 
 func init() {
 	fs := rootCmd.PersistentFlags()
-	fs.BoolVar(&loadExistSchemaFile, "load_exist_schema", false, "load exist schema file and migrate to database")
-	fs.BoolVar(&loadExistConfigFile, "load exist_config", true, "load exist config file")
+	fs.BoolVar(&loadExistSchemaFile, "load_exist_schema", false, "load schema from existing file and migrate database")
+	fs.BoolVar(&loadExistConfigFile, "load exist_config", false, "load config from existing file")
 
 	fs.StringVar(&dbType, "db_type", "mysql", "database type ( mysql, mariadb, postgres, sqlite, tidb, cockroachdb )")
 	fs.StringVar(&dbPath, "path", "./output", "path for save db files. sqlite only")

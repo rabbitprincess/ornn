@@ -29,11 +29,11 @@ type User struct {
 }
 
 func (t *User) Insert(
-	arg_seq uint64,
-	arg_id string,
-	arg_ord *int64,
-	arg_name *string,
-	arg_pw []byte,
+	arg_seq interface{},
+	arg_id interface{},
+	arg_ord interface{},
+	arg_name interface{},
+	arg_pw interface{},
 ) (
 	lastInsertId int64,
 	err error,
@@ -62,15 +62,15 @@ func (t *User) Insert(
 }
 
 type User_select struct {
-	Seq  uint64
-	Id   string
-	Ord  *int64
-	Name *string
-	Pw   []byte
+	Seq  interface{}
+	Id   interface{}
+	Ord  interface{}
+	Name interface{}
+	Pw   interface{}
 }
 
 func (t *User) Select(
-	arg_seq uint64,
+	arg_seq interface{},
 ) (
 	selects []*User_select,
 	err error,
@@ -105,12 +105,12 @@ func (t *User) Select(
 }
 
 func (t *User) Update(
-	arg_seq uint64,
-	arg_id string,
-	arg_ord *int64,
-	arg_name *string,
-	arg_pw []byte,
-	arg_where_seq uint64,
+	arg_seq interface{},
+	arg_id interface{},
+	arg_ord interface{},
+	arg_name interface{},
+	arg_pw interface{},
+	arg_where_seq interface{},
 ) (
 	rowAffected int64,
 	err error,
@@ -139,7 +139,7 @@ func (t *User) Update(
 }
 
 func (t *User) Delete(
-	arg_seq uint64,
+	arg_seq interface{},
 ) (
 	rowAffected int64,
 	err error,
