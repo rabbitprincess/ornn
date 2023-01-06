@@ -9,40 +9,46 @@ import (
 )
 
 type Gen struct {
-	Newtable Newtable
+	Tbltest Tbltest
+	User    User
 }
 
 func (t *Gen) Init(
 	job *Job,
 ) {
-	t.Newtable.Init(job)
+	t.Tbltest.Init(job)
+	t.User.Init(job)
 }
 
-func (t *Newtable) Init(
+func (t *Tbltest) Init(
 	job *Job,
 ) {
 	t.job = job
 }
 
-type Newtable struct {
+type Tbltest struct {
 	job *Job
 }
 
-func (t *Newtable) Insert(
-	arg_a string,
-	arg_b string,
+func (t *Tbltest) Insert(
+	arg_seq uint32,
+	arg_id2 string,
+	arg_address []byte,
+	arg_registered bool,
 ) (
 	lastInsertId int64,
 	err error,
 ) {
-	args := make([]interface{}, 0, 2)
+	args := make([]interface{}, 0, 4)
 	args = append(args, I_to_arri(
-		arg_a,
-		arg_b,
+		arg_seq,
+		arg_id2,
+		arg_address,
+		arg_registered,
 	)...)
 	
 	sql := fmt.Sprintf(
-		"INSERT INTO newtable VALUES (?, ?)",
+		"",
 	)
 	
 	exec, err := t.job.Exec(
@@ -56,54 +62,37 @@ func (t *Newtable) Insert(
 	return exec.LastInsertId()
 }
 
-type Newtable_select struct {
-	B string
-	A string
+func (t *User) Init(
+	job *Job,
+) {
+	t.job = job
 }
 
-func (t *Newtable) Select() (
-	selects []*Newtable_select,
-	err error,
-) {
-	args := make([]interface{}, 0, 0)
-	args = append(args, I_to_arri()...)
-	
-	sql := fmt.Sprintf(
-		"SELECT * FROM newtable",
-	)
-	ret, err := t.job.Query(
-		sql,
-		args...,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer ret.Close()
-	
-	selects = make([]*Newtable_select, 0, 100)
-	for ret.Next() {
-		scan := &Newtable_select{}
-		err := ret.Scan(scan)
-		if err != nil {
-			return nil, err
-		}
-		selects = append(selects, scan)
-	}
-	
-	return selects, nil
+type User struct {
+	job *Job
 }
 
-func (t *Newtable) Delete() (
-	rowAffected int64,
+func (t *User) Insert(
+	arg_seq uint32,
+	arg_id2 string,
+	arg_address []byte,
+	arg_registered bool,
+) (
+	lastInsertId int64,
 	err error,
 ) {
-	args := make([]interface{}, 0, 0)
-	args = append(args, I_to_arri()...)
+	args := make([]interface{}, 0, 4)
+	args = append(args, I_to_arri(
+		arg_seq,
+		arg_id2,
+		arg_address,
+		arg_registered,
+	)...)
 	
 	sql := fmt.Sprintf(
-		"DELETE FROM newtable",
+		"",
 	)
-			
+	
 	exec, err := t.job.Exec(
 		sql,
 		args...,
@@ -112,6 +101,6 @@ func (t *Newtable) Delete() (
 		return 0, err
 	}
 	
-	return exec.RowsAffected()
+	return exec.LastInsertId()
 }
 

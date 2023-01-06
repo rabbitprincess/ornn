@@ -53,7 +53,7 @@ func init() {
 	fs.StringVar(&Addr, "address", "127.0.0.1", "database server address")
 	fs.StringVar(&Port, "port", "3306", "database server port")
 	fs.StringVar(&Id, "id", "root", "database server id")
-	fs.StringVar(&Pw, "pw", "1234", "database server password")
+	fs.StringVar(&Pw, "pw", "951753ck", "database server password")
 	fs.StringVar(&DbName, "db_name", "test", "database name")
 
 	fs.StringVar(&SchemaFilePath, "schema_path", "./output/schema.hcl", "schema hcl file path")
@@ -117,10 +117,10 @@ func rootRun(cmd *cobra.Command, args []string) {
 		if err = conf.Load(ConfigFilePath); err != nil { // load
 			logger.Fatal().Err(err).Msg("config load error")
 		}
-		if err = conf.Init(dbType, sch, DoNotEdit, PackageName, ClassName); err != nil { // init
+		if err = conf.Init(dbType, sch, PackageName, ClassName, DoNotEdit); err != nil { // init
 			logger.Fatal().Err(err).Msg("config init error")
 		}
-		if err = conf.Save("./output/gen.json"); err != nil { // save
+		if err = conf.Save(ConfigFilePath); err != nil { // save
 			logger.Fatal().Err(err).Msg("config save error")
 		}
 	}
@@ -142,7 +142,7 @@ func rootRun(cmd *cobra.Command, args []string) {
 	var ornn *ornn.ORNN = &ornn.ORNN{}
 	{
 		ornn.Init(conf, psr)
-		if err = ornn.GenCode("./output/gen.go"); err != nil { // code generate
+		if err = ornn.GenCode(GenFilePath); err != nil { // code generate
 			logger.Fatal().Err(err).Msg("code generate error")
 		}
 	}
