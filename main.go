@@ -102,9 +102,13 @@ func rootRun(cmd *cobra.Command, args []string) {
 		if sch, err = atl.Load(schemaFilePath); err != nil {
 			logger.Fatal().Err(err).Msg("schema load error")
 		}
-		// migrate schema from file
+		// migrate db from file
 		if err = atl.MigrateSchema(sch); err != nil {
 			logger.Fatal().Err(err).Msg("atlas migrate error")
+		}
+		// inspect schema fron migrated db
+		if sch, err = atl.InspectSchema(); err != nil {
+			logger.Fatal().Err(err).Msg("atlas inspect error")
 		}
 	} else {
 		if sch, err = atl.InspectSchema(); err != nil {

@@ -15,17 +15,16 @@
 		]
 	},
 	"queries": {
-		"custom": {},
-		"tables": {
+		"class": {
 			"user": [
 				{
 					"name": "insert",
-					"comment": "default query - insert all",
+					"comment": "default query - insert",
 					"sql": "INSERT INTO user VALUES (?, ?, ?, ?, ?)"
 				},
 				{
 					"name": "select",
-					"comment": "default query - select all",
+					"comment": "default query - select",
 					"sql": "SELECT * FROM user WHERE seq = ?"
 				},
 				{
@@ -35,7 +34,7 @@
 				},
 				{
 					"name": "delete",
-					"comment": "default query - delete all",
+					"comment": "default query - delete",
 					"sql": "DELETE FROM user WHERE seq = ?"
 				}
 			]
