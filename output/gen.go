@@ -48,7 +48,7 @@ func (t *Tbltest) Insert(
 	)...)
 	
 	sql := fmt.Sprintf(
-		"",
+		"INSERT INTO tbltest VALUES (?, ?, ?, ?)",
 	)
 	
 	exec, err := t.job.Exec(
@@ -60,6 +60,49 @@ func (t *Tbltest) Insert(
 	}
 	
 	return exec.LastInsertId()
+}
+
+type Tbltest_select struct {
+	Seq        uint32
+	Id2        string
+	Address    []byte
+	Registered bool
+}
+
+func (t *Tbltest) Select(
+	arg_seq uint32,
+) (
+	selects []*Tbltest_select,
+	err error,
+) {
+	args := make([]interface{}, 0, 1)
+	args = append(args, I_to_arri(
+		arg_seq,
+	)...)
+	
+	sql := fmt.Sprintf(
+		"SELECT * FROM tbltest WHERE seq = ?",
+	)
+	ret, err := t.job.Query(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer ret.Close()
+	
+	selects = make([]*Tbltest_select, 0, 100)
+	for ret.Next() {
+		scan := &Tbltest_select{}
+		err := ret.Scan(scan)
+		if err != nil {
+			return nil, err
+		}
+		selects = append(selects, scan)
+	}
+	
+	return selects, nil
 }
 
 func (t *User) Init(
@@ -73,24 +116,24 @@ type User struct {
 }
 
 func (t *User) Insert(
-	arg_seq uint32,
-	arg_id2 string,
 	arg_address []byte,
 	arg_registered bool,
+	arg_seq uint32,
+	arg_id2 string,
 ) (
 	lastInsertId int64,
 	err error,
 ) {
 	args := make([]interface{}, 0, 4)
 	args = append(args, I_to_arri(
-		arg_seq,
-		arg_id2,
 		arg_address,
 		arg_registered,
+		arg_seq,
+		arg_id2,
 	)...)
 	
 	sql := fmt.Sprintf(
-		"",
+		"INSERT INTO user VALUES (?, ?, ?, ?)",
 	)
 	
 	exec, err := t.job.Exec(
@@ -102,5 +145,48 @@ func (t *User) Insert(
 	}
 	
 	return exec.LastInsertId()
+}
+
+type User_select struct {
+	Seq        uint32
+	Id2        string
+	Address    []byte
+	Registered bool
+}
+
+func (t *User) Select(
+	arg_seq uint32,
+) (
+	selects []*User_select,
+	err error,
+) {
+	args := make([]interface{}, 0, 1)
+	args = append(args, I_to_arri(
+		arg_seq,
+	)...)
+	
+	sql := fmt.Sprintf(
+		"SELECT * FROM user WHERE seq = ?",
+	)
+	ret, err := t.job.Query(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer ret.Close()
+	
+	selects = make([]*User_select, 0, 100)
+	for ret.Next() {
+		scan := &User_select{}
+		err := ret.Scan(scan)
+		if err != nil {
+			return nil, err
+		}
+		selects = append(selects, scan)
+	}
+	
+	return selects, nil
 }
 

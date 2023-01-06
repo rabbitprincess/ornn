@@ -28,7 +28,8 @@ type ParsedQuery struct {
 	UpdateNullIgnore bool
 }
 
-func (t *ParsedQuery) Init() {
+func (t *ParsedQuery) Init(query string) {
+	t.Query = query
 	t.Tpl = make(map[string]string)
 	t.Arg = make(map[string]string)
 	t.Ret = make(map[string]string)

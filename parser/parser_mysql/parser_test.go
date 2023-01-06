@@ -31,7 +31,7 @@ func TestParseMysqlSelect(t *testing.T) {
 	// stmtNodes, _, err := tiparser.New().Parse("select seq, id from user where id = ? and seq = b limit 123 offset 456;", "", "")
 	// stmtNodes, _, err := tiparser.New().Parse("SELECT Orders.OrderID, Customers.CustomerName, Orders.OrderDate FROM Orders INNER JOIN Customers ON Orders.CustomerID=Customers.CustomerID;", "", "")
 
-	stmtNodes, _, err := tiparser.New().Parse("select * from user where id = ?", "", "")
+	stmtNodes, _, err := tiparser.New().Parse("select * from user where id = ? and pw = abc", "", "")
 
 	require.NoError(t, err)
 	for _, stmtNode := range stmtNodes {
@@ -45,7 +45,7 @@ func TestParseMysqlSelect(t *testing.T) {
 
 		tableName := selectStmt.From.TableRefs.Left.(*ast.TableSource).Source.(*ast.TableName).Name.O
 		table, _ := sch.Table(tableName)
-		fmt.Println("table name :", tableName)
+		fmt.Println("table name :", tableName, table.Name)
 
 		// select
 		// select * 일 경우 schema 의 모든 필드 추출
@@ -71,7 +71,11 @@ func TestParseMysqlSelect(t *testing.T) {
 		}
 
 		// visit 하면서 재귀적으로 where 필드 추출
-		parseSelectWhere(selectStmt.Where, table)
+		fields := ParseWhereToFields(selectStmt.Where)
+		for k, v := range fields {
+			fmt.Printf("key : (%T) %v\n", k, k)
+			fmt.Printf("value : (%T) %v\n", v, v)
+		}
 	}
 }
 

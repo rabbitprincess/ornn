@@ -40,13 +40,12 @@ func (t *Queries) initQueryTable(table *schema.Table) error {
 	})
 
 	// select all
-	/*
-		t.AddQueryTables(table.Name, &Query{
-			Name:    "select",
-			Comment: "default query - select all",
-			Sql:     fmt.Sprintf("SELECT * FROM %s", table.Name),
-		})
-	*/
+	t.AddQueryTables(table.Name, &Query{
+		Name:    "select",
+		Comment: "default query - select all",
+		Sql:     fmt.Sprintf("SELECT * FROM %s WHERE seq = ?", table.Name),
+	})
+
 	// TODO: select where by index
 
 	// TODO: update

@@ -64,7 +64,7 @@ func ParseWhereToFields(where ast.ExprNode) map[ast.ExprNode]ast.ExprNode {
 			for k, v := range right {
 				fields[k] = v
 			}
-		case opcode.EQ:
+		case opcode.EQ, opcode.GE, opcode.GT, opcode.LE, opcode.LT, opcode.NE:
 			fields[data.L] = data.R
 		default:
 			panic("parser error | not support where type")

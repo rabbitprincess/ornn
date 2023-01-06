@@ -22,6 +22,11 @@
 					"name": "insert",
 					"comment": "default query - insert all",
 					"sql": "INSERT INTO tbltest VALUES (?, ?, ?, ?)"
+				},
+				{
+					"name": "select",
+					"comment": "default query - select all",
+					"sql": "SELECT * FROM tbltest WHERE seq = ?"
 				}
 			],
 			"user": [
@@ -29,6 +34,11 @@
 					"name": "insert",
 					"comment": "default query - insert all",
 					"sql": "INSERT INTO user VALUES (?, ?, ?, ?)"
+				},
+				{
+					"name": "select",
+					"comment": "default query - select all",
+					"sql": "SELECT * FROM user WHERE seq = ?"
 				}
 			]
 		}

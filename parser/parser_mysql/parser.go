@@ -28,7 +28,7 @@ func (p *Parser) Parse(sql string) (*parser.ParsedQuery, error) {
 	}
 
 	parseQuery := &parser.ParsedQuery{}
-	parseQuery.Init()
+	parseQuery.Init(sql)
 
 	for _, stmtNode := range stmtNodes {
 		switch stmt := stmtNode.(type) {
@@ -84,7 +84,32 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 		}
 	}
 	// where
-	ParseWhereToFields(stmt.Where)
+	whereFields := ParseWhereToFields(stmt.Where)
+	for left, right := range whereFields {
+		// left 의 column 을 인자로 추출
+		if _, paramMarkerExpr, _ := ParseDriverValue(right); paramMarkerExpr != nil {
+			if data, ok := left.(*ast.ColumnNameExpr); ok == true {
+				colName := data.Name.Name.O
+				col, ok := table.Column(colName)
+				if ok != true {
+					parseQuery.Arg[col.Name] = "interface{}"
+				}
+				parseQuery.Arg[col.Name] = p.ConvType(col.Type.Raw)
+			}
+		}
+
+		// right 의 column 을 인자로 추출
+		if _, paramMarkerExpr, _ := ParseDriverValue(left); paramMarkerExpr != nil {
+			if data, ok := right.(*ast.ColumnNameExpr); ok == true {
+				colName := data.Name.Name.O
+				col, ok := table.Column(colName)
+				if ok != true {
+					parseQuery.Arg[col.Name] = "interface{}"
+				}
+				parseQuery.Arg[col.Name] = p.ConvType(col.Type.Raw)
+			}
+		}
+	}
 
 	return nil
 }
