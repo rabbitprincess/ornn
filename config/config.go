@@ -37,7 +37,6 @@ func (t *Config) Init(dbType atlas.DbType, schema *schema.Schema, packageName, c
 
 	t.Global.Import = []*Import{ // TODO
 		{Alias: "", Path: "fmt"},
-		{Alias: "", Path: "database/sql"},
 		{Alias: ".", Path: "github.com/gokch/ornn/db"},
 	}
 
