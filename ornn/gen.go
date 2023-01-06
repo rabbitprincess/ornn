@@ -35,6 +35,11 @@ func (t *Gen) Gen(conf *config.Config, psr parser.Parser, path string) (code str
 		}
 	}
 
+	// TODO : 쿼리 에러가 있으면 해당 쿼리는 빼고 코드 생성하도록 변경
+	if err != nil {
+		return "", err
+	}
+
 	// gen code
 	t.code = &GenCode{}
 	code, err = t.code.code(conf, t.data)

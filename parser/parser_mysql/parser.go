@@ -55,10 +55,10 @@ func (p *Parser) Parse(sql string) (*parser.ParsedQuery, error) {
 func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuery) error {
 	parseQuery.QueryType = parser.QueryTypeSelect
 
-	// from ( TODO : join )
+	// from
 	tableSources := ParseJoinToTables(stmt.From.TableRefs)
 	if len(tableSources) != 1 {
-		// todo - select join
+		// TODO : select join
 		panic("need more programming")
 	}
 	tableName := ParseTableName(tableSources[0])
@@ -127,7 +127,7 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parseQuery *parser.ParsedQuer
 	// from
 	tableSources := ParseJoinToTables(stmt.Table.TableRefs)
 	if len(tableSources) != 1 {
-		// todo - insert join
+		// TODO : insert join
 		panic("need more programming")
 	}
 	tableName := ParseTableName(tableSources[0])
@@ -176,12 +176,12 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parseQuery *parser.ParsedQuer
 	}
 
 	if stmt.Select != nil {
-		// todo - insert select
+		// TODO : insert select
 		panic("need more programming")
 	}
 
 	if stmt.OnDuplicate != nil {
-		// todo - on duplicate
+		// TODO : on duplicate
 		panic("need more programming")
 	}
 	return nil
@@ -189,10 +189,10 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parseQuery *parser.ParsedQuer
 
 func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parseQuery *parser.ParsedQuery) error {
 	parseQuery.QueryType = parser.QueryTypeUpdate
-	// update ( TODO : join )
+	// update
 	tableSources := ParseJoinToTables(stmt.TableRefs.TableRefs)
 	if len(tableSources) != 1 {
-		// todo - update join
+		// TODO : update join
 		panic("need more programming")
 	}
 	tableName := ParseTableName(tableSources[0])
@@ -248,10 +248,10 @@ func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parseQuery *parser.ParsedQuer
 func (p *Parser) parseDelete(stmt *ast.DeleteStmt, parseQuery *parser.ParsedQuery) error {
 	parseQuery.QueryType = parser.QueryTypeDelete
 
-	// from ( TODO : join )
+	// from
 	tableSources := ParseJoinToTables(stmt.TableRefs.TableRefs)
 	if len(tableSources) != 1 {
-		// todo - delete join
+		// TODO : delete join
 		panic("need more programming")
 	}
 	tableName := ParseTableName(tableSources[0])
