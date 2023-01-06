@@ -24,7 +24,7 @@ var (
 	rootCmd = &cobra.Command{
 		Use:   "ornn",
 		Short: "ornn is a code generator for golang",
-		Long:  "ornn is a code generator for golang",
+		Long:  "ornn is a code generator for golang db access",
 		Run:   rootRun,
 	}
 	logger = log.Logger
@@ -53,7 +53,7 @@ func init() {
 	fs.StringVar(&Addr, "address", "127.0.0.1", "database server address")
 	fs.StringVar(&Port, "port", "3306", "database server port")
 	fs.StringVar(&Id, "id", "root", "database server id")
-	fs.StringVar(&Pw, "pw", "951753ck", "database server password")
+	fs.StringVar(&Pw, "pw", "1234", "database server password")
 	fs.StringVar(&DbName, "db_name", "test", "database name")
 
 	fs.StringVar(&SchemaFilePath, "schema_path", "./output/schema.hcl", "schema hcl file path")
@@ -62,7 +62,6 @@ func init() {
 	fs.StringVar(&PackageName, "package_name", "gen", "package name")
 	fs.StringVar(&ClassName, "class_name", "Gen", "class name")
 	fs.StringVar(&DoNotEdit, "do_not_edit", "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n", "do not edit comment")
-
 }
 
 func main() {

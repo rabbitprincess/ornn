@@ -185,10 +185,10 @@ func (t *GenCode) genQueryDelete(funcQuery *codegen.Function, query *parser.Pars
 
 func (t *GenCode) genQuery_tpls(funcQuery *codegen.Function, query *parser.ParsedQuery) (tpls []string) {
 	tpls = make([]string, 0, len(query.Tpl))
-	for name, typ := range query.Tpl {
+	for _, t := range query.Tpl {
 		arg := &codegen.Var{
-			Name: fmt.Sprintf("tpl_%s", name),
-			Type: typ,
+			Name: fmt.Sprintf("tpl_%s", t.Name),
+			Type: t.GoType,
 		}
 		funcQuery.AddArg(arg)
 		tpls = append(tpls, arg.Name)
@@ -199,12 +199,10 @@ func (t *GenCode) genQuery_tpls(funcQuery *codegen.Function, query *parser.Parse
 func (t *GenCode) genQuery_args(funcQuery *codegen.Function, query *parser.ParsedQuery) (args []string) {
 	args = make([]string, 0, len(query.Arg))
 
-	for name, typ := range query.Arg {
-		arg := &codegen.Var{}
-		arg.Name = fmt.Sprintf("arg_%s", name)
-		arg.Type = typ
-		if arg.Type == "" { // 형을 특정할 수 없을 때
-			arg.Type = "interface{}"
+	for _, a := range query.Arg {
+		arg := &codegen.Var{
+			Name: fmt.Sprintf("arg_%s", a.Name),
+			Type: a.GoType,
 		}
 		if query.InsertMulti == true {
 			arg.Type = "[]" + arg.Type
@@ -226,10 +224,10 @@ func (t *GenCode) genQuery_struct_select(groupName string, funcQuery *codegen.Fu
 	retStruct := &codegen.Struct{
 		Name: fmt.Sprintf("%s_%s", sql.Util_ConvFirstToUpper(groupName), strings.ToLower(funcQuery.FuncName)),
 	}
-	for name, typ := range query.Ret {
+	for _, r := range query.Ret {
 		retStruct.AddField(&codegen.Var{
-			Name: sql.Util_ConvFirstToUpper(name),
-			Type: typ,
+			Name: sql.Util_ConvFirstToUpper(r.Name),
+			Type: r.GoType,
 		})
 	}
 	t.codeGen.AddItem(retStruct)

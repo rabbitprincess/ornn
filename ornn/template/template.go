@@ -9,10 +9,8 @@ func genQuery_body_setArgs(_arrs_arg []string) (genArg string) {
 		items += "\n"
 	}
 
-	return fmt.Sprintf(`args := make([]interface{}, 0, %d)
-args = append(args, I_to_arri(%s)...)
+	return fmt.Sprintf(`args := []interface{}{%s}
 `,
-		len(_arrs_arg),
 		items,
 	)
 }

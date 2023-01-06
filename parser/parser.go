@@ -18,9 +18,9 @@ type ParsedQuery struct {
 	QueryType QueryType
 	Query     string
 
-	Tpl map[string]string // name:type
-	Arg map[string]string // name:type
-	Ret map[string]string // name:type
+	Tpl []*ParsedQueryField
+	Arg []*ParsedQueryField
+	Ret []*ParsedQueryField
 
 	// options
 	SelectSingle     bool
@@ -30,7 +30,19 @@ type ParsedQuery struct {
 
 func (t *ParsedQuery) Init(query string) {
 	t.Query = query
-	t.Tpl = make(map[string]string)
-	t.Arg = make(map[string]string)
-	t.Ret = make(map[string]string)
+	t.Tpl = make([]*ParsedQueryField, 0, 10)
+	t.Arg = make([]*ParsedQueryField, 0, 10)
+	t.Ret = make([]*ParsedQueryField, 0, 10)
+}
+
+func NewField(name, goType string) *ParsedQueryField {
+	return &ParsedQueryField{
+		Name:   name,
+		GoType: goType,
+	}
+}
+
+type ParsedQueryField struct {
+	Name   string
+	GoType string
 }

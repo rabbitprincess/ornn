@@ -17,43 +17,21 @@
 	"queries": {
 		"custom": {},
 		"tables": {
-			"tbltest": [
-				{
-					"name": "insert",
-					"comment": "default query - insert all",
-					"sql": "INSERT INTO tbltest VALUES (?, ?, ?, ?)"
-				},
-				{
-					"name": "select",
-					"comment": "default query - select all",
-					"sql": "SELECT * FROM tbltest WHERE PRI = ?"
-				},
-				{
-					"name": "update",
-					"comment": "default query - update",
-					"sql": "UPDATE seq = ?, id2 = ?, address = ?, registered = ? SET tbltest WHERE seq = ?"
-				},
-				{
-					"name": "delete",
-					"comment": "default query - delete all",
-					"sql": "DELETE FROM tbltest WHERE seq = ?"
-				}
-			],
 			"user": [
 				{
 					"name": "insert",
 					"comment": "default query - insert all",
-					"sql": "INSERT INTO user VALUES (?, ?, ?, ?)"
+					"sql": "INSERT INTO user VALUES (?, ?, ?, ?, ?)"
 				},
 				{
 					"name": "select",
 					"comment": "default query - select all",
-					"sql": "SELECT * FROM user WHERE PRI = ?"
+					"sql": "SELECT * FROM user WHERE seq = ?"
 				},
 				{
 					"name": "update",
 					"comment": "default query - update",
-					"sql": "UPDATE seq = ?, id2 = ?, address = ?, registered = ? SET user WHERE seq = ?"
+					"sql": "UPDATE user SET seq = ?, id = ?, ord = ?, name = ?, pw = ? WHERE seq = ?"
 				},
 				{
 					"name": "delete",

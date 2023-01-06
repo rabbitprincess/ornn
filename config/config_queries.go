@@ -46,13 +46,12 @@ func (t *Queries) initQueryTable(table *schema.Table) error {
 	})
 
 	// select
+	pkName := table.PrimaryKey.Parts[0].C.Name // TODO
 	t.AddQueryTables(table.Name, &Query{
 		Name:    "select",
 		Comment: "default query - select all",
-		Sql:     fmt.Sprintf("SELECT * FROM %s WHERE %s = ?", table.Name, table.PrimaryKey.Name),
+		Sql:     fmt.Sprintf("SELECT * FROM %s WHERE %s = ?", table.Name, pkName),
 	})
-
-	// TODO: select where by index
 
 	// TODO: update
 	setQuestionaire := ""
@@ -66,14 +65,14 @@ func (t *Queries) initQueryTable(table *schema.Table) error {
 	t.AddQueryTables(table.Name, &Query{
 		Name:    "update",
 		Comment: "default query - update",
-		Sql:     fmt.Sprintf("UPDATE %s SET %s WHERE seq = ?", setQuestionaire, table.Name),
+		Sql:     fmt.Sprintf("UPDATE %s SET %s WHERE %s = ?", table.Name, setQuestionaire, pkName),
 	})
 
 	// delete
 	t.AddQueryTables(table.Name, &Query{
 		Name:    "delete",
 		Comment: "default query - delete all",
-		Sql:     fmt.Sprintf("DELETE FROM %s WHERE seq = ?", table.Name),
+		Sql:     fmt.Sprintf("DELETE FROM %s WHERE %s = ?", table.Name, pkName),
 	})
 
 	return nil
