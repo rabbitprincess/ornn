@@ -46,9 +46,9 @@ Flags:
   -P, --db_port string            database server port (default "3306")
   -p, --db_pw string              database server password (default "1234")
   -D, --db_type string            database type ( mysql, mariadb, postgres, sqlite, tidb, cockroachdb ) (default "mysql")
-      --file_config_load          load config from existing file
+      --file_config_load bool     load config from existing file ( default false )
       --file_config_path string   config json file path (default "./output/config.json")
-      --file_schema_load          load schema from existing file and migrate database
+      --file_schema_load bool     load schema from existing file and migrate database ( default false )
       --file_schema_path string   schema hcl file path (default "./output/schema.hcl")
       --gen_class_name string     class name (default "Gen")
       --gen_do_not_edit string    do not edit comment (default "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n")
@@ -59,4 +59,4 @@ Flags:
 
 Example
 
-    ./ornn --id root --pw 1234
+    ./ornn -A 127.0.0.1 -P 3306 -i root --p 1234
