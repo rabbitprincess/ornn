@@ -48,11 +48,11 @@ Flags:
   -D, --db_type string            database type ( mysql, mariadb, postgres, sqlite, tidb, cockroachdb ) (default "mysql")
       --file_config_load bool     load config from existing file ( default false )
       --file_config_path string   config json file path (default "./output/config.json")
+      --file_gen_path string      generate golang file path (default "./output/gen.go")
       --file_schema_load bool     load schema from existing file and migrate database ( default false )
       --file_schema_path string   schema hcl file path (default "./output/schema.hcl")
       --gen_class_name string     class name (default "Gen")
       --gen_do_not_edit string    do not edit comment (default "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n")
-      --gen_file string           generate golang file path (default "./output/gen.go")
       --gen_package_name string   package name (default "gen")
   -h, --help                      help for ornn
 ```
