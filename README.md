@@ -47,11 +47,11 @@ Usage:
 
 Flags:
   -A, --db_addr string            database server address (default "127.0.0.1")
-  -i, --db_id string              database server id (default "root")
-  -n, --db_name string            database name (default "test")
+  -i, --db_id string              database server id
+  -n, --db_name string            database name
       --db_path string            path for save db files. sqlite only (default "./output")
   -P, --db_port string            database server port (default "3306")
-  -p, --db_pw string              database server password (default "1234")
+  -p, --db_pw string              database server password
   -D, --db_type string            database type ( mysql, mariadb, postgres, sqlite, tidb, cockroachdb ) (default "mysql")
       --file_config_load bool     load config from existing file ( default false )
       --file_config_path string   config json file path (default "./output/config.json")

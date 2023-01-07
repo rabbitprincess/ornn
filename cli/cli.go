@@ -73,9 +73,9 @@ func init() {
 	fs.StringVarP(&dbType, "db_type", "D", "mysql", "database type ( mysql, mariadb, postgres, sqlite, tidb, cockroachdb )")
 	fs.StringVarP(&addr, "db_addr", "A", "127.0.0.1", "database server address")
 	fs.StringVarP(&port, "db_port", "P", "3306", "database server port")
-	fs.StringVarP(&id, "db_id", "i", "root", "database server id")
-	fs.StringVarP(&pw, "db_pw", "p", "1234", "database server password")
-	fs.StringVarP(&dbName, "db_name", "n", "test", "database name")
+	fs.StringVarP(&id, "db_id", "i", "", "database server id")
+	fs.StringVarP(&pw, "db_pw", "p", "", "database server password")
+	fs.StringVarP(&dbName, "db_name", "n", "", "database name")
 	fs.StringVar(&dbPath, "db_path", "./output", "path for save db files. sqlite only")
 
 	fs.BoolVar(&loadExistSchemaFile, "file_schema_load", false, "load schema from existing file and migrate database")
