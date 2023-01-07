@@ -75,7 +75,7 @@ func init() {
 	fs.StringVarP(&port, "db_port", "P", "3306", "database server port")
 	fs.StringVarP(&id, "db_id", "i", "root", "database server id")
 	fs.StringVarP(&pw, "db_pw", "p", "1234", "database server password")
-	fs.StringVar(&dbName, "db_name", "test", "database name")
+	fs.StringVarP(&dbName, "db_name", "n", "test", "database name")
 	fs.StringVar(&dbPath, "db_path", "./output", "path for save db files. sqlite only")
 
 	fs.BoolVar(&loadExistSchemaFile, "file_schema_load", false, "load schema from existing file and migrate database")

@@ -48,7 +48,7 @@ Usage:
 Flags:
   -A, --db_addr string            database server address (default "127.0.0.1")
   -i, --db_id string              database server id (default "root")
-      --db_name string            database name (default "test")
+  -n, --db_name string            database name (default "test")
       --db_path string            path for save db files. sqlite only (default "./output")
   -P, --db_port string            database server port (default "3306")
   -p, --db_pw string              database server password (default "1234")
@@ -66,4 +66,4 @@ Flags:
 
 Example
 
-    ./ornn -A 127.0.0.1 -P 3306 -i root -p 1234
+    ./ornn -A 127.0.0.1 -P 3306 -i root -p 1234 -n db_name
