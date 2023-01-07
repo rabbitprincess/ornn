@@ -24,6 +24,12 @@ func main() {
 }
 ```
 
+## Build
+
+    go get github.com/gokch/ornn
+    cd $GOPATH/src/github.com/gokch/ornn
+    go build .
+
 
 ## Usage
 
@@ -51,4 +57,5 @@ Flags:
 ```
 
 Example
+
     ./ornn --id root --pw 1234
