@@ -1,6 +1,6 @@
 ## ornn: Object Relation No Need
 
-Generate database interaction code from schema and sql
+Ornn is a tool that generates database-using code from schema and sql
 
 built in atlas ( https://github.com/ariga/atlas )
 
