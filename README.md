@@ -39,22 +39,22 @@ Usage:
   ornn [flags]
 
 Flags:
-      --address string        database server address (default "127.0.0.1")
-      --class_name string     class name (default "Gen")
-      --config_path string    config json file path (default "./output/config.json")
-      --db_name string        database name (default "test")
-      --db_type string        database type ( mysql, mariadb, postgres, sqlite, tidb, cockroachdb ) (default "mysql")
-      --do_not_edit string    do not edit comment (default "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n")
-      --gen_file string       generate golang file path (default "./output/gen.go")
-  -h, --help                  help for ornn
-      --id string             database server id (default "root")
-      --load_config_file      load config from existing file
-      --load_schema_file      load schema from existing file and migrate database
-      --package_name string   package name (default "gen")
-      --path string           path for save db files. sqlite only (default "./output")
-      --port string           database server port (default "3306")
-      --pw string             database server password (default "1234")
-      --schema_path string    schema hcl file path (default "./output/schema.hcl")
+  -A, --db_addr string            database server address (default "127.0.0.1")
+  -i, --db_id string              database server id (default "root")
+      --db_name string            database name (default "test")
+      --db_path string            path for save db files. sqlite only (default "./output")
+  -P, --db_port string            database server port (default "3306")
+  -p, --db_pw string              database server password (default "1234")
+  -D, --db_type string            database type ( mysql, mariadb, postgres, sqlite, tidb, cockroachdb ) (default "mysql")
+      --file_config_load          load config from existing file
+      --file_config_path string   config json file path (default "./output/config.json")
+      --file_schema_load          load schema from existing file and migrate database
+      --file_schema_path string   schema hcl file path (default "./output/schema.hcl")
+      --gen_class_name string     class name (default "Gen")
+      --gen_do_not_edit string    do not edit comment (default "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n")
+      --gen_file string           generate golang file path (default "./output/gen.go")
+      --gen_package_name string   package name (default "gen")
+  -h, --help                      help for ornn
 ```
 
 Example

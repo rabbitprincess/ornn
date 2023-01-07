@@ -28,65 +28,6 @@ type User struct {
 	job *Job
 }
 
-func (t *User) Update(
-	arg_seq uint64,
-	arg_id string,
-	arg_ord *int64,
-	arg_name *string,
-	arg_pw []byte,
-	arg_where_seq uint64,
-) (
-	rowAffected int64,
-	err error,
-) {
-	sql := fmt.Sprintf(
-		"UPDATE user SET seq = ?, id = ?, ord = ?, name = ?, pw = ? WHERE seq = ?",
-	)
-	args := []interface{}{
-		arg_seq,
-		arg_id,
-		arg_ord,
-		arg_name,
-		arg_pw,
-		arg_where_seq,
-	}
-	
-	exec, err := t.job.Exec(
-		sql,
-		args...,
-	)
-	if err != nil {
-		return 0, err
-	}
-	
-	return exec.RowsAffected()
-}
-
-func (t *User) Delete(
-	arg_seq uint64,
-) (
-	rowAffected int64,
-	err error,
-) {
-	args := []interface{}{
-		arg_seq,
-	}
-	
-	sql := fmt.Sprintf(
-		"DELETE FROM user WHERE seq = ?",
-	)
-			
-	exec, err := t.job.Exec(
-		sql,
-		args...,
-	)
-	if err != nil {
-		return 0, err
-	}
-	
-	return exec.RowsAffected()
-}
-
 func (t *User) Insert(
 	arg_seq uint64,
 	arg_id string,
@@ -161,5 +102,64 @@ func (t *User) Select(
 	}
 	
 	return selects, nil
+}
+
+func (t *User) Update(
+	arg_seq uint64,
+	arg_id string,
+	arg_ord *int64,
+	arg_name *string,
+	arg_pw []byte,
+	arg_where_seq uint64,
+) (
+	rowAffected int64,
+	err error,
+) {
+	sql := fmt.Sprintf(
+		"UPDATE user SET seq = ?, id = ?, ord = ?, name = ?, pw = ? WHERE seq = ?",
+	)
+	args := []interface{}{
+		arg_seq,
+		arg_id,
+		arg_ord,
+		arg_name,
+		arg_pw,
+		arg_where_seq,
+	}
+	
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.RowsAffected()
+}
+
+func (t *User) Delete(
+	arg_seq uint64,
+) (
+	rowAffected int64,
+	err error,
+) {
+	args := []interface{}{
+		arg_seq,
+	}
+	
+	sql := fmt.Sprintf(
+		"DELETE FROM user WHERE seq = ?",
+	)
+			
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.RowsAffected()
 }
 
