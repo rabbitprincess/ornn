@@ -2,7 +2,7 @@
 
 Generate database interaction code from schema and sql
 
-built in atlas
+built in atlas ( https://github.com/ariga/atlas )
 
 
 오른이 되세요
