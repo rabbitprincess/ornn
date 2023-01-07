@@ -66,4 +66,4 @@ Flags:
 
 Example
 
-    ./ornn -A 127.0.0.1 -P 3306 -i root --p 1234
+    ./ornn -A 127.0.0.1 -P 3306 -i root -p 1234
