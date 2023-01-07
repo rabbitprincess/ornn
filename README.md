@@ -4,6 +4,13 @@ Ornn is a tool that generates database-using code from schema and sql
 
 built in atlas ( https://github.com/ariga/atlas )
 
+1. built your db schema
+
+2. run ornn
+
+3. code generated, all done!
+
+4. If additional queries are required, add in the config.
 
 오른이 되세요
 
