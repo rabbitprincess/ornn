@@ -31,7 +31,7 @@ func main() {
     go build .
 
 
-## Usage
+## Run
 
 ```
 Usage:
