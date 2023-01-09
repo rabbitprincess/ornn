@@ -9,13 +9,155 @@ import (
 )
 
 type Gen struct {
-	User User
+	Tbltest Tbltest
+	User    User
 }
 
 func (t *Gen) Init(
 	job *Job,
 ) {
+	t.Tbltest.Init(job)
 	t.User.Init(job)
+}
+
+func (t *Tbltest) Init(
+	job *Job,
+) {
+	t.job = job
+}
+
+type Tbltest struct {
+	job *Job
+}
+
+func (t *Tbltest) Insert(
+	arg_seq uint32,
+	arg_id2 *string,
+	arg_address []byte,
+	arg_registered bool,
+) (
+	lastInsertId int64,
+	err error,
+) {
+	args := []interface{}{
+		arg_seq,
+		arg_id2,
+		arg_address,
+		arg_registered,
+	}
+	
+	sql := fmt.Sprintf(
+		"INSERT INTO tbltest VALUES (?, ?, ?, ?)",
+	)
+	
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.LastInsertId()
+}
+
+type Tbltest_select struct {
+	Seq        uint32
+	Id2        *string
+	Address    []byte
+	Registered bool
+}
+
+func (t *Tbltest) Select(
+	arg_seq uint32,
+) (
+	selects []*Tbltest_select,
+	err error,
+) {
+	args := []interface{}{
+		arg_seq,
+	}
+	
+	sql := fmt.Sprintf(
+		"SELECT * FROM tbltest WHERE seq = ?",
+	)
+	ret, err := t.job.Query(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer ret.Close()
+	
+	selects = make([]*Tbltest_select, 0, 100)
+	for ret.Next() {
+		scan := &Tbltest_select{}
+		err := ret.Scan(scan)
+		if err != nil {
+			return nil, err
+		}
+		selects = append(selects, scan)
+	}
+	
+	return selects, nil
+}
+
+func (t *Tbltest) Update(
+	arg_seq uint32,
+	arg_id2 *string,
+	arg_address []byte,
+	arg_registered bool,
+	arg_where_seq uint32,
+) (
+	rowAffected int64,
+	err error,
+) {
+	sql := fmt.Sprintf(
+		"UPDATE tbltest SET seq = ?, id2 = ?, address = ?, registered = ? WHERE seq = ?",
+	)
+	args := []interface{}{
+		arg_seq,
+		arg_id2,
+		arg_address,
+		arg_registered,
+		arg_where_seq,
+	}
+	
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.RowsAffected()
+}
+
+func (t *Tbltest) Delete(
+	arg_seq uint32,
+) (
+	rowAffected int64,
+	err error,
+) {
+	args := []interface{}{
+		arg_seq,
+	}
+	
+	sql := fmt.Sprintf(
+		"DELETE FROM tbltest WHERE seq = ?",
+	)
+			
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.RowsAffected()
 }
 
 func (t *User) Init(
@@ -29,25 +171,23 @@ type User struct {
 }
 
 func (t *User) Insert(
-	arg_seq uint64,
-	arg_id string,
-	arg_ord *int64,
-	arg_name *string,
-	arg_pw []byte,
+	arg_seq uint32,
+	arg_id2 *string,
+	arg_address []byte,
+	arg_registered bool,
 ) (
 	lastInsertId int64,
 	err error,
 ) {
 	args := []interface{}{
 		arg_seq,
-		arg_id,
-		arg_ord,
-		arg_name,
-		arg_pw,
+		arg_id2,
+		arg_address,
+		arg_registered,
 	}
 	
 	sql := fmt.Sprintf(
-		"INSERT INTO user VALUES (?, ?, ?, ?, ?)",
+		"INSERT INTO user VALUES (?, ?, ?, ?)",
 	)
 	
 	exec, err := t.job.Exec(
@@ -62,15 +202,14 @@ func (t *User) Insert(
 }
 
 type User_select struct {
-	Seq  uint64
-	Id   string
-	Ord  *int64
-	Name *string
-	Pw   []byte
+	Seq        uint32
+	Id2        *string
+	Address    []byte
+	Registered bool
 }
 
 func (t *User) Select(
-	arg_seq uint64,
+	arg_seq uint32,
 ) (
 	selects []*User_select,
 	err error,
@@ -105,25 +244,23 @@ func (t *User) Select(
 }
 
 func (t *User) Update(
-	arg_seq uint64,
-	arg_id string,
-	arg_ord *int64,
-	arg_name *string,
-	arg_pw []byte,
-	arg_where_seq uint64,
+	arg_seq uint32,
+	arg_id2 *string,
+	arg_address []byte,
+	arg_registered bool,
+	arg_where_seq uint32,
 ) (
 	rowAffected int64,
 	err error,
 ) {
 	sql := fmt.Sprintf(
-		"UPDATE user SET seq = ?, id = ?, ord = ?, name = ?, pw = ? WHERE seq = ?",
+		"UPDATE user SET seq = ?, id2 = ?, address = ?, registered = ? WHERE seq = ?",
 	)
 	args := []interface{}{
 		arg_seq,
-		arg_id,
-		arg_ord,
-		arg_name,
-		arg_pw,
+		arg_id2,
+		arg_address,
+		arg_registered,
 		arg_where_seq,
 	}
 	
@@ -139,7 +276,7 @@ func (t *User) Update(
 }
 
 func (t *User) Delete(
-	arg_seq uint64,
+	arg_seq uint32,
 ) (
 	rowAffected int64,
 	err error,

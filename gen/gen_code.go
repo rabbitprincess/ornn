@@ -1,4 +1,4 @@
-package ornn
+package gen
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 
 	"github.com/gokch/ornn/codegen"
 	"github.com/gokch/ornn/config"
-	"github.com/gokch/ornn/ornn/sql"
-	"github.com/gokch/ornn/ornn/template"
+	"github.com/gokch/ornn/gen/sql"
+	"github.com/gokch/ornn/gen/template"
 	"github.com/gokch/ornn/parser"
 )
 

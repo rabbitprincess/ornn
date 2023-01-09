@@ -25,7 +25,7 @@ import (
 	"github.com/gokch/ornn/db/db_mysql"
 	"github.com/gokch/ornn/db/db_postgres"
 	"github.com/gokch/ornn/db/db_sqlite"
-	"github.com/gokch/ornn/ornn"
+	"github.com/gokch/ornn/gen"
 	"github.com/gokch/ornn/parser"
 	"github.com/gokch/ornn/parser/parser_mysql"
 	"github.com/gokch/ornn/parser/parser_postgres"
@@ -163,11 +163,11 @@ func rootRun(cmd *cobra.Command, args []string) {
 		logger.Fatal().Msgf("invalid db type: %s", dbType)
 	}
 
-	// 5. init ornn
-	var ornn *ornn.ORNN = &ornn.ORNN{}
+	// 5. gen code
+	var gen *gen.ORNN = &gen.ORNN{}
 	{
-		ornn.Init(conf, psr)
-		if err = ornn.GenCode(genFilePath); err != nil { // code generate
+		gen.Init(conf, psr)
+		if err = gen.GenCode(genFilePath); err != nil { // code generate
 			logger.Fatal().Err(err).Msg("code generate error")
 		}
 	}

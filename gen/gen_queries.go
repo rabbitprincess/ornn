@@ -1,4 +1,4 @@
-package ornn
+package gen
 
 import (
 	"fmt"

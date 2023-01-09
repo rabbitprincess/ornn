@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gokch/ornn/ornn/sql"
+	"github.com/gokch/ornn/gen/sql"
 )
 
 func Insert(args []string, tpls []string, query string, insertMulti bool, structName, instanceName string) string {
