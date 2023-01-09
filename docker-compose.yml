@@ -12,11 +12,12 @@ services:
     volumes:
       - ./output:/output
     command: ./app
+      - -D=mariadb
       - -A=host.docker.internal
       - -P=3306
       - -i=root
-      - -p=951753ck
-      - -n=test
+      - -p=1234
+      - -n=db_name
       - --file_config_path=/output/config.json
       - --file_gen_path=/output/gen.go
       - --file_schema_path=/output/schema.hcl
