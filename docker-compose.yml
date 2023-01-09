@@ -1,0 +1,22 @@
+version: '3.2'
+services:
+  ornn:
+    container_name: ornn
+    image: ornn:1.0.0
+    build:
+     context: ./
+     dockerfile: Dockerfile
+    network_mode: host
+    ports:
+     - 8000:8000
+    volumes:
+      - ./output:/output
+    command: ./app
+      - -A=host.docker.internal
+      - -P=3306
+      - -i=root
+      - -p=951753ck
+      - -n=test
+      - --file_config_path=/output/config.json
+      - --file_gen_path=/output/gen.go
+      - --file_schema_path=/output/schema.hcl
