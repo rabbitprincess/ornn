@@ -15,6 +15,7 @@ func (t *Queries) init(schema *Schema) {
 	t.schema = schema
 	if t.Class == nil {
 		t.Class = make(map[string][]*Query)
+		t.InitDefaultQueryTables()
 	}
 }
 

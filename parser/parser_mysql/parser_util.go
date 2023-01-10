@@ -46,31 +46,37 @@ func ParseTableName(table *ast.TableSource) string {
 	}
 }
 
+type binaryExpr struct {
+	left  ast.ExprNode
+	op    opcode.Op
+	right ast.ExprNode
+}
+
 // set column and value to map recursively
-func ParseWhereToFields(where ast.ExprNode) map[ast.ExprNode]ast.ExprNode {
+func ParseWhereToFields(where ast.ExprNode) []*binaryExpr {
 	if where == nil {
 		return nil
 	}
-	fields := make(map[ast.ExprNode]ast.ExprNode)
+	fields := make([]*binaryExpr, 0, 10)
 	switch data := where.(type) {
 	case *ast.BinaryOperationExpr:
 		switch data.Op {
 		case opcode.LogicAnd, opcode.LogicOr, opcode.LogicXor:
-			left := ParseWhereToFields(data.L)
-			right := ParseWhereToFields(data.R)
-			for k, v := range left {
-				fields[k] = v
-			}
-			for k, v := range right {
-				fields[k] = v
-			}
+			fields = append(ParseWhereToFields(data.L), fields...)
+			fields = append(fields, ParseWhereToFields(data.R)...)
 		case opcode.EQ, opcode.GE, opcode.GT, opcode.LE, opcode.LT, opcode.NE:
-			fields[data.L] = data.R
+			fields = append(fields, &binaryExpr{
+				left:  data.L,
+				op:    data.Op,
+				right: data.R,
+			})
 		default:
 			panic("parser error | not support where type")
 		}
 	case *ast.ColumnNameExpr:
-		fields[data] = data
+		fields = append(fields, &binaryExpr{
+			left: data,
+		})
 	default:
 		panic("parser error | not support where type")
 	}

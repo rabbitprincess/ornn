@@ -30,13 +30,20 @@ type Tbltest struct {
 	job *Job
 }
 
-func (t *Tbltest) Insert(
+type Tbltest_select struct {
+	Seq        uint32
+	Id2        *string
+	Address    []byte
+	Registered bool
+}
+
+func (t *Tbltest) Select(
 	arg_seq uint32,
 	arg_id2 *string,
 	arg_address []byte,
 	arg_registered bool,
 ) (
-	lastInsertId int64,
+	selects []*Tbltest_select,
 	err error,
 ) {
 	args := []interface{}{
@@ -47,39 +54,7 @@ func (t *Tbltest) Insert(
 	}
 	
 	sql := fmt.Sprintf(
-		"INSERT INTO tbltest VALUES (?, ?, ?, ?)",
-	)
-	
-	exec, err := t.job.Exec(
-		sql,
-		args...,
-	)
-	if err != nil {
-		return 0, err
-	}
-	
-	return exec.LastInsertId()
-}
-
-type Tbltest_select struct {
-	Seq        uint32
-	Id2        *string
-	Address    []byte
-	Registered bool
-}
-
-func (t *Tbltest) Select(
-	arg_seq uint32,
-) (
-	selects []*Tbltest_select,
-	err error,
-) {
-	args := []interface{}{
-		arg_seq,
-	}
-	
-	sql := fmt.Sprintf(
-		"SELECT * FROM tbltest WHERE seq = ?",
+		"SELECT * FROM tbltest WHERE seq = ? and id2 = ? and address = ? and registered = ?",
 	)
 	ret, err := t.job.Query(
 		sql,
@@ -160,6 +135,37 @@ func (t *Tbltest) Delete(
 	return exec.RowsAffected()
 }
 
+func (t *Tbltest) Insert(
+	arg_seq uint32,
+	arg_id2 *string,
+	arg_address []byte,
+	arg_registered bool,
+) (
+	lastInsertId int64,
+	err error,
+) {
+	args := []interface{}{
+		arg_seq,
+		arg_id2,
+		arg_address,
+		arg_registered,
+	}
+	
+	sql := fmt.Sprintf(
+		"INSERT INTO tbltest VALUES (?, ?, ?, ?)",
+	)
+	
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.LastInsertId()
+}
+
 func (t *User) Init(
 	job *Job,
 ) {
@@ -168,6 +174,31 @@ func (t *User) Init(
 
 type User struct {
 	job *Job
+}
+
+func (t *User) Delete(
+	arg_seq uint32,
+) (
+	rowAffected int64,
+	err error,
+) {
+	args := []interface{}{
+		arg_seq,
+	}
+	
+	sql := fmt.Sprintf(
+		"DELETE FROM user WHERE seq = ?",
+	)
+			
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.RowsAffected()
 }
 
 func (t *User) Insert(
@@ -264,31 +295,6 @@ func (t *User) Update(
 		arg_where_seq,
 	}
 	
-	exec, err := t.job.Exec(
-		sql,
-		args...,
-	)
-	if err != nil {
-		return 0, err
-	}
-	
-	return exec.RowsAffected()
-}
-
-func (t *User) Delete(
-	arg_seq uint32,
-) (
-	rowAffected int64,
-	err error,
-) {
-	args := []interface{}{
-		arg_seq,
-	}
-	
-	sql := fmt.Sprintf(
-		"DELETE FROM user WHERE seq = ?",
-	)
-			
 	exec, err := t.job.Exec(
 		sql,
 		args...,

@@ -89,10 +89,14 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 	}
 	// where
 	whereFields := ParseWhereToFields(stmt.Where)
-	for left, right := range whereFields {
+	for _, where := range whereFields {
+		if where.right == nil || where.left == nil {
+			continue
+		}
+
 		// left 의 column 을 인자로 추출
-		if _, paramMarkerExpr, _ := ParseDriverValue(right); paramMarkerExpr != nil {
-			if data, ok := left.(*ast.ColumnNameExpr); ok == true {
+		if _, paramMarkerExpr, _ := ParseDriverValue(where.right); paramMarkerExpr != nil {
+			if data, ok := where.left.(*ast.ColumnNameExpr); ok == true {
 				colName := data.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
@@ -104,8 +108,8 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 		}
 
 		// right 의 column 을 인자로 추출
-		if _, paramMarkerExpr, _ := ParseDriverValue(left); paramMarkerExpr != nil {
-			if data, ok := right.(*ast.ColumnNameExpr); ok == true {
+		if _, paramMarkerExpr, _ := ParseDriverValue(where.left); paramMarkerExpr != nil {
+			if data, ok := where.right.(*ast.ColumnNameExpr); ok == true {
 				colName := data.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
@@ -214,10 +218,14 @@ func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parseQuery *parser.ParsedQuer
 
 	// where
 	whereFields := ParseWhereToFields(stmt.Where)
-	for left, right := range whereFields {
+	for _, where := range whereFields {
+		if where.right == nil || where.left == nil {
+			continue
+		}
+
 		// left 의 column 을 인자로 추출
-		if _, paramMarkerExpr, _ := ParseDriverValue(right); paramMarkerExpr != nil {
-			if data, ok := left.(*ast.ColumnNameExpr); ok == true {
+		if _, paramMarkerExpr, _ := ParseDriverValue(where.right); paramMarkerExpr != nil {
+			if data, ok := where.left.(*ast.ColumnNameExpr); ok == true {
 				colName := data.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
@@ -229,8 +237,8 @@ func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parseQuery *parser.ParsedQuer
 		}
 
 		// right 의 column 을 인자로 추출
-		if _, paramMarkerExpr, _ := ParseDriverValue(left); paramMarkerExpr != nil {
-			if data, ok := right.(*ast.ColumnNameExpr); ok == true {
+		if _, paramMarkerExpr, _ := ParseDriverValue(where.left); paramMarkerExpr != nil {
+			if data, ok := where.right.(*ast.ColumnNameExpr); ok == true {
 				colName := data.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
@@ -262,10 +270,13 @@ func (p *Parser) parseDelete(stmt *ast.DeleteStmt, parseQuery *parser.ParsedQuer
 
 	// where
 	whereFields := ParseWhereToFields(stmt.Where)
-	for left, right := range whereFields {
+	for _, where := range whereFields {
+		if where.right == nil || where.left == nil {
+			continue
+		}
 		// left 의 column 을 인자로 추출
-		if _, paramMarkerExpr, _ := ParseDriverValue(right); paramMarkerExpr != nil {
-			if data, ok := left.(*ast.ColumnNameExpr); ok == true {
+		if _, paramMarkerExpr, _ := ParseDriverValue(where.right); paramMarkerExpr != nil {
+			if data, ok := where.left.(*ast.ColumnNameExpr); ok == true {
 				colName := data.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
@@ -277,8 +288,8 @@ func (p *Parser) parseDelete(stmt *ast.DeleteStmt, parseQuery *parser.ParsedQuer
 		}
 
 		// right 의 column 을 인자로 추출
-		if _, paramMarkerExpr, _ := ParseDriverValue(left); paramMarkerExpr != nil {
-			if data, ok := right.(*ast.ColumnNameExpr); ok == true {
+		if _, paramMarkerExpr, _ := ParseDriverValue(where.left); paramMarkerExpr != nil {
+			if data, ok := where.right.(*ast.ColumnNameExpr); ok == true {
 				colName := data.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {

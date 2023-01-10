@@ -25,7 +25,7 @@
 				{
 					"name": "select",
 					"comment": "default query - select",
-					"sql": "SELECT * FROM tbltest WHERE seq = ?"
+					"sql": "SELECT * FROM tbltest WHERE seq = ? and id2 = ? and address = ? and registered = ?"
 				},
 				{
 					"name": "update",
