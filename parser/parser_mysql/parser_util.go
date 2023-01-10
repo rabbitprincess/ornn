@@ -70,6 +70,12 @@ func ParseWhereToFields(where ast.ExprNode) []*binaryExpr {
 				op:    data.Op,
 				right: data.R,
 			})
+		case opcode.Like:
+			fields = append(fields, &binaryExpr{
+				left:  data.L,
+				op:    data.Op,
+				right: data.R,
+			})
 		default:
 			panic("parser error | not support where type")
 		}

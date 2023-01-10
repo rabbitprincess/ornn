@@ -52,8 +52,8 @@ func (p *Parser) Parse(sql string) (*parser.ParsedQuery, error) {
 }
 
 // parseQuery 를 stmt 를 이용해 초기화, p.sch 를 이용해 타입 설정
-func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuery) error {
-	parseQuery.QueryType = parser.QueryTypeSelect
+func (p *Parser) parseSelect(stmt *ast.SelectStmt, parsedQuery *parser.ParsedQuery) error {
+	parsedQuery.QueryType = parser.QueryTypeSelect
 
 	// from
 	tableSources := ParseJoinToTables(stmt.From.TableRefs)
@@ -71,7 +71,7 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 	fields := stmt.Fields.Fields
 	if len(fields) == 1 && fields[0].WildCard != nil { // select * 일 경우 schema 의 모든 필드 추출
 		for _, col := range table.Columns {
-			parseQuery.Ret = append(parseQuery.Ret, parser.NewField(col.Name, p.ConvType(col.Type)))
+			parsedQuery.Ret = append(parsedQuery.Ret, parser.NewField(col.Name, p.ConvType(col.Type)))
 		}
 	} else {
 		for _, field := range stmt.Fields.Fields {
@@ -80,9 +80,9 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 				colName := fieldExpr.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
-					parseQuery.Ret = append(parseQuery.Ret, parser.NewField(colName, "interface{}"))
+					parsedQuery.Ret = append(parsedQuery.Ret, parser.NewField(colName, "interface{}"))
 				} else {
-					parseQuery.Ret = append(parseQuery.Ret, parser.NewField(colName, p.ConvType(col.Type)))
+					parsedQuery.Ret = append(parsedQuery.Ret, parser.NewField(colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -100,9 +100,9 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 				colName := data.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, "interface{}"))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField(colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -113,9 +113,9 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 				colName := data.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, "interface{}"))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField(colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -125,8 +125,8 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parseQuery *parser.ParsedQuer
 }
 
 // parseQuery 를 stmt 를 이용해 초기화, p.sch 를 이용해 타입 설정
-func (p *Parser) parseInsert(stmt *ast.InsertStmt, parseQuery *parser.ParsedQuery) error {
-	parseQuery.QueryType = parser.QueryTypeInsert
+func (p *Parser) parseInsert(stmt *ast.InsertStmt, parsedQuery *parser.ParsedQuery) error {
+	parsedQuery.QueryType = parser.QueryTypeInsert
 
 	// from
 	tableSources := ParseJoinToTables(stmt.Table.TableRefs)
@@ -157,7 +157,7 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parseQuery *parser.ParsedQuer
 			if _, paramMarkerExpr, ok := ParseDriverValue(list); !ok {
 				panic("need more programming")
 			} else if paramMarkerExpr != nil {
-				parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colNames[i], p.ConvType(table.Columns[i].Type)))
+				parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField(colNames[i], p.ConvType(table.Columns[i].Type)))
 			}
 		}
 	} else { // insert specific fields
@@ -171,9 +171,9 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parseQuery *parser.ParsedQuer
 				colName := stmt.Columns[i].Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, "interface{}"))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField(colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -191,8 +191,8 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parseQuery *parser.ParsedQuer
 	return nil
 }
 
-func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parseQuery *parser.ParsedQuery) error {
-	parseQuery.QueryType = parser.QueryTypeUpdate
+func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parsedQuery *parser.ParsedQuery) error {
+	parsedQuery.QueryType = parser.QueryTypeUpdate
 	// update
 	tableSources := ParseJoinToTables(stmt.TableRefs.TableRefs)
 	if len(tableSources) != 1 {
@@ -210,9 +210,9 @@ func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parseQuery *parser.ParsedQuer
 		colName := set.Column.Name.O
 		col, ok := table.Column(colName)
 		if ok != true {
-			parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, "interface{}"))
+			parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField(colName, "interface{}"))
 		} else {
-			parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
+			parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
 		}
 	}
 
@@ -229,9 +229,9 @@ func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parseQuery *parser.ParsedQuer
 				colName := data.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField("where_"+colName, "interface{}"))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField("where_"+colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField("where_"+colName, p.ConvType(col.Type)))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField("where_"+colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -242,9 +242,9 @@ func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parseQuery *parser.ParsedQuer
 				colName := data.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField("where_"+colName, "interface{}"))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField("where_"+colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField("where_"+colName, p.ConvType(col.Type)))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField("where_"+colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -253,8 +253,8 @@ func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parseQuery *parser.ParsedQuer
 	return nil
 }
 
-func (p *Parser) parseDelete(stmt *ast.DeleteStmt, parseQuery *parser.ParsedQuery) error {
-	parseQuery.QueryType = parser.QueryTypeDelete
+func (p *Parser) parseDelete(stmt *ast.DeleteStmt, parsedQuery *parser.ParsedQuery) error {
+	parsedQuery.QueryType = parser.QueryTypeDelete
 
 	// from
 	tableSources := ParseJoinToTables(stmt.TableRefs.TableRefs)
@@ -280,9 +280,9 @@ func (p *Parser) parseDelete(stmt *ast.DeleteStmt, parseQuery *parser.ParsedQuer
 				colName := data.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, "interface{}"))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField(colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
 				}
 			}
 		}
@@ -293,9 +293,9 @@ func (p *Parser) parseDelete(stmt *ast.DeleteStmt, parseQuery *parser.ParsedQuer
 				colName := data.Name.Name.O
 				col, ok := table.Column(colName)
 				if ok != true {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, "interface{}"))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField(colName, "interface{}"))
 				} else {
-					parseQuery.Arg = append(parseQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
+					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField(colName, p.ConvType(col.Type)))
 				}
 			}
 		}

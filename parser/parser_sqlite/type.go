@@ -1,9 +1,12 @@
 package parser_sqlite
 
-import "github.com/gokch/ornn/parser"
+import (
+	"ariga.io/atlas/sql/schema"
+	"github.com/gokch/ornn/parser"
+)
 
-func (t *Parser) ConvType(dbType string) (genType string) {
-	parseType := parser.ParseType(dbType)
+func (t *Parser) ConvType(colType *schema.ColumnType) (genType string) {
+	parseType := parser.ParseType(colType.Raw)
 	switch parseType.Type {
 	case "bool", "boolean":
 		genType = "bool"
