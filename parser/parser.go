@@ -17,14 +17,13 @@ type ParsedQuery struct {
 	QueryType QueryType
 	Query     string
 
-	Tpl []*ParsedQueryField
+	Tpl []*ParsedQueryField // TODO
 	Arg []*ParsedQueryField
 	Ret []*ParsedQueryField
 
 	// options
-	SelectSingle     bool
-	InsertMulti      bool
-	UpdateNullIgnore bool
+	SelectSingle bool
+	InsertMulti  bool
 }
 
 func (t *ParsedQuery) Init(query string) {

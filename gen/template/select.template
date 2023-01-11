@@ -1,0 +1,23 @@
+{{.arg}}
+sql := fmt.Sprintf(
+	"{{.query}}",{{.tpl}}
+)
+ret, err := {{.struct}}.{{.instance}}.Query(
+	sql,
+	args...,
+)
+if err != nil {
+	return nil, err
+}
+defer ret.Close()
+{{.body}}
+for ret.Next() {
+	scan := &{{.scan}}{}
+	err := ret.Scan(scan)
+	if err != nil {
+		return nil, err
+	}
+	{{.retSet}}
+}
+
+return {{.ret}}, nil

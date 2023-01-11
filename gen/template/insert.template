@@ -1,0 +1,14 @@
+{{.arg}}
+sql := fmt.Sprintf(
+	"{{.query}}",{{.tpl}}{{.multi}}
+)
+
+exec, err := {{.struct}}.{{.instance}}.Exec(
+	sql,
+	args...,
+)
+if err != nil {
+	return 0, err
+}
+
+return exec.LastInsertId()

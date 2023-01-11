@@ -167,7 +167,7 @@ func (t *GenCode) genQueryUpdate(funcQuery *codegen.Function, query *parser.Pars
 	t.genQuery_ret_error(funcQuery)
 
 	// body
-	funcQuery.InlineCode = template.Update(args, tpls, query.Query, query.UpdateNullIgnore, "t", "job")
+	funcQuery.InlineCode = template.Update(args, tpls, query.Query, "t", "job")
 }
 
 func (t *GenCode) genQueryDelete(funcQuery *codegen.Function, query *parser.ParsedQuery) {

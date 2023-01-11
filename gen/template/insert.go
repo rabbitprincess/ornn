@@ -18,31 +18,16 @@ func Insert(args []string, tpls []string, query string, insertMulti bool, struct
 	} else { // insert
 		genArgs = genQuery_body_setArgs(args)
 	}
-
-	return fmt.Sprintf(`
-%s
-sql := fmt.Sprintf(
-	"%s",%s%s
-)
-
-exec, err := %s.%s.Exec(
-	sql,
-	args...,
-)
-if err != nil {
-	return 0, err
+	return parseTemplate("insert.template", map[string]interface{}{
+		"arg":      genArgs,
+		"query":    query,
+		"tpl":      genQuery_body_arg(tpls),
+		"multi":    multiInsert,
+		"struct":   structName,
+		"instance": instanceName,
+	})
 }
 
-return exec.LastInsertId()
-`,
-		genArgs,
-		query,
-		genQuery_body_arg(tpls),
-		multiInsert,
-		structName,
-		instanceName,
-	)
-}
 func genQuery_body_multiInsertProc(args []string) (multiInsertProc string) {
 	var checkLen string
 	for i, arg := range args {

@@ -12,39 +12,15 @@ func Select(args []string, tpls []string, query string, selectSingle bool, struc
 		bodyRetDeclare = fmt.Sprintf("\n%s = make(%s, 0, 100)", retItemName, retItemType)
 		bodyRetSet = fmt.Sprintf("%s = append(%s, scan)", retItemName, retItemName)
 	}
-	return fmt.Sprintf(`
-%s
-sql := fmt.Sprintf(
-	"%s",%s
-)
-ret, err := %s.%s.Query(
-	sql,
-	args...,
-)
-if err != nil {
-	return nil, err
-}
-defer ret.Close()
-%s
-for ret.Next() {
-	scan := &%s{}
-	err := ret.Scan(scan)
-	if err != nil {
-		return nil, err
-	}
-	%s
-}
-
-return %s, nil
-`,
-		genQuery_body_setArgs(args),
-		query,
-		genQuery_body_arg(tpls),
-		structName,
-		instanceName,
-		bodyRetDeclare,
-		retName,
-		bodyRetSet,
-		retItemName,
-	)
+	return parseTemplate("select.template", map[string]interface{}{
+		"arg":      genQuery_body_setArgs(args),
+		"query":    query,
+		"tpl":      genQuery_body_arg(tpls),
+		"struct":   structName,
+		"instance": instanceName,
+		"body":     bodyRetDeclare,
+		"scan":     retName,
+		"retSet":   bodyRetSet,
+		"ret":      retItemName,
+	})
 }
