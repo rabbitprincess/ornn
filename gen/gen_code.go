@@ -201,7 +201,7 @@ func (t *GenCode) genQuery_args(funcQuery *codegen.Function, query *parser.Parse
 
 	for _, a := range query.Arg {
 		arg := &codegen.Var{
-			Name: fmt.Sprintf("arg_%s", a.Name),
+			Name: a.Name,
 			Type: a.GoType,
 		}
 		if query.InsertMulti == true {

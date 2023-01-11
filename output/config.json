@@ -16,11 +16,33 @@
 	},
 	"queries": {
 		"class": {
+			"tbltest": [
+				{
+					"name": "insert",
+					"comment": "default query - insert",
+					"sql": "INSERT INTO tbltest VALUES (?, ?, ?, ?)"
+				},
+				{
+					"name": "select",
+					"comment": "default query - select",
+					"sql": "SELECT * FROM tbltest WHERE seq = ?"
+				},
+				{
+					"name": "update",
+					"comment": "default query - update",
+					"sql": "UPDATE tbltest SET seq = ?, id2 = ?, address = ?, registered = ? WHERE seq = ?"
+				},
+				{
+					"name": "delete",
+					"comment": "default query - delete",
+					"sql": "DELETE FROM tbltest WHERE seq = ?"
+				}
+			],
 			"user": [
 				{
 					"name": "insert",
 					"comment": "default query - insert",
-					"sql": "INSERT INTO user VALUES (?, ?, ?)"
+					"sql": "INSERT INTO user VALUES (?, ?, ?, ?)"
 				},
 				{
 					"name": "select",
@@ -30,7 +52,7 @@
 				{
 					"name": "update",
 					"comment": "default query - update",
-					"sql": "UPDATE user SET id = ?, name = ?, seq = ? WHERE seq = ?"
+					"sql": "UPDATE user SET seq = ?, id2 = ?, address = ?, registered = ? WHERE seq = ?"
 				},
 				{
 					"name": "delete",
