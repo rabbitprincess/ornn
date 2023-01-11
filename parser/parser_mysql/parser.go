@@ -57,7 +57,7 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parsedQuery *parser.ParsedQue
 	parsedQuery.QueryType = parser.QueryTypeSelect
 
 	// from
-	table, err := p.parseFrom(stmt.From)
+	tbl, err := p.parseFrom(stmt.From)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parsedQuery *parser.ParsedQue
 	// select
 	fields := stmt.Fields.Fields
 	if len(fields) == 1 && fields[0].WildCard != nil { // select * 일 경우 schema 의 모든 필드 추출
-		for _, col := range table.Columns {
+		for _, col := range tbl.Columns {
 			parsedQuery.Ret = append(parsedQuery.Ret, parser.NewField(col.Name, p.ConvType(col.Type)))
 		}
 	} else {
@@ -73,7 +73,7 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parsedQuery *parser.ParsedQue
 			switch fieldExpr := field.Expr.(type) {
 			case *ast.ColumnNameExpr:
 				colName := fieldExpr.Name.Name.O
-				col, ok := table.Column(colName)
+				col, ok := tbl.Column(colName)
 				if ok != true {
 					parsedQuery.Ret = append(parsedQuery.Ret, parser.NewField(colName, "interface{}"))
 				} else {
@@ -83,7 +83,7 @@ func (p *Parser) parseSelect(stmt *ast.SelectStmt, parsedQuery *parser.ParsedQue
 		}
 	}
 	// where
-	err = p.parseWhere(stmt.Where, table, parsedQuery)
+	err = p.parseWhere(stmt.Where, tbl, parsedQuery)
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parsedQuery *parser.ParsedQue
 	parsedQuery.QueryType = parser.QueryTypeInsert
 
 	// from
-	table, err := p.parseFrom(stmt.Table)
+	tbl, err := p.parseFrom(stmt.Table)
 	if err != nil {
 		return err
 	}
@@ -105,12 +105,12 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parsedQuery *parser.ParsedQue
 	if len(stmt.Lists) != 1 {
 		panic("bulk query is invalid, use bulk options")
 	}
-	colNames := make([]string, len(table.Columns))
+	colNames := make([]string, len(tbl.Columns))
 	if len(stmt.Columns) == 0 { // insert all fields
-		for i, col := range table.Columns {
+		for i, col := range tbl.Columns {
 			colNames[i] = col.Name
 		}
-		if len(table.Columns) != len(stmt.Lists[0]) {
+		if len(tbl.Columns) != len(stmt.Lists[0]) {
 			panic("not same column and value count")
 		}
 
@@ -118,7 +118,7 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parsedQuery *parser.ParsedQue
 			if _, paramMarkerExpr, ok := ParseDriverValue(list); !ok {
 				panic("need more programming")
 			} else if paramMarkerExpr != nil {
-				parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField("val_"+colNames[i], p.ConvType(table.Columns[i].Type)))
+				parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField("val_"+colNames[i], p.ConvType(tbl.Columns[i].Type)))
 			}
 		}
 	} else { // insert specific fields
@@ -130,7 +130,7 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parsedQuery *parser.ParsedQue
 				panic("need more programming")
 			} else if paramMarkerExpr != nil {
 				colName := stmt.Columns[i].Name.O
-				col, ok := table.Column(colName)
+				col, ok := tbl.Column(colName)
 				if ok != true {
 					parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField("val_"+colName, "interface{}"))
 				} else {
@@ -155,7 +155,7 @@ func (p *Parser) parseInsert(stmt *ast.InsertStmt, parsedQuery *parser.ParsedQue
 func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parsedQuery *parser.ParsedQuery) error {
 	parsedQuery.QueryType = parser.QueryTypeUpdate
 
-	table, err := p.parseFrom(stmt.TableRefs)
+	tbl, err := p.parseFrom(stmt.TableRefs)
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parsedQuery *parser.ParsedQue
 	// set
 	for _, set := range stmt.List {
 		colName := set.Column.Name.O
-		col, ok := table.Column(colName)
+		col, ok := tbl.Column(colName)
 		if ok != true {
 			parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField("set_"+colName, "interface{}"))
 		} else {
@@ -172,7 +172,7 @@ func (p *Parser) parseUpdate(stmt *ast.UpdateStmt, parsedQuery *parser.ParsedQue
 	}
 
 	// where
-	err = p.parseWhere(stmt.Where, table, parsedQuery)
+	err = p.parseWhere(stmt.Where, tbl, parsedQuery)
 	if err != nil {
 		return err
 	}
@@ -184,13 +184,13 @@ func (p *Parser) parseDelete(stmt *ast.DeleteStmt, parsedQuery *parser.ParsedQue
 	parsedQuery.QueryType = parser.QueryTypeDelete
 
 	// from
-	table, err := p.parseFrom(stmt.TableRefs)
+	tbl, err := p.parseFrom(stmt.TableRefs)
 	if err != nil {
 		return err
 	}
 
 	// where
-	err = p.parseWhere(stmt.Where, table, parsedQuery)
+	err = p.parseWhere(stmt.Where, tbl, parsedQuery)
 	if err != nil {
 		return err
 	}
