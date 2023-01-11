@@ -18,7 +18,7 @@ func Insert(args []string, tpls []string, query string, insertMulti bool, struct
 	} else { // insert
 		genArgs = genQuery_body_setArgs(args)
 	}
-	return parseTemplate("insert.template", map[string]interface{}{
+	return parseTemplate("sql_insert.template", map[string]interface{}{
 		"arg":      genArgs,
 		"query":    query,
 		"tpl":      genQuery_body_arg(tpls),

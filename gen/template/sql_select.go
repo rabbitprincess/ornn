@@ -12,7 +12,7 @@ func Select(args []string, tpls []string, query string, selectSingle bool, struc
 		bodyRetDeclare = fmt.Sprintf("\n%s = make(%s, 0, 100)", retItemName, retItemType)
 		bodyRetSet = fmt.Sprintf("%s = append(%s, scan)", retItemName, retItemName)
 	}
-	return parseTemplate("select.template", map[string]interface{}{
+	return parseTemplate("sql_select.template", map[string]interface{}{
 		"arg":      genQuery_body_setArgs(args),
 		"query":    query,
 		"tpl":      genQuery_body_arg(tpls),
