@@ -10,7 +10,7 @@ table "newtable" {
   }
   column "seq" {
     null = false
-    type = sql("bigint[]")
+    type = bigint
   }
   primary_key {
     columns = [column.seq]

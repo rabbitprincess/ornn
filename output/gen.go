@@ -28,14 +28,43 @@ type Newtable struct {
 	job *Job
 }
 
+func (t *Newtable) Insert(
+	val_a string,
+	val_b string,
+	val_seq int64,
+) (
+	lastInsertId int64,
+	err error,
+) {
+	args := []interface{}{
+		val_a,
+		val_b,
+		val_seq,
+	}
+	
+	sql := fmt.Sprintf(
+		"INSERT INTO newtable VALUES ($1, $2, $3)",
+	)
+	
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.LastInsertId()
+}
+
 type Newtable_select struct {
 	A   string
 	B   string
-	Seq interface{}
+	Seq int64
 }
 
 func (t *Newtable) Select(
-	where_seq interface{},
+	where_seq int64,
 ) (
 	selects []*Newtable_select,
 	err error,
@@ -70,7 +99,7 @@ func (t *Newtable) Select(
 }
 
 func (t *Newtable) Delete(
-	where_seq interface{},
+	where_seq int64,
 ) (
 	rowAffected int64,
 	err error,
@@ -95,7 +124,10 @@ func (t *Newtable) Delete(
 }
 
 func (t *Newtable) Update(
-	where_seq interface{},
+	val_a string,
+	val_b string,
+	val_seq int64,
+	where_seq int64,
 ) (
 	rowAffected int64,
 	err error,
@@ -104,6 +136,9 @@ func (t *Newtable) Update(
 		"UPDATE newtable SET a = $1, b = $2, seq = $3 WHERE seq = $4",
 	)
 	args := []interface{}{
+		val_a,
+		val_b,
+		val_seq,
 		where_seq,
 	}
 	
@@ -116,34 +151,5 @@ func (t *Newtable) Update(
 	}
 	
 	return exec.RowsAffected()
-}
-
-func (t *Newtable) Insert(
-	val_a string,
-	val_b string,
-	val_seq interface{},
-) (
-	lastInsertId int64,
-	err error,
-) {
-	args := []interface{}{
-		val_a,
-		val_b,
-		val_seq,
-	}
-	
-	sql := fmt.Sprintf(
-		"INSERT INTO newtable VALUES ($1, $2, $3)",
-	)
-	
-	exec, err := t.job.Exec(
-		sql,
-		args...,
-	)
-	if err != nil {
-		return 0, err
-	}
-	
-	return exec.LastInsertId()
 }
 
