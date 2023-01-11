@@ -152,7 +152,6 @@ func (p *Parser) parseInsert(stmt *tree.Insert, parsedQuery *parser.ParsedQuery)
 
 func (p *Parser) parseUpdate(stmt *tree.Update, parsedQuery *parser.ParsedQuery) error {
 	parsedQuery.QueryType = parser.QueryTypeUpdate
-
 	tbl, err := p.parseFrom(stmt.Table)
 	if err != nil {
 		return err
@@ -160,15 +159,15 @@ func (p *Parser) parseUpdate(stmt *tree.Update, parsedQuery *parser.ParsedQuery)
 
 	// set
 	for _, setExpr := range stmt.Exprs {
-		switch fieldExpr := setExpr.Expr.(type) {
-		case *tree.ColumnItem:
-			colName := fieldExpr.ColumnName.String()
-			col, ok := tbl.Column(colName)
-			if ok != true {
-				parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField("val_"+colName, "interface{}"))
-			} else {
-				parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField("val_"+colName, p.ConvType(col.Type.Raw)))
-			}
+		if len(setExpr.Names) != 1 {
+			panic("need more programming")
+		}
+		colName := setExpr.Names[0].String()
+		col, ok := tbl.Column(colName)
+		if ok != true {
+			parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField("val_"+colName, "interface{}"))
+		} else {
+			parsedQuery.Arg = append(parsedQuery.Arg, parser.NewField("val_"+colName, p.ConvType(col.Type.Raw)))
 		}
 	}
 
