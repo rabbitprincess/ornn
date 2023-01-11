@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"ariga.io/atlas/sql/schema"
-	sqlparser "github.com/auxten/postgresql-parser/pkg/sql/parser"
-	"github.com/auxten/postgresql-parser/pkg/sql/sem/tree"
+	sqlparser "github.com/cockroachdb/cockroachdb-parser/pkg/sql/parser"
+	"github.com/cockroachdb/cockroachdb-parser/pkg/sql/sem/tree"
 	"github.com/gokch/ornn/config"
 	"github.com/gokch/ornn/parser"
 )
@@ -28,9 +28,9 @@ func (p *Parser) Parse(sql string) (*parser.ParsedQuery, error) {
 	} else if len(stmtNodes) != 1 {
 		panic("need more programming")
 	}
+
 	parsedQuery := &parser.ParsedQuery{}
 	parsedQuery.Init(sql)
-
 	switch stmt := stmtNodes[0].AST.(type) {
 	case *tree.Select:
 		err = p.parseSelect(stmt, parsedQuery)

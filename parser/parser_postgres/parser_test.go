@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	sqlparser "github.com/auxten/postgresql-parser/pkg/sql/parser"
-	"github.com/auxten/postgresql-parser/pkg/sql/sem/tree"
+	sqlparser "github.com/cockroachdb/cockroachdb-parser/pkg/sql/parser"
+	"github.com/cockroachdb/cockroachdb-parser/pkg/sql/sem/tree"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,8 +16,8 @@ func TestParseMysqlSelect(t *testing.T) {
 	require.Equal(t, 1, len(stmts))
 
 	stmt := stmts[0].AST.(*tree.Select)
-	selectStmt := stmt.Select.(*tree.SelectClause)
-	fmt.Println(selectStmt)
+	// selectStmt := stmt.Select.(*tree.SelectClause)
+	fmt.Println(stmt)
 }
 
 func TestParseMysqlInsert(t *testing.T) {

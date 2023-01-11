@@ -1,8 +1,6 @@
 package parser_postgres
 
-import (
-	"github.com/auxten/postgresql-parser/pkg/sql/sem/tree"
-)
+import "github.com/cockroachdb/cockroachdb-parser/pkg/sql/sem/tree"
 
 func ParseDriverValue(node tree.Expr) (*tree.NumVal, *tree.StrVal, *tree.Placeholder, bool) {
 	switch data := node.(type) {
