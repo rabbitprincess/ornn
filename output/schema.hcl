@@ -1,20 +1,20 @@
-table "user" {
-  schema = schema.main
-  column "id" {
+table "newtable" {
+  schema = schema.public
+  column "a" {
     null = true
-    type = text
+    type = character_varying
   }
-  column "name" {
+  column "b" {
     null = true
-    type = text
+    type = character_varying
   }
   column "seq" {
-    null = true
-    type = integer
+    null = false
+    type = sql("bigint[]")
   }
   primary_key {
     columns = [column.seq]
   }
 }
-schema "main" {
+schema "public" {
 }

@@ -9,41 +9,41 @@ import (
 )
 
 type Gen struct {
-	User User
+	Newtable Newtable
 }
 
 func (t *Gen) Init(
 	job *Job,
 ) {
-	t.User.Init(job)
+	t.Newtable.Init(job)
 }
 
-func (t *User) Init(
+func (t *Newtable) Init(
 	job *Job,
 ) {
 	t.job = job
 }
 
-type User struct {
+type Newtable struct {
 	job *Job
 }
 
-func (t *User) Insert(
-	val_id string,
-	val_name string,
-	val_seq int32,
+func (t *Newtable) Insert(
+	val_a string,
+	val_b string,
+	val_seq interface{},
 ) (
 	lastInsertId int64,
 	err error,
 ) {
 	args := []interface{}{
-		val_id,
-		val_name,
+		val_a,
+		val_b,
 		val_seq,
 	}
 	
 	sql := fmt.Sprintf(
-		"INSERT INTO user VALUES (?, ?, ?)",
+		"INSERT INTO newtable VALUES ($1, $2, $3)",
 	)
 	
 	exec, err := t.job.Exec(
@@ -57,16 +57,16 @@ func (t *User) Insert(
 	return exec.LastInsertId()
 }
 
-type User_select struct {
-	Id   string
-	Name string
-	Seq  int32
+type Newtable_select struct {
+	A   string
+	B   string
+	Seq interface{}
 }
 
-func (t *User) Select(
-	where_seq int32,
+func (t *Newtable) Select(
+	where_seq interface{},
 ) (
-	selects []*User_select,
+	selects []*Newtable_select,
 	err error,
 ) {
 	args := []interface{}{
@@ -74,7 +74,7 @@ func (t *User) Select(
 	}
 	
 	sql := fmt.Sprintf(
-		"SELECT * FROM user WHERE seq = ?",
+		"SELECT * FROM newtable WHERE seq = $1",
 	)
 	ret, err := t.job.Query(
 		sql,
@@ -85,9 +85,9 @@ func (t *User) Select(
 	}
 	defer ret.Close()
 	
-	selects = make([]*User_select, 0, 100)
+	selects = make([]*Newtable_select, 0, 100)
 	for ret.Next() {
-		scan := &User_select{}
+		scan := &Newtable_select{}
 		err := ret.Scan(scan)
 		if err != nil {
 			return nil, err
@@ -98,22 +98,16 @@ func (t *User) Select(
 	return selects, nil
 }
 
-func (t *User) Update(
-	set_id string,
-	set_name string,
-	set_seq int32,
-	where_seq int32,
+func (t *Newtable) Update(
+	where_seq interface{},
 ) (
 	rowAffected int64,
 	err error,
 ) {
 	sql := fmt.Sprintf(
-		"UPDATE user SET id = ?, name = ?, seq = ? WHERE seq = ?",
+		"UPDATE newtable SET a = $1, b = $2, seq = $3 WHERE seq = $4",
 	)
 	args := []interface{}{
-		set_id,
-		set_name,
-		set_seq,
 		where_seq,
 	}
 	
@@ -128,8 +122,8 @@ func (t *User) Update(
 	return exec.RowsAffected()
 }
 
-func (t *User) Delete(
-	where_seq int32,
+func (t *Newtable) Delete(
+	where_seq interface{},
 ) (
 	rowAffected int64,
 	err error,
@@ -139,7 +133,7 @@ func (t *User) Delete(
 	}
 	
 	sql := fmt.Sprintf(
-		"DELETE FROM user WHERE seq = ?",
+		"DELETE FROM newtable WHERE seq = $1",
 	)
 			
 	exec, err := t.job.Exec(

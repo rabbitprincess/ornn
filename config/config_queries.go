@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"ariga.io/atlas/sql/schema"
+	"github.com/gokch/ornn/atlas"
 )
 
 type Queries struct {
@@ -33,11 +34,15 @@ func (t *Queries) InitDefaultQueryTables() error {
 func (t *Queries) initQueryTable(table *schema.Table) error {
 	// insert all
 	var insertQuestionare string
-	for _, col := range table.Columns {
-		if col.Name == table.PrimaryKey.Name {
+	for i, col := range table.Columns {
+		if table.PrimaryKey != nil && col.Name == table.PrimaryKey.Name {
 			insertQuestionare += "NULL, "
 		} else {
-			insertQuestionare += "?, "
+			if t.schema.DbType == atlas.DbTypePostgre || t.schema.DbType == atlas.DbTypeCockroachDB {
+				insertQuestionare += fmt.Sprintf("$%d, ", i+1)
+			} else {
+				insertQuestionare += "?, "
+			}
 		}
 	}
 	insertQuestionare = insertQuestionare[:len(insertQuestionare)-2]
@@ -47,11 +52,17 @@ func (t *Queries) initQueryTable(table *schema.Table) error {
 		Sql:     fmt.Sprintf("INSERT INTO %s VALUES (%s)", table.Name, insertQuestionare),
 	})
 
+	// where
+	var i int
 	var where string
-	if len(table.PrimaryKey.Parts) == 1 {
+	if table.PrimaryKey != nil && len(table.PrimaryKey.Parts) == 1 {
 		pkName := table.PrimaryKey.Parts[0].C.Name // TODO
 		if pkName != "" {
-			where = fmt.Sprintf(" WHERE %s = ?", pkName)
+			if t.schema.DbType == atlas.DbTypePostgre || t.schema.DbType == atlas.DbTypeCockroachDB {
+				where = fmt.Sprintf(" WHERE %s = $%d", pkName, i+1)
+			} else {
+				where = fmt.Sprintf(" WHERE %s = ?", pkName)
+			}
 		}
 	}
 
@@ -62,26 +73,44 @@ func (t *Queries) initQueryTable(table *schema.Table) error {
 		Sql:     fmt.Sprintf("SELECT * FROM %s%s", table.Name, where),
 	})
 
-	// update
-	setQuestionaire := ""
-	for _, col := range table.Columns {
-		if col.Name == table.PrimaryKey.Name {
-			continue
-		}
-		setQuestionaire += fmt.Sprintf("%s = ?, ", col.Name)
-	}
-	setQuestionaire = setQuestionaire[:len(setQuestionaire)-2]
-	t.AddQuery(table.Name, &Query{
-		Name:    "update",
-		Comment: "default query - update",
-		Sql:     fmt.Sprintf("UPDATE %s SET %s%s", table.Name, setQuestionaire, where),
-	})
-
 	// delete
 	t.AddQuery(table.Name, &Query{
 		Name:    "delete",
 		Comment: "default query - delete",
 		Sql:     fmt.Sprintf("DELETE FROM %s%s", table.Name, where),
+	})
+
+	// set
+	setQuestionaire := ""
+	var col *schema.Column
+	for i, col = range table.Columns {
+		if col.Name == table.PrimaryKey.Name {
+			continue
+		}
+		if t.schema.DbType == atlas.DbTypePostgre || t.schema.DbType == atlas.DbTypeCockroachDB {
+			setQuestionaire += fmt.Sprintf("%s = $%d, ", col.Name, i+1)
+		} else {
+			setQuestionaire += fmt.Sprintf("%s = ?, ", col.Name)
+		}
+	}
+	setQuestionaire = setQuestionaire[:len(setQuestionaire)-2]
+
+	// where ( update )
+	if table.PrimaryKey != nil && len(table.PrimaryKey.Parts) == 1 {
+		pkName := table.PrimaryKey.Parts[0].C.Name // TODO
+		if pkName != "" {
+			if t.schema.DbType == atlas.DbTypePostgre || t.schema.DbType == atlas.DbTypeCockroachDB {
+				where = fmt.Sprintf(" WHERE %s = $%d", pkName, i+2)
+			} else {
+				where = fmt.Sprintf(" WHERE %s = ?", pkName)
+			}
+		}
+	}
+	// update
+	t.AddQuery(table.Name, &Query{
+		Name:    "update",
+		Comment: "default query - update",
+		Sql:     fmt.Sprintf("UPDATE %s SET %s%s", table.Name, setQuestionaire, where),
 	})
 
 	return nil
