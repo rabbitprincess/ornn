@@ -1,4 +1,4 @@
-package sql
+package util
 
 import (
 	"fmt"

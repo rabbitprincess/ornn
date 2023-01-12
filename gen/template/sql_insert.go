@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gokch/ornn/gen/sql"
+	"github.com/gokch/ornn/gen/util"
 )
 
 func Insert(args []string, tpls []string, query string, insertMulti bool, structName, instanceName string) string {
 	var multiInsert, genArgs string
 	if insertMulti == true { // multi insert
-		queryVal := sql.Util_ExportInsertQueryValues(query)
+		queryVal := util.Util_ExportInsertQueryValues(query)
 		query = strings.TrimSuffix(query, ";")
 		query += "%s"
 		genArgs = genQuery_body_multiInsertProc(args)

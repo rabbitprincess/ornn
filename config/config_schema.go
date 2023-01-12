@@ -2,7 +2,7 @@ package config
 
 import (
 	"ariga.io/atlas/sql/schema"
-	"github.com/gokch/ornn/atlas"
+	"github.com/gokch/ornn/config/atlas"
 )
 
 type Schema struct {

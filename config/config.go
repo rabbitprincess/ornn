@@ -5,13 +5,16 @@ import (
 	"io/ioutil"
 
 	"ariga.io/atlas/sql/schema"
-	"github.com/gokch/ornn/atlas"
+	"github.com/gokch/ornn/config/atlas"
+	"github.com/gokch/ornn/parser"
 )
 
 type Config struct {
 	Global  Global  `json:"global"`
-	Schema  Schema  `json:"-"`
 	Queries Queries `json:"queries"`
+
+	Schema Schema        `json:"-"`
+	Psr    parser.Parser `json:"-"`
 }
 
 // TODO - 추후 config 형식 변경 예정

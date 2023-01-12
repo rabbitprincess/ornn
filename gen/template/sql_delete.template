@@ -2,7 +2,7 @@
 sql := fmt.Sprintf(
 	"{{.query}}",{{.tpl}}
 )
-		
+
 exec, err := {{.struct}}.{{.instance}}.Exec(
 	sql,
 	args...,

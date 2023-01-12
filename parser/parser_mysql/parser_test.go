@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gokch/ornn/atlas"
 	"github.com/gokch/ornn/config"
+	"github.com/gokch/ornn/config/atlas"
 	"github.com/gokch/ornn/db/db_mysql"
 	tiparser "github.com/pingcap/tidb/parser"
 	"github.com/pingcap/tidb/parser/ast"
