@@ -8,5 +8,4 @@ func Update(args []string, tpls []string, query string, structName, instanceName
 		"struct":   structName,
 		"instance": instanceName,
 	})
-
 }

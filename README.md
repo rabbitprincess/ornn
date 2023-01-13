@@ -49,7 +49,7 @@ Flags:
   -A, --db_addr string            database server address (default "127.0.0.1")
   -i, --db_id string              database server id
   -n, --db_name string            database name
-      --db_path string            path for save db files. sqlite only (default "./output")
+      --db_path string            path for save db files. sqlite only (default "./output/sqlite-database.db")
   -P, --db_port string            database server port (default "3306")
   -p, --db_pw string              database server password
   -D, --db_type string            database type ( mysql, mariadb, postgres, sqlite, tidb, cockroachdb ) (default "mysql")
