@@ -22,7 +22,7 @@ func (t *Queries) init(schema *Schema) {
 
 func (t *Queries) InitDefaultQueryTables() error {
 	for _, table := range t.schema.Tables {
-		err := t.initQueryTable(table)
+		err := t.initDefaultQueryTable(table)
 		if err != nil {
 			return err
 		}
@@ -31,7 +31,7 @@ func (t *Queries) InitDefaultQueryTables() error {
 }
 
 // TODO : 작업 예정
-func (t *Queries) initQueryTable(table *schema.Table) error {
+func (t *Queries) initDefaultQueryTable(table *schema.Table) error {
 	// insert all
 	var insertQuestionare string
 	for i, col := range table.Columns {

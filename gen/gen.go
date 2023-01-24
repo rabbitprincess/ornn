@@ -12,7 +12,7 @@ type Gen struct {
 	code *GenCode
 }
 
-func (t *Gen) Gen(conf *config.Config, psr parser.Parser, path string) (code string, err error) {
+func (t *Gen) Gen(conf *config.Config, psr parser.Parser) (code string, err error) {
 	// set query data for generate code
 	t.data = &GenQueries{}
 	t.data.Init(conf, psr)

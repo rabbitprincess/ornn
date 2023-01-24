@@ -9,41 +9,79 @@ import (
 )
 
 type Gen struct {
-	Newtable Newtable
+	User User
 }
 
 func (t *Gen) Init(
 	job *Job,
 ) {
-	t.Newtable.Init(job)
+	t.User.Init(job)
 }
 
-func (t *Newtable) Init(
+func (t *User) Init(
 	job *Job,
 ) {
 	t.job = job
 }
 
-type Newtable struct {
+type User struct {
 	job *Job
 }
 
-func (t *Newtable) Insert(
-	val_a string,
-	val_b string,
-	val_seq int64,
+func (t *User) Update(
+	set_seq uint64,
+	set_id string,
+	set_ord *int64,
+	set_name *string,
+	set_pw []byte,
+	where_seq uint64,
+) (
+	rowAffected int64,
+	err error,
+) {
+	sql := fmt.Sprintf(
+		"UPDATE user SET seq = ?, id = ?, ord = ?, name = ?, pw = ? WHERE seq = ?",
+	)
+	args := []interface{}{
+		set_seq,
+		set_id,
+		set_ord,
+		set_name,
+		set_pw,
+		where_seq,
+	}
+	
+	exec, err := t.job.Exec(
+		sql,
+		args...,
+	)
+	if err != nil {
+		return 0, err
+	}
+	
+	return exec.RowsAffected()
+}
+
+func (t *User) Insert(
+	val_seq uint64,
+	val_id string,
+	val_ord *int64,
+	val_name *string,
+	val_pw []byte,
 ) (
 	lastInsertId int64,
 	err error,
 ) {
 	args := []interface{}{
-		val_a,
-		val_b,
 		val_seq,
+		val_id,
+		val_ord,
+		val_name,
+		val_pw,
 	}
 	
 	sql := fmt.Sprintf(
-		"INSERT INTO newtable VALUES ($1, $2, $3)",
+		"INSERT INTO user VALUES (?, ?, ?, ?, ?)",
 	)
 	
 	exec, err := t.job.Exec(
@@ -57,16 +95,18 @@ func (t *Newtable) Insert(
 	return exec.LastInsertId()
 }
 
-type Newtable_select struct {
-	A   string
-	B   string
-	Seq int64
+type User_select struct {
+	Seq  uint64
+	Id   string
+	Ord  *int64
+	Name *string
+	Pw   []byte
 }
 
-func (t *Newtable) Select(
-	where_seq int64,
+func (t *User) Select(
+	where_seq uint64,
 ) (
-	selects []*Newtable_select,
+	selects []*User_select,
 	err error,
 ) {
 	args := []interface{}{
@@ -74,7 +114,7 @@ func (t *Newtable) Select(
 	}
 	
 	sql := fmt.Sprintf(
-		"SELECT * FROM newtable WHERE seq = $1",
+		"SELECT * FROM user WHERE seq = ?",
 	)
 	ret, err := t.job.Query(
 		sql,
@@ -85,9 +125,9 @@ func (t *Newtable) Select(
 	}
 	defer ret.Close()
 	
-	selects = make([]*Newtable_select, 0, 100)
+	selects = make([]*User_select, 0, 100)
 	for ret.Next() {
-		scan := &Newtable_select{}
+		scan := &User_select{}
 		err := ret.Scan(scan)
 		if err != nil {
 			return nil, err
@@ -98,8 +138,8 @@ func (t *Newtable) Select(
 	return selects, nil
 }
 
-func (t *Newtable) Delete(
-	where_seq int64,
+func (t *User) Delete(
+	where_seq uint64,
 ) (
 	rowAffected int64,
 	err error,
@@ -109,38 +149,8 @@ func (t *Newtable) Delete(
 	}
 	
 	sql := fmt.Sprintf(
-		"DELETE FROM newtable WHERE seq = $1",
+		"DELETE FROM user WHERE seq = ?",
 	)
-			
-	exec, err := t.job.Exec(
-		sql,
-		args...,
-	)
-	if err != nil {
-		return 0, err
-	}
-	
-	return exec.RowsAffected()
-}
-
-func (t *Newtable) Update(
-	val_a string,
-	val_b string,
-	val_seq int64,
-	where_seq int64,
-) (
-	rowAffected int64,
-	err error,
-) {
-	sql := fmt.Sprintf(
-		"UPDATE newtable SET a = $1, b = $2, seq = $3 WHERE seq = $4",
-	)
-	args := []interface{}{
-		val_a,
-		val_b,
-		val_seq,
-		where_seq,
-	}
 	
 	exec, err := t.job.Exec(
 		sql,

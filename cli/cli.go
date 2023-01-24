@@ -62,6 +62,7 @@ var (
 	schemaFilePath string
 	configFilePath string
 	genFilePath    string
+	genFileName    string
 	packageName    string
 	className      string
 	doNotEdit      string
@@ -82,7 +83,8 @@ func init() {
 	fs.BoolVar(&loadExistConfigFile, "file_config_load", false, "load config from existing file")
 	fs.StringVar(&schemaFilePath, "file_schema_path", "./output/schema.hcl", "schema hcl file path")
 	fs.StringVar(&configFilePath, "file_config_path", "./output/config.json", "config json file path")
-	fs.StringVar(&genFilePath, "file_gen_path", "./output/gen.go", "generate golang file path")
+	fs.StringVar(&genFilePath, "file_gen_path", "./output/", "generate golang file path")
+	fs.StringVar(&genFileName, "file_gen_name", "gen.go", "generate golang file path")
 	fs.StringVar(&packageName, "gen_package_name", "gen", "package name")
 	fs.StringVar(&className, "gen_class_name", "Gen", "class name")
 	fs.StringVar(&doNotEdit, "gen_do_not_edit", "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n", "do not edit comment")
@@ -138,11 +140,11 @@ func rootRun(cmd *cobra.Command, args []string) {
 		if err = conf.Load(configFilePath); err != nil { // load
 			logger.Fatal().Err(err).Msg("config load error")
 		}
-		if err = conf.Init(atlasDbType, sch, packageName, className, doNotEdit); err != nil { // init
+		if err = conf.Init(atlasDbType, sch, genFilePath, genFileName, packageName, className, doNotEdit); err != nil { // init
 			logger.Fatal().Err(err).Msg("config init error")
 		}
 	} else {
-		if err = conf.Init(atlasDbType, sch, packageName, className, doNotEdit); err != nil { // init
+		if err = conf.Init(atlasDbType, sch, genFilePath, genFileName, packageName, className, doNotEdit); err != nil { // init
 			logger.Fatal().Err(err).Msg("config init error")
 		}
 		if err = conf.Save(configFilePath); err != nil { // save
@@ -167,7 +169,7 @@ func rootRun(cmd *cobra.Command, args []string) {
 	var gen *gen.ORNN = &gen.ORNN{}
 	{
 		gen.Init(conf, psr)
-		if err = gen.GenCode(genFilePath); err != nil { // code generate
+		if err = gen.GenCode(); err != nil { // code generate
 			logger.Fatal().Err(err).Msg("code generate error")
 		}
 	}

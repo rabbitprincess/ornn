@@ -1,5 +1,7 @@
 {
 	"global": {
+		"file_path": "./output/",
+		"file_name": "gen.go",
 		"do_not_edit": "// Code generated - DO NOT EDIT.\n// This file is a generated and any changes will be lost.\n",
 		"package_name": "gen",
 		"class_name": "Gen",
@@ -16,26 +18,26 @@
 	},
 	"queries": {
 		"class": {
-			"newtable": [
+			"user": [
 				{
 					"name": "insert",
 					"comment": "default query - insert",
-					"sql": "INSERT INTO newtable VALUES ($1, $2, $3)"
+					"sql": "INSERT INTO user VALUES (?, ?, ?, ?, ?)"
 				},
 				{
 					"name": "select",
 					"comment": "default query - select",
-					"sql": "SELECT * FROM newtable WHERE seq = $1"
+					"sql": "SELECT * FROM user WHERE seq = ?"
 				},
 				{
 					"name": "delete",
 					"comment": "default query - delete",
-					"sql": "DELETE FROM newtable WHERE seq = $1"
+					"sql": "DELETE FROM user WHERE seq = ?"
 				},
 				{
 					"name": "update",
 					"comment": "default query - update",
-					"sql": "UPDATE newtable SET a = $1, b = $2, seq = $3 WHERE seq = $4"
+					"sql": "UPDATE user SET seq = ?, id = ?, ord = ?, name = ?, pw = ? WHERE seq = ?"
 				}
 			]
 		}

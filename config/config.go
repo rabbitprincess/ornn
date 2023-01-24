@@ -30,8 +30,10 @@ func (t *Config) Load(path string) error {
 	return nil
 }
 
-func (t *Config) Init(dbType atlas.DbType, schema *schema.Schema, packageName, className, doNotEdit string) error {
+func (t *Config) Init(dbType atlas.DbType, schema *schema.Schema, filePath, fileName, packageName, className, doNotEdit string) error {
 	// init global config
+	t.Global.FilePath = filePath
+	t.Global.FileName = fileName
 	t.Global.PackageName = packageName
 	t.Global.ClassName = className
 	t.Global.DoNotEdit = doNotEdit
