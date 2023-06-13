@@ -20,6 +20,7 @@ built in atlas ( https://github.com/ariga/atlas )
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/gokch/ornn/cli"
@@ -27,6 +28,7 @@ import (
 
 func main() {
 	if err := cli.Run(os.Args[1:]); err != nil {
+		fmt.Errorf("error : %v", err)
 		os.Exit(1)
 	}
 }
