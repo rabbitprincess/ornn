@@ -68,4 +68,4 @@ Flags:
 
 Example
 
-    ./ornn -A 127.0.0.1 -P 3306 -i root -p 1234 -n db_name
+    ./ornn -D mysql -A 127.0.0.1 -P 3306 -i root -p 1234 -n db_name
