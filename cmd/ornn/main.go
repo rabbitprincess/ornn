@@ -1,13 +1,11 @@
-package gen
+package ornn
 
 import (
 	"os"
-
-	"github.com/gokch/ornn/cli"
 )
 
 func main() {
-	if err := cli.Run(os.Args[1:]); err != nil {
+	if err := Run(os.Args[1:]); err != nil {
 		os.Exit(1)
 	}
 }

@@ -5,7 +5,7 @@
 //	import (
 //		"os"
 //
-//	    ornn "https://github.com/gokch/ornn/cli"
+//	    ornn "https://github.com/gokch/ornn/cmd/ornn"
 //	)
 //
 //	func main() {
@@ -13,7 +13,7 @@
 //			os.Exit(1)
 //		}
 //	}
-package cli
+package ornn
 
 import (
 	"github.com/rs/zerolog/log"
